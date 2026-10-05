@@ -136,62 +136,84 @@ erDiagram
 
 ---
 
-## 1.3 Medios
+## 1.3 Medios ✅
 
 ```mermaid
 erDiagram
-    STORED_FILE ||--o| MEDIA_ASSET : ""
+    STORED_FILE ||--o{ MEDIA_ASSET : "archivo / difuminado"
     MEDIA_FOLDER ||--o{ MEDIA_ASSET : ""
     MEDIA_FOLDER ||--o{ MEDIA_FOLDER : "subcarpeta"
     MEDIA_ASSET }o--o{ MEDIA_TAG : "media_asset_tag"
+    USER_ACCOUNT ||--o{ MEDIA_ASSET : "sube / revisa"
     ALBUM ||--o{ ALBUM_ITEM : ""
     MEDIA_ASSET ||--o{ ALBUM_ITEM : ""
     COURSE ||--o{ ALBUM : "visibilidad por curso"
+    MEDIA_ASSET ||--o{ SITE_SETTINGS : "logo / favicon"
 
     STORED_FILE {
-        varchar storage_key UK "ruta en S3"
+        varchar storage_key UK "ruta en S3/MinIO"
         varchar original_name
         varchar content_type
         bigint size_bytes
-        varchar sha256
+        varchar sha256 "detecta duplicados"
         int width
         int height
-        json variants "webp/avif por tamaño"
-        varchar scan_status "PENDING, CLEAN, INFECTED"
+        json variants "WebP/AVIF por ancho (MED-02)"
+        varchar scan_status "PENDING, CLEAN, INFECTED (SEG-03)"
     }
     MEDIA_ASSET {
-        bigint file_id FK
         varchar kind "IMAGE, VIDEO, EMBEDDED_VIDEO, DOCUMENT"
-        varchar embed_url "YouTube/Vimeo"
-        varchar alt_text "obligatorio en imágenes (ACC-02)"
+        bigint file_id FK "CHECK: archivo o embed_url"
+        varchar embed_url "solo YouTube/Vimeo"
+        varchar alt_text "obligatorio para aprobar imágenes (ACC-02)"
+        varchar caption
         varchar credits "Ley 17.336"
-        boolean shows_minors
-        varchar review_status "PENDING_REVIEW, APPROVED, REJECTED"
-        json blur_regions "MED-07"
+        bigint folder_id FK
+        date taken_on
+        bigint uploaded_by_id FK
+        varchar review_status "NOT_REQUIRED, PENDING_REVIEW, APPROVED, REJECTED"
+        bigint reviewed_by_id FK
+        datetime reviewed_at
+        varchar review_note
+        json blur_regions "List<BlurRegion> (MED-07)"
         bigint blurred_file_id FK
         datetime withdrawn_at "MED-09"
+        varchar withdrawal_reason
+    }
+    MEDIA_TAG {
+        varchar name UK "en minúsculas"
+    }
+    MEDIA_FOLDER {
+        varchar name
+        bigint parent_id FK
     }
     ALBUM {
-        varchar slug
+        varchar slug UK
         varchar title
         date taken_on
         varchar visibility "PUBLIC, COMMUNITY, COURSE"
-        bigint course_id FK
-        varchar review_status "MED-06"
-        bigint reviewed_by FK
-        boolean download_allowed
+        bigint course_id FK "CHECK: solo con COURSE"
+        varchar status "DRAFT, PUBLISHED"
+        datetime published_at
+        bigint cover_id FK
+        boolean download_allowed "MED-11"
     }
     ALBUM_ITEM {
         bigint album_id FK
-        bigint media_asset_id FK
+        bigint asset_id FK "UK con album_id"
         int sort_order
     }
 ```
 
-- En esta iteración `site_settings` gana `logo_asset_id` y `favicon_asset_id` (FK a `media_asset`).
+- **La revisión es por foto, no por álbum.** Una misma foto se usa en álbumes, noticias y bloques; su autorización y su retiro
+  valen en todos lados. Toda imagen o video nace `PENDING_REVIEW`; los documentos, `NOT_REQUIRED`.
+- `MediaAsset.isDisplayable()` es **la única regla** que consulta todo lo que muestra medios: aprobado o exento, y no retirado.
+- Un álbum no se publica con fotos pendientes. Una foto agregada a un álbum ya publicado queda oculta hasta que la aprueben.
+- Imágenes sin personas (logo, fachada) se eximen con `exemptFromReview()`; el asistente de primer arranque lo hace con el logo.
+- El difuminado guarda las zonas en fracciones (0 a 1) y una versión ya procesada (`blurred_file`), que es la que se publica.
 - El EXIF se borra **antes** de guardar el archivo (MED-10): `stored_file` nunca contiene GPS.
-- `withdrawn_at` saca una foto de todos los álbumes y noticias a la vez (las vistas filtran por él).
-- Un álbum con menores nace `PENDING_REVIEW` y no se publica hasta que el gestor de consentimientos lo aprueba.
+- Un medio que está en un álbum no se puede borrar (llave foránea): el camino normal es retirarlo.
+- MED-12 (nombres de estudiantes junto a fotos) se valida en el servicio, cuando exista el registro de estudiantes (1.5).
 
 ---
 

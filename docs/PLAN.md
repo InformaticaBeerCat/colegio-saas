@@ -52,6 +52,7 @@ colegio-saas/
         ├── audit/      registro de auditoría
         ├── site/       diseño, accesos rápidos, alerta global
         ├── page/       páginas por bloques y menús
+        ├── media/      archivos, biblioteca, revisión de imagen y álbumes
         └── structure/  niveles y cursos
 ```
 
@@ -70,7 +71,7 @@ entidades, repositorios, su migración Flyway y tests de persistencia.
 |---|---|---|
 | 1.1 Núcleo | `BaseEntity`, `SingletonEntity`, `School` (perfil), `Feature`/`Plan`, `UserAccount`/`Role`, `AuditLogEntry` | ✅ |
 | 1.2 Sitio y estructura | `SiteSettings` (diseño JSON), `Page` (bloques JSON), `MenuItem`, `QuickLink`, `SiteAlert`, `GradeLevel`, `Course` | ✅ |
-| 1.3 Medios | `StoredFile`, `MediaFolder`, `MediaAsset`, `MediaTag`, `Album`, `AlbumItem` | ⬜ |
+| 1.3 Medios | `StoredFile`, `MediaFolder`, `MediaAsset`, `MediaTag`, `Album`, `AlbumItem`; logo y favicon del sitio | ✅ |
 | 1.4 Contenido y documentos | `NewsArticle`, `NewsCategory`, `Announcement`, `Event`, `FaqCategory`, `FaqEntry`, `Workshop`, `InfoSheet`, `InstitutionalDocument`, `DocumentVersion` | ⬜ |
 | 1.5 Privacidad y consentimientos | Cifrado de columnas, `LegalText`, `ConsentRecord`, `DataSubjectRequest`, `RetentionPolicy`, `SecurityIncident`, `Student`, `ImageConsent` | ⬜ |
 | 1.6 Interacción | `ContactArea`, `Inquiry`, `InquiryNote`, `AppointmentType`, `AvailabilityRule`, `AvailabilityBlock`, `Holiday`, `Appointment`, `EventRegistration`, `AdmissionSettings`, `AdmissionMilestone`, `Vacancy`, `Prospect` | ⬜ |

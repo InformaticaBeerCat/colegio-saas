@@ -1,5 +1,10 @@
 package cl.colegiosaas.site;
 
+import cl.colegiosaas.media.MediaAsset;
+import cl.colegiosaas.media.MediaAssetRepository;
+import cl.colegiosaas.media.MediaKind;
+import cl.colegiosaas.media.StoredFile;
+import cl.colegiosaas.media.StoredFileRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
@@ -24,6 +29,12 @@ class SiteSettingsRepositoryTest {
 
     @Autowired
     JdbcTemplate jdbc;
+
+    @Autowired
+    StoredFileRepository files;
+
+    @Autowired
+    MediaAssetRepository assets;
 
     @Test
     void designAndSocialLinksSurviveAJsonRoundTrip() {
@@ -71,6 +82,18 @@ class SiteSettingsRepositoryTest {
 
         assertThat(repository.findSingleton().orElseThrow().getPublishedDesign().palette().primary())
                 .isEqualTo(HexColor.of("#7A1F2B"));
+    }
+
+    @Test
+    void logoIsAMediaAssetOfTheLibrary() {
+        StoredFile file = files.save(new StoredFile("brand/logo.svg", "logo.svg", "image/svg+xml", 512, "b".repeat(64)));
+        MediaAsset logo = assets.save(MediaAsset.upload(MediaKind.IMAGE, file, null));
+        SiteSettings settings = new SiteSettings(SiteDesign.defaults());
+        settings.setLogo(logo);
+        repository.saveAndFlush(settings);
+        em.clear();
+
+        assertThat(repository.findSingleton().orElseThrow().getLogo().getId()).isEqualTo(logo.getId());
     }
 
     @Test
