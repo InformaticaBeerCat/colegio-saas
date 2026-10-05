@@ -56,75 +56,81 @@ erDiagram
 
 ---
 
-## 1.2 Sitio y estructura del colegio
+## 1.2 Sitio y estructura del colegio ✅
 
 ```mermaid
 erDiagram
-    SITE_SETTINGS ||--o| MEDIA_ASSET : "logo"
     PAGE ||--o{ MENU_ITEM : "enlaza"
     MENU_ITEM ||--o{ MENU_ITEM : "submenú"
     GRADE_LEVEL ||--o{ COURSE : ""
 
     SITE_SETTINGS {
         bigint id PK "siempre 1 (SingletonEntity)"
-        varchar theme_key "aurora, ..."
-        varchar theme_variant
-        json published_tokens "paleta, fuentes, radios"
-        json draft_tokens "vista previa CFG-08"
-        bigint logo_id FK
-        json social_links
-        varchar whatsapp_number "COM-03"
+        json published_design "SiteDesign: tema, paleta, fuentes, radios…"
+        json draft_design "vista previa CFG-08"
+        json social_links "List<SocialLink>"
+        varchar whatsapp_number "COM-03, +569…"
+        varchar footer_text
     }
     PAGE {
         varchar slug UK
         varchar title
-        varchar kind "HOME, ABOUT, PEI, LEVELS, COEXISTENCE, CUSTOM…"
+        varchar kind "HOME, ABOUT, PEI, LEVELS, FACILITIES, COEXISTENCE, CUSTOM"
         varchar section "MAIN, PARENTS_CENTER, STUDENT_COUNCIL, ALUMNI"
         varchar status "DRAFT, PUBLISHED"
-        json published_blocks
-        json draft_blocks
-        varchar seo_title
-        varchar seo_description
+        json draft_blocks "List<Block>"
+        json published_blocks "nulo si nunca se publicó"
+        datetime published_at
+        varchar meta_title
+        varchar meta_description
         boolean noindex
     }
     MENU_ITEM {
         varchar menu "HEADER, FOOTER"
         varchar label
-        bigint page_id FK "o url externa"
+        bigint page_id FK "CHECK: página o url, no ambas"
         varchar url
         bigint parent_id FK
-        int position
+        int sort_order
     }
     QUICK_LINK {
         varchar label "Napsis, Classroom, Pago mensualidad…"
         varchar url
         varchar icon
-        int position
+        int sort_order
+        boolean active
     }
     SITE_ALERT {
         varchar message
         varchar severity "INFO, WARNING, EMERGENCY"
+        varchar link_url
         boolean active
         datetime starts_at
         datetime ends_at
     }
     GRADE_LEVEL {
-        varchar name "1° Básico"
-        varchar stage "PRESCHOOL, PRIMARY, SECONDARY"
-        varchar track "HC, TP (solo media)"
-        int position
+        varchar name UK "1° Básico"
+        varchar stage "EARLY_CHILDHOOD, PRIMARY, SECONDARY"
+        varchar track "SCIENTIFIC_HUMANISTIC, TECHNICAL_PROFESSIONAL, ARTISTIC (solo media)"
+        int sort_order
     }
     COURSE {
         bigint grade_level_id FK
-        varchar section "A, B…"
-        int academic_year
+        varchar section "A, B… o vacío"
+        int academic_year "UK con nivel y sección"
     }
 ```
 
-- **Bloques como JSON** (`PAGE.published_blocks`): en Java es una `sealed interface Block` con un `record` por tipo
-  (`HeroBlock`, `StatsBlock`, `LatestNewsBlock`…). Agregar un bloque no exige migración.
+- **Diseño como JSON** (`SiteDesign`): tema, variante, paleta (`HexColor`), tipografías, radios, sombras y esquema de color
+  en un solo `record` inmutable. Borrador y publicado se comparan con `equals`. Logo y favicon llegan en la 1.3.
+- **Bloques como JSON**: `sealed interface Block` con un `record` por tipo (`Hero`, `RichText`, `QuickLinks`, `LatestNews`,
+  `UpcomingEvents`, `Stats`, `Testimonials`, `CallToAction`, `Gallery`, `Timeline`, `Location`, `Faq`).
+  Cada bloque se guarda con su tipo (`"type":"hero"`); agregar un bloque no exige migración, pero renombrar un tipo sí.
+- Los bloques referencian medios y álbumes por id, sin llave foránea: al renderizar se ignoran los que ya no existan o estén retirados.
 - Borrador y publicado separados (`draft_*` / `published_*`) permiten vista previa sin afectar el sitio (CFG-08).
 - `section` + rol (`PARENTS_CENTER_EDITOR`…) restringe a los editores satélite (PUB-07).
+- Una página que está en el menú no se puede borrar (llave foránea sin `ON DELETE`).
+- Cada `PageKind` salvo `CUSTOM` existe a lo más una vez: lo controla el servicio de páginas (fase 3).
 - `GradeLevel` y `Course` son **solo estructura** (para filtrar calendario, álbumes por curso, vacantes, reuniones).
   No hay notas, asistencia ni nada académico.
 
@@ -178,10 +184,11 @@ erDiagram
     ALBUM_ITEM {
         bigint album_id FK
         bigint media_asset_id FK
-        int position
+        int sort_order
     }
 ```
 
+- En esta iteración `site_settings` gana `logo_asset_id` y `favicon_asset_id` (FK a `media_asset`).
 - El EXIF se borra **antes** de guardar el archivo (MED-10): `stored_file` nunca contiene GPS.
 - `withdrawn_at` saca una foto de todos los álbumes y noticias a la vez (las vistas filtran por él).
 - Un álbum con menores nace `PENDING_REVIEW` y no se publica hasta que el gestor de consentimientos lo aprueba.
@@ -240,7 +247,7 @@ erDiagram
         bigint category_id FK
         varchar question
         text answer
-        int position
+        int sort_order
     }
     WORKSHOP {
         varchar name
@@ -474,6 +481,6 @@ erDiagram
 
 ## Pendiente de decidir (antes de su iteración)
 
-- **1.2:** catálogo de bloques del MVP y nombre/estilo de los 3 temas base.
+- **Fase 3:** nombre y estilo de los 3 temas base.
 - **1.5:** gestión de la llave de cifrado (variable de entorno vs. KMS) y su rotación.
 - **1.6:** plazo legal de respuesta a solicitudes de derechos (validar con abogado; dejarlo configurable).

@@ -34,6 +34,8 @@ tests en verde y algo demostrable. Los IDs entre corchetes (`PUB-01`, `MED-06`�
 - Una entidad ya cargada se modifica dentro de la transacción **sin llamar `save()`**: Hibernate detecta el cambio solo (dirty checking).
   `save()` es solo para entidades nuevas. Motivo: en Hibernate 7.4, un `save()` (merge) que deja vacía una colección pierde el `DELETE`.
 - Una migración Flyway publicada no se edita nunca; los cambios van en una versión nueva.
+- Columnas de orden: `sort_order` (no `position`, que es palabra clave en algunos motores).
+- Valores estructurados (diseño, bloques) como `record` inmutable en columna JSON con `@JdbcTypeCode(SqlTypes.JSON)`.
 
 ## Estructura del repositorio
 
@@ -47,7 +49,10 @@ colegio-saas/
         ├── shared/     persistencia base
         ├── platform/   perfil del colegio, planes y módulos
         ├── identity/   usuarios y roles
-        └── audit/      registro de auditoría
+        ├── audit/      registro de auditoría
+        ├── site/       diseño, accesos rápidos, alerta global
+        ├── page/       páginas por bloques y menús
+        └── structure/  niveles y cursos
 ```
 
 ---
@@ -64,7 +69,7 @@ entidades, repositorios, su migración Flyway y tests de persistencia.
 | Iteración | Contenido | Estado |
 |---|---|---|
 | 1.1 Núcleo | `BaseEntity`, `SingletonEntity`, `School` (perfil), `Feature`/`Plan`, `UserAccount`/`Role`, `AuditLogEntry` | ✅ |
-| 1.2 Sitio y estructura | `SiteSettings` (tokens JSON), `Page` (bloques JSON), `MenuItem`, `QuickLink`, `SiteAlert`, `GradeLevel`, `Course` | ⬜ |
+| 1.2 Sitio y estructura | `SiteSettings` (diseño JSON), `Page` (bloques JSON), `MenuItem`, `QuickLink`, `SiteAlert`, `GradeLevel`, `Course` | ✅ |
 | 1.3 Medios | `StoredFile`, `MediaFolder`, `MediaAsset`, `MediaTag`, `Album`, `AlbumItem` | ⬜ |
 | 1.4 Contenido y documentos | `NewsArticle`, `NewsCategory`, `Announcement`, `Event`, `FaqCategory`, `FaqEntry`, `Workshop`, `InfoSheet`, `InstitutionalDocument`, `DocumentVersion` | ⬜ |
 | 1.5 Privacidad y consentimientos | Cifrado de columnas, `LegalText`, `ConsentRecord`, `DataSubjectRequest`, `RetentionPolicy`, `SecurityIncident`, `Student`, `ImageConsent` | ⬜ |
