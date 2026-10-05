@@ -1,7 +1,9 @@
 package cl.colegiosaas.publicsite;
 
 import cl.colegiosaas.calendar.Event;
+import cl.colegiosaas.calendar.EventDates;
 import cl.colegiosaas.calendar.EventRepository;
+import cl.colegiosaas.documents.DocumentService;
 import cl.colegiosaas.info.FaqCategoryRepository;
 import cl.colegiosaas.info.FaqEntry;
 import cl.colegiosaas.info.FaqEntryRepository;
@@ -40,7 +42,6 @@ public class BlockRenderer {
 
     private static final Locale CHILE = Locale.forLanguageTag("es-CL");
     private static final DateTimeFormatter DAY = DateTimeFormatter.ofPattern("d 'de' MMMM", CHILE);
-    private static final DateTimeFormatter TIME = DateTimeFormatter.ofPattern("HH:mm", CHILE);
 
     private final SchoolRepository schools;
     private final NewsArticleRepository news;
@@ -48,17 +49,19 @@ public class BlockRenderer {
     private final FaqEntryRepository faqEntries;
     private final FaqCategoryRepository faqCategories;
     private final QuickLinkRepository quickLinks;
+    private final DocumentService documents;
     private final Clock clock;
 
     BlockRenderer(SchoolRepository schools, NewsArticleRepository news, EventRepository events,
                   FaqEntryRepository faqEntries, FaqCategoryRepository faqCategories,
-                  QuickLinkRepository quickLinks, Clock clock) {
+                  QuickLinkRepository quickLinks, DocumentService documents, Clock clock) {
         this.schools = schools;
         this.news = news;
         this.events = events;
         this.faqEntries = faqEntries;
         this.faqCategories = faqCategories;
         this.quickLinks = quickLinks;
+        this.documents = documents;
         this.clock = clock;
     }
 
@@ -93,12 +96,16 @@ public class BlockRenderer {
             case Block.RichText b -> isBlank(b.html()) ? null : new RenderedBlock(type, b, null);
             case Block.Hero b -> new RenderedBlock(type, b, null);
             case Block.CallToAction b -> new RenderedBlock(type, b, null);
+            case Block.Documents b -> withData(type, b, documents.published().stream()
+                    .filter(d -> b.categories().isEmpty() || b.categories().contains(d.getCategory()))
+                    .toList());
+            case Block.ReportChannel b -> new RenderedBlock(type, b, null);
         };
     }
 
     private List<NewsItem> latestNews(int count, ZoneId zone) {
         return news.findVisibleAt(clock.instant(), PageRequest.of(0, count)).stream()
-                .map(n -> new NewsItem(n.getTitle(), n.getSummary(), date(n, zone)))
+                .map(n -> new NewsItem(n.getTitle(), n.getSummary(), date(n, zone), "/noticias/" + n.getSlug()))
                 .toList();
     }
 
@@ -111,16 +118,9 @@ public class BlockRenderer {
         LocalDateTime now = LocalDateTime.now(clock.withZone(zone));
         return events.findPublishedBetween(now, now.plusYears(1)).stream()
                 .limit(count)
-                .map(e -> new EventItem(e.getTitle(), when(e), e.getLocation(), e.getStartsAt().toLocalDate().toString()))
+                .map(e -> new EventItem(e.getTitle(), EventDates.when(e), e.getLocation(), e.getStartsAt().toLocalDate().toString(),
+                        "/calendario/" + e.getSlug()))
                 .toList();
-    }
-
-    private static String when(Event event) {
-        String day = DAY.format(event.getStartsAt());
-        if (!event.getStartsAt().toLocalDate().equals(event.getEndsAt().toLocalDate())) {
-            day = day + " al " + DAY.format(event.getEndsAt());
-        }
-        return event.isAllDay() ? day : day + ", " + TIME.format(event.getStartsAt()) + " h";
     }
 
     private List<FaqEntry> faq(Long categoryId) {
@@ -160,12 +160,12 @@ public class BlockRenderer {
         return value == null || value.isBlank();
     }
 
-    /** Noticia resumida para la portada. Las páginas de cada noticia llegan en la fase 4. */
-    public record NewsItem(String title, String summary, String date) {
+    /** Noticia resumida para la portada, con el enlace a su página. */
+    public record NewsItem(String title, String summary, String date, String href) {
     }
 
     /** @param isoDate fecha para el atributo {@code datetime} de {@code <time>} */
-    public record EventItem(String title, String when, String location, String isoDate) {
+    public record EventItem(String title, String when, String location, String isoDate, String href) {
     }
 
     public record LocationData(String address, String mapUrl) {

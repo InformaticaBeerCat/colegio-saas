@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="es-CL" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{public/layout :: head(${pageTitle}, ${metaDescription}, ${noindex})}"></head>
+<body th:class="|theme-${site.themeId}|">
+<div th:replace="~{public/layout :: top}"></div>
+<main id="contenido" tabindex="-1">
+    <header class="page-header"><div class="wrap"><h1>Útiles, uniforme y minuta</h1></div></header>
+    <div class="wrap block">
+        <p th:if="${sheets.isEmpty()}" class="muted">Todavía no hay información publicada.</p>
+        <section th:each="group : ${sheets}" class="section-group">
+            <h2 th:text="${#messages.msg('sheetKind.' + group.key + '.plural')}">Listas de útiles</h2>
+            <details th:each="s : ${group.value}" class="faq__item sheet">
+                <summary>
+                    <span th:text="${s.title}">Lista de útiles</span>
+                    <span class="muted" th:text="|(${s.gradeLevel != null ? s.gradeLevel.name : 'todos los niveles'}, ${s.academicYear})|">(1° Básico, 2027)</span>
+                </summary>
+                <div class="faq__answer">
+                    <div class="prose" th:if="${s.content}" th:utext="${s.content}">Contenido</div>
+                    <p th:if="${s.file}">
+                        <a class="file-link" th:with="fileHref=${@fileLinks.of(s.file)}" th:href="@{${fileHref}}"
+                           th:text="|Descargar PDF (${@formats.size(s.file.sizeBytes)})|">Descargar PDF</a>
+                    </p>
+                </div>
+            </details>
+        </section>
+    </div>
+</main>
+<footer th:replace="~{public/layout :: footer}"></footer>
+</body>
+</html>

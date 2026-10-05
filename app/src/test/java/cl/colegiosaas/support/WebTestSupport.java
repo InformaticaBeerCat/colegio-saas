@@ -36,9 +36,13 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 /**
  * Base de los tests web: la app completa con MockMvc, cada test en una transacción que se revierte
  * (MockMvc corre en el mismo hilo, así que las peticiones participan de ella).
- * El límite por IP se sube porque todos los tests "vienen" de 127.0.0.1.
+ * El límite por IP se sube porque todos los tests "vienen" de 127.0.0.1; las tareas programadas se
+ * apagan (los tests las llaman directamente) y los archivos van a una carpeta de target.
  */
-@SpringBootTest(properties = "app.security.max-failed-logins-per-ip=1000")
+@SpringBootTest(properties = {
+        "app.security.max-failed-logins-per-ip=1000",
+        "app.scheduling.enabled=false",
+        "app.storage.local-dir=target/test-files"})
 @AutoConfigureMockMvc
 @Transactional
 @RecordApplicationEvents
@@ -106,6 +110,11 @@ public abstract class WebTestSupport {
     /** Código válido para el siguiente intervalo: el actual ya lo consumió el enrolamiento. */
     protected static String nextCode(String secret) {
         return Totp.codeAt(secret, Totp.stepAt(Instant.now()) + 1);
+    }
+
+    /** PDF mínimo válido (la firma %PDF- es lo que revisa la subida). */
+    protected static byte[] pdf(String content) {
+        return ("%PDF-1.4\n% " + content + "\n%%EOF\n").getBytes(java.nio.charset.StandardCharsets.US_ASCII);
     }
 
     protected List<OutgoingMail> mails() {

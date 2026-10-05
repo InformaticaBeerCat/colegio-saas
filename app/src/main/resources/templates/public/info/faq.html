@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="es-CL" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{public/layout :: head(${pageTitle}, ${metaDescription}, ${noindex})}"></head>
+<body th:class="|theme-${site.themeId}|">
+<div th:replace="~{public/layout :: top}"></div>
+<main id="contenido" tabindex="-1">
+    <header class="page-header"><div class="wrap"><h1>Preguntas frecuentes</h1></div></header>
+    <div class="wrap block">
+        <p th:if="${faq.isEmpty()}" class="muted">Todavía no hay preguntas publicadas.</p>
+        <section th:each="entry : ${faq}" class="section-group">
+            <h2 th:text="${entry.key}">Admisión</h2>
+            <div class="faq">
+                <details th:each="q : ${entry.value}" class="faq__item">
+                    <summary th:text="${q.question}">¿Pregunta?</summary>
+                    <div class="faq__answer prose" th:utext="${q.answer}">Respuesta</div>
+                </details>
+            </div>
+        </section>
+    </div>
+</main>
+<footer th:replace="~{public/layout :: footer}"></footer>
+</body>
+</html>

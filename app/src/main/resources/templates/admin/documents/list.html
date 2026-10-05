@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head(title='Documentos institucionales')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: admin-header}"></header>
+<main id="contenido" class="container">
+    <div class="page-head">
+        <h1>Documentos institucionales</h1>
+        <a class="btn btn-secondary" th:href="@{/documentos}">Ver en el sitio</a>
+    </div>
+    <div th:replace="~{fragments/layout :: flash}"></div>
+
+    <div class="table-wrap section">
+        <table class="data">
+            <caption class="visually-hidden">Documentos</caption>
+            <thead><tr><th scope="col">Documento</th><th scope="col">Categoría</th><th scope="col">Versión vigente</th><th scope="col">Estado</th></tr></thead>
+            <tbody>
+            <tr th:each="d : ${documents}" th:with="v=${d.currentVersion().orElse(null)}">
+                <td>
+                    <span th:if="${d.parent}" class="muted" aria-hidden="true">↳ </span>
+                    <a th:href="@{/admin/documents/{id}(id=${d.id})}" th:text="${d.title}">Reglamento Interno</a>
+                </td>
+                <td th:text="${#messages.msg('docCategory.' + d.category)}">Reglamento Interno</td>
+                <td th:text="${v == null} ? '—' : |actualizado el ${@formats.date(v.lastUpdatedOn)}|">—</td>
+                <td>
+                    <span th:if="${v == null}" class="badge">Sin publicar</span>
+                    <span th:if="${d.needsAnnualReview(today)}" class="badge badge-problem">Más de 12 meses sin actualizar</span>
+                    <span th:if="${v != null and !d.needsAnnualReview(today)}" class="badge badge-ok">Al día</span>
+                    <span th:if="${v != null and !v.accessiblePdf}" class="badge badge-warn">PDF no accesible</span>
+                </td>
+            </tr>
+            <tr th:if="${#lists.isEmpty(documents)}"><td colspan="4" class="muted">Todavía no hay documentos.</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <section class="card" aria-labelledby="nuevo">
+        <h2 id="nuevo">Nuevo documento</h2>
+        <form th:action="@{/admin/documents}" method="post">
+            <div class="color-grid">
+                <div class="field"><label for="category">Categoría</label>
+                    <select id="category" name="category"><option th:each="c : ${categories}" th:value="${c}" th:text="${#messages.msg('docCategory.' + c)}">Reglamento Interno</option></select></div>
+                <div class="field"><label for="title">Título</label><input id="title" type="text" name="title" required maxlength="200"></div>
+                <div class="field" th:unless="${#lists.isEmpty(regulations)}"><label for="parentId">Dentro de <span class="muted">(solo protocolos y anexos)</span></label>
+                    <select id="parentId" name="parentId">
+                        <option value="">—</option>
+                        <option th:each="r : ${regulations}" th:value="${r.id}" th:text="${r.title}">Reglamento Interno</option>
+                    </select></div>
+            </div>
+            <div class="field"><label for="description">Descripción <span class="muted">(opcional)</span></label><textarea id="description" name="description" rows="2" maxlength="1000"></textarea></div>
+            <button type="submit" class="btn">Crear documento</button>
+        </form>
+    </section>
+</main>
+</body>
+</html>

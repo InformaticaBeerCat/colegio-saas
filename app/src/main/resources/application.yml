@@ -24,6 +24,11 @@ spring:
   flyway:
     locations: classpath:db/migration
 
+  servlet:
+    multipart:
+      max-file-size: 20MB
+      max-request-size: 25MB
+
 server:
   error:
     include-stacktrace: never
@@ -40,6 +45,9 @@ server:
 # SPRING_MAIL_HOST=localhost SPRING_MAIL_PORT=1025 (Mailpit en http://localhost:8025).
 
 app:
+  storage:
+    # Carpeta de archivos subidos (PDF). En producción, un volumen persistente; S3/MinIO llega en la fase 5.
+    local-dir: ${APP_STORAGE_DIR:./data/files}
   base-url: ${APP_BASE_URL:http://localhost:8080}
   mail-from: ${APP_MAIL_FROM:no-responder@localhost}
   security:

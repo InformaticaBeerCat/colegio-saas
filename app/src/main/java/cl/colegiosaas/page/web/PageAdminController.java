@@ -1,5 +1,6 @@
 package cl.colegiosaas.page.web;
 
+import cl.colegiosaas.documents.DocumentCategory;
 import cl.colegiosaas.info.FaqCategoryRepository;
 import cl.colegiosaas.page.Block;
 import cl.colegiosaas.page.BlockType;
@@ -181,6 +182,7 @@ class PageAdminController {
         model.addAttribute("block", form);
         model.addAttribute("index", index);
         model.addAttribute("faqCategories", faqCategories.findAllByOrderBySortOrderAsc());
+        model.addAttribute("documentCategories", DocumentCategory.values());
         return "admin/pages/block";
     }
 
@@ -220,6 +222,8 @@ class PageAdminController {
             case Block.Timeline b -> b.title();
             case Block.Location b -> b.title();
             case Block.Faq b -> b.title();
+            case Block.Documents b -> b.title();
+            case Block.ReportChannel b -> b.title();
         };
         if (text == null || text.isBlank()) {
             return "";

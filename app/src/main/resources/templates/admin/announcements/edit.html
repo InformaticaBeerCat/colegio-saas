@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head(title=${announcement.title})}"></head>
+<body>
+<header th:replace="~{fragments/layout :: admin-header}"></header>
+<main id="contenido" class="container">
+    <p><a th:href="@{/admin/announcements}">← Comunicados</a></p>
+    <div class="page-head">
+        <div>
+            <h1 th:text="${announcement.title}">Título</h1>
+            <p class="muted">
+                <span th:if="${announcement.published}" class="badge badge-ok" th:text="|Publicado el ${@formats.dateTime(announcement.publishedAt)}|">Publicado</span>
+                <span th:unless="${announcement.published}" class="badge">Borrador</span>
+            </p>
+        </div>
+        <div class="actions">
+            <form th:unless="${announcement.published}" th:action="@{/admin/announcements/{id}/publish(id=${announcement.id})}" method="post">
+                <button type="submit" class="btn">Publicar</button></form>
+            <form th:if="${announcement.published}" th:action="@{/admin/announcements/{id}/unpublish(id=${announcement.id})}" method="post">
+                <button type="submit" class="btn btn-secondary">Retirar del sitio</button></form>
+        </div>
+    </div>
+    <div th:replace="~{fragments/layout :: flash}"></div>
+
+    <form class="card section" th:action="@{/admin/announcements/{id}(id=${announcement.id})}" th:object="${form}" method="post">
+        <div class="alert alert-problem" role="alert" th:if="${#fields.hasErrors('*')}">
+            <p th:each="e : ${#fields.allErrors()}" th:text="${e}">Error</p>
+        </div>
+        <div class="field"><label for="title">Título</label><input type="text" th:field="*{title}" required maxlength="200"></div>
+        <div class="field"><label for="body">Texto</label><textarea th:field="*{body}" rows="10"></textarea>
+            <span class="hint">HTML básico. Si el comunicado es solo el PDF, puedes dejarlo vacío.</span></div>
+        <fieldset>
+            <legend>Destinatarios</legend>
+            <div class="checks">
+                <label th:each="a : ${audiences}"><input type="radio" th:field="*{audience}" th:value="${a}"> <span th:text="${#messages.msg('audience.' + a)}">Todo el colegio</span></label>
+            </div>
+            <fieldset th:unless="${#lists.isEmpty(gradeLevels)}">
+                <legend>Niveles <span class="muted">(si eliges "Niveles")</span></legend>
+                <div class="checks checks-grid">
+                    <label th:each="l : ${gradeLevels}"><input type="checkbox" th:field="*{gradeLevelIds}" th:value="${l.id}"> <span th:text="${l.name}">1° Básico</span></label>
+                </div>
+            </fieldset>
+            <fieldset th:unless="${#lists.isEmpty(courses)}">
+                <legend>Cursos <span class="muted">(si eliges "Cursos")</span></legend>
+                <div class="checks checks-grid">
+                    <label th:each="c : ${courses}"><input type="checkbox" th:field="*{courseIds}" th:value="${c.id}"> <span th:text="${c.displayName()}">1° Básico A</span></label>
+                </div>
+            </fieldset>
+            <p class="hint" th:if="${#lists.isEmpty(gradeLevels)}">Para dirigir a niveles o cursos, cárgalos en <a th:href="@{/admin/structure}">Niveles y cursos</a>.</p>
+        </fieldset>
+        <button type="submit" class="btn">Guardar</button>
+    </form>
+
+    <section class="card section" aria-labelledby="adjunto">
+        <h2 id="adjunto">Circular en PDF</h2>
+        <div th:if="${announcement.attachment}" class="actions">
+            <span th:text="${announcement.attachment.originalName}">circular.pdf</span>
+            <form th:action="@{/admin/announcements/{id}/attachment/delete(id=${announcement.id})}" method="post">
+                <button type="submit" class="btn btn-secondary btn-small">Quitar</button></form>
+        </div>
+        <form th:action="@{/admin/announcements/{id}/attachment(id=${announcement.id})}" method="post" enctype="multipart/form-data">
+            <div class="field"><label for="file" th:text="${announcement.attachment} ? 'Reemplazar PDF' : 'Adjuntar PDF'">Adjuntar PDF</label>
+                <input id="file" type="file" name="file" accept="application/pdf" required>
+                <span class="hint">Hasta 20 MB. Idealmente un PDF accesible (con texto seleccionable, no escaneado).</span></div>
+            <button type="submit" class="btn btn-secondary">Subir</button>
+        </form>
+    </section>
+
+    <form th:unless="${announcement.published}" th:action="@{/admin/announcements/{id}/delete(id=${announcement.id})}" method="post">
+        <button type="submit" class="btn btn-danger">Eliminar comunicado</button>
+    </form>
+</main>
+</body>
+</html>

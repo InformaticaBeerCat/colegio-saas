@@ -26,7 +26,7 @@
             <p class="hint">La imagen o el video de portada se eligen desde la biblioteca de medios cuando esté habilitada.</p>
         </div>
 
-        <div class="field" th:if="${t == 'call-to-action'}">
+        <div class="field" th:if="${t == 'call-to-action' or t == 'report-channel'}">
             <label for="text">Texto <span class="muted">(opcional)</span></label>
             <textarea th:field="*{text}" rows="3" maxlength="600"></textarea>
         </div>
@@ -68,6 +68,25 @@
                 <option th:each="c : ${faqCategories}" th:value="${c.id}" th:text="${c.name}">Admisión</option>
             </select>
         </div>
+
+        <fieldset th:if="${t == 'documents'}">
+            <legend>Categorías <span class="muted">(ninguna = todos los documentos)</span></legend>
+            <div class="checks checks-grid">
+                <label th:each="c : ${documentCategories}"><input type="checkbox" th:field="*{documentCategories}" th:value="${c}">
+                    <span th:text="${#messages.msg('docCategory.' + c)}">Protocolo</span></label>
+            </div>
+        </fieldset>
+
+        <th:block th:if="${t == 'report-channel'}">
+            <div class="color-grid">
+                <div class="field"><label for="email">Correo</label><input type="email" th:field="*{email}" placeholder="convivencia@colegio.cl"></div>
+                <div class="field"><label for="phone">Teléfono</label><input type="tel" th:field="*{phone}"></div>
+                <div class="field"><label for="inPerson">Atención presencial</label><input type="text" th:field="*{inPerson}" placeholder="Oficina de convivencia, lunes a viernes 8:00 a 16:00"></div>
+                <div class="field"><label for="buttonUrl">Formulario de denuncia <span class="muted">(opcional)</span></label>
+                    <input type="text" th:field="*{buttonUrl}" placeholder="https://…"></div>
+            </div>
+            <p class="hint">El formulario propio del sitio llega con el módulo de contacto; mientras, puedes enlazar uno externo.</p>
+        </th:block>
 
         <p class="hint" th:if="${t == 'quick-links'}">Muestra los accesos rápidos activos (Classroom, pago de mensualidad…).</p>
         <p class="hint" th:if="${t == 'location'}">Muestra la dirección del colegio que está en "Pie y contacto", con un enlace al mapa.</p>

@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="es-CL" xmlns:th="http://www.thymeleaf.org">
+<body>
+<!--
+  Ficha de un documento con su versión vigente. Para el Reglamento Interno y sus partes muestra los datos
+  de la REX 781 (DOC-02); si el PDF no es accesible lo advierte y ofrece pedirlo en otro formato (DOC-05).
+-->
+<article th:fragment="card(d)" class="card document" th:with="v=${d.currentVersion().get()}">
+    <h3 class="card__title"><a th:href="@{/documentos/{s}(s=${d.slug})}" th:text="${d.title}">Reglamento Interno</a></h3>
+    <p th:if="${d.description}" th:text="${d.description}">Descripción</p>
+    <dl class="details details--compact" th:if="${d.category.requiresRegulatoryMetadata()}">
+        <dt>Año académico</dt><dd th:text="${v.academicYear}">2026</dd>
+        <dt>Establecimiento</dt><dd th:text="${v.schoolName}">Colegio</dd>
+        <dt>RBD</dt><dd th:text="${v.rbd}">8485-1</dd>
+        <dt>Última actualización</dt><dd><time th:datetime="${v.lastUpdatedOn}" th:text="${@formats.date(v.lastUpdatedOn)}">1 de marzo de 2026</time></dd>
+    </dl>
+    <p th:unless="${d.category.requiresRegulatoryMetadata()}" class="card__meta">
+        Actualizado el <time th:datetime="${v.lastUpdatedOn}" th:text="${@formats.date(v.lastUpdatedOn)}">1 de marzo de 2026</time>
+    </p>
+    <p>
+        <a class="file-link" th:with="fileHref=${@fileLinks.of(v.file)}" th:href="@{${fileHref}}">
+            <span th:text="|Descargar ${d.title} (PDF, ${@formats.size(v.file.sizeBytes)})|">Descargar (PDF)</span>
+        </a>
+    </p>
+    <p th:unless="${v.accessiblePdf}" class="notice">
+        Este PDF puede no ser legible con lectores de pantalla.
+        <span th:if="${site.footer.contactEmail}">Si lo necesitas en otro formato, escríbenos a
+            <a th:href="|mailto:${site.footer.contactEmail}|" th:text="${site.footer.contactEmail}">contacto@colegio.cl</a>.</span>
+        <span th:unless="${site.footer.contactEmail}">Si lo necesitas en otro formato, pídelo en la secretaría del colegio.</span>
+    </p>
+</article>
+</body>
+</html>

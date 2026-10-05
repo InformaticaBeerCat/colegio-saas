@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head(title='Pregunta frecuente')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: admin-header}"></header>
+<main id="contenido" class="container">
+    <p><a th:href="@{/admin/info/faq}">← Preguntas frecuentes</a></p>
+    <h1>Editar pregunta</h1>
+    <div th:replace="~{fragments/layout :: flash}"></div>
+    <form class="card section" th:action="@{/admin/info/faq/{id}(id=${entry.id})}" method="post">
+        <div class="field"><label for="categoryId">Categoría</label>
+            <select id="categoryId" name="categoryId">
+                <option th:each="c : ${categories}" th:value="${c.id}" th:text="${c.name}" th:selected="${c.id == entry.category.id}">Admisión</option>
+            </select></div>
+        <div class="field"><label for="question">Pregunta</label><input id="question" type="text" name="question" th:value="${entry.question}" required maxlength="300"></div>
+        <div class="field"><label for="answer">Respuesta</label><textarea id="answer" name="answer" rows="6" required th:text="${entry.answer}"></textarea>
+            <span class="hint">HTML básico: párrafos, negritas, listas y enlaces.</span></div>
+        <div class="checks"><label><input type="checkbox" name="published" value="true" th:checked="${entry.published}"> Publicada</label></div>
+        <button type="submit" class="btn">Guardar</button>
+    </form>
+    <form th:action="@{/admin/info/faq/{id}/delete(id=${entry.id})}" method="post"><button type="submit" class="btn btn-danger">Eliminar pregunta</button></form>
+</main>
+</body>
+</html>

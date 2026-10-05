@@ -3,8 +3,11 @@ package cl.colegiosaas.platform;
 import org.springframework.stereotype.Component;
 
 import java.time.Instant;
+import java.time.LocalDate;
+import java.time.YearMonth;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.util.Locale;
 
 /**
  * Formatos de fecha para las vistas, en la zona horaria del colegio. En Thymeleaf se usa como
@@ -14,6 +17,10 @@ import java.time.format.DateTimeFormatter;
 public class Formats {
 
     private static final DateTimeFormatter DATE_TIME = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm");
+    private static final Locale CHILE = Locale.forLanguageTag("es-CL");
+    /** "12 de octubre de 2026": fechas en el sitio público. */
+    private static final DateTimeFormatter MONTH = DateTimeFormatter.ofPattern("MMMM 'de' yyyy", CHILE);
+    private static final DateTimeFormatter LONG_DATE = DateTimeFormatter.ofPattern("d 'de' MMMM 'de' yyyy", CHILE);
 
     private final SchoolRepository schools;
 
@@ -21,11 +28,38 @@ public class Formats {
         this.schools = schools;
     }
 
+    public String date(Instant instant) {
+        if (instant == null) {
+            return "";
+        }
+        return LONG_DATE.format(instant.atZone(zone()));
+    }
+
+    /** "octubre de 2026". */
+    public String month(YearMonth month) {
+        return MONTH.format(month);
+    }
+
+    /** "1,2 MB", "340 KB": tamaño de descargas, para que nadie baje 20 MB sin saberlo. */
+    public String size(long bytes) {
+        if (bytes < 1024 * 1024) {
+            return Math.max(1, Math.round(bytes / 1024.0)) + " KB";
+        }
+        return String.format(CHILE, "%.1f MB", bytes / (1024.0 * 1024.0));
+    }
+
+    public String date(LocalDate day) {
+        return day == null ? "" : LONG_DATE.format(day);
+    }
+
     public String dateTime(Instant instant) {
         if (instant == null) {
             return "—";
         }
-        ZoneId zone = ZoneId.of(schools.findSingleton().map(School::getTimeZone).orElse("America/Santiago"));
-        return DATE_TIME.format(instant.atZone(zone));
+        return DATE_TIME.format(instant.atZone(zone()));
+    }
+
+    private ZoneId zone() {
+        return ZoneId.of(schools.findSingleton().map(School::getTimeZone).orElse("America/Santiago"));
     }
 }

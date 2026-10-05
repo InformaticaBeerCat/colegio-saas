@@ -57,13 +57,13 @@ colegio-saas/
 └── app/                aplicación Spring Boot (Maven)
     ├── compose.yaml    MySQL + Mailpit para desarrollo
     └── src/main/java/cl/colegiosaas/
-        ├── shared/     persistencia base, cifrado, tokens
+        ├── shared/     persistencia base, cifrado, tokens, almacenamiento de archivos, HTML seguro
         ├── platform/   perfil del colegio, planes y módulos
         ├── identity/   usuarios, roles, permisos, invitaciones (web/ = pantallas)
         ├── security/   login, MFA, bloqueos, sesiones, cabeceras
         ├── setup/      instalador de primer arranque
         ├── admin/      portada del panel
-        ├── publicsite/ sitio público (fase 3)
+        ├── publicsite/ sitio público: páginas, noticias, calendario, documentos…
         ├── audit/      registro de auditoría y su consulta
         ├── site/       diseño, accesos rápidos, alerta global
         ├── page/       páginas por bloques y menús
@@ -149,11 +149,28 @@ entidades, repositorios, su migración Flyway y tests de persistencia.
 > Pendiente para la fase 5: logo e imagen/video de la portada y el bloque galería (necesitan servir archivos de la
 > biblioteca de medios). Caché del contexto del sitio: fase 8, si las mediciones lo piden.
 
-### Fase 4 — Contenido y documentos
-- Noticias con flujo borrador → revisión → publicado y programación [NOT-01, NOT-02].
-- Comunicados, calendario filtrable, `.ics` [NOT-03..05]; FAQ, talleres, útiles/uniforme/menú [PUB-06, 09, 10].
-- Documentos institucionales con versiones, campos obligatorios del Reglamento Interno y alerta a 12 meses [DOC-01..05].
-- Páginas de convivencia con canal de denuncia [DOC-07]; banner de alerta global [PUB-12].
+### Fase 4 — Contenido y documentos ✅
+- Noticias [NOT-01, NOT-02]: borrador → revisión → publicada o programada. Quien escribe envía a revisión (aviso por
+  correo a quien aprueba); quien tiene `NEWS_PUBLISH` aprueba, programa o devuelve con comentario (aviso al autor).
+  Una tarea cada minuto pasa a publicadas las programadas. Categorías y niveles filtrables en `/noticias`.
+  Los editores satélite solo escriben en su sección [PUB-07]. Lo publicado no se borra: se archiva.
+- Comunicados y circulares [NOT-03] dirigidos a todo el colegio, niveles o cursos, con PDF adjunto (`/comunicados`).
+- Calendario [NOT-04] por mes, filtrable por tipo y nivel, con página por evento y exportación `.ics` del calendario
+  completo o de un evento [NOT-05] (horas en UTC, días completos como fechas: funciona en cualquier aplicación).
+- Preguntas frecuentes [PUB-09], talleres [PUB-06] y útiles/uniforme/minuta con vista web y PDF, con vigencia [PUB-10].
+- Documentos institucionales [DOC-01..05]: cada publicación crea una versión y archiva la anterior, que sigue
+  descargable en el historial. El Reglamento Interno, sus protocolos y anexos exigen año académico y RBD y muestran
+  nombre, RBD y fecha de actualización (REX 781). Alerta en el panel a los 12 meses sin actualizar. Si el PDF no es
+  accesible, el sitio lo advierte y ofrece pedirlo en otro formato. Un documento publicado nunca se borra.
+- Página de convivencia [DOC-07] con dos bloques nuevos: lista de documentos por categoría y canal de denuncia.
+- Avisos urgentes en todo el sitio [PUB-12], activables en un clic y con ventana de tiempo.
+- Niveles y cursos editables desde el panel (con carga de los niveles chilenos en un clic): son la base de los filtros.
+- PDF subidos a un almacenamiento de archivos (`FileStorage`, hoy en carpeta local `APP_STORAGE_DIR`; S3/MinIO en la
+  fase 5). Se valida la firma `%PDF-` y el tamaño (20 MB). Solo se descargan (`/archivos/<sha256>/<nombre>`) los
+  archivos de contenido publicado.
+
+> Pendiente para la fase 5: imagen destacada y galería en noticias, antivirus de archivos (SEG-03; hoy la revisión es
+> de tipo y tamaño, y solo suben archivos cuentas del panel). Formulario propio del canal de denuncia: fase 7 (contacto).
 
 ### Fase 5 — Medios y autorización de imagen
 - Subida masiva a S3/MinIO, validación de tipo y tamaño, borrado de EXIF, WebP/AVIF responsivo [MED-01..03, MED-10, SEG-03].

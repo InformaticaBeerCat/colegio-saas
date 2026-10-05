@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head(title=${document.title})}"></head>
+<body>
+<header th:replace="~{fragments/layout :: admin-header}"></header>
+<main id="contenido" class="container" th:with="current=${document.currentVersion().orElse(null)}, regulatory=${document.category.requiresRegulatoryMetadata()}">
+    <p><a th:href="@{/admin/documents}">← Documentos</a></p>
+    <div class="page-head">
+        <div>
+            <h1 th:text="${document.title}">Reglamento Interno</h1>
+            <p class="muted" th:text="${#messages.msg('docCategory.' + document.category)}">Reglamento Interno</p>
+        </div>
+        <a class="btn btn-secondary" th:if="${current}" th:href="@{/documentos/{s}(s=${document.slug})}">Ver en el sitio</a>
+    </div>
+    <div th:replace="~{fragments/layout :: flash}"></div>
+
+    <div class="alert alert-problem" role="alert" th:if="${document.needsAnnualReview(today)}">
+        La versión vigente tiene más de 12 meses. Revísala y publica una versión actualizada.
+    </div>
+    <div class="alert alert-warn" role="status" th:if="${missingRbd}">
+        El perfil del colegio no tiene RBD, y es obligatorio para publicar el Reglamento Interno (REX 781).
+    </div>
+
+    <section class="card section" aria-labelledby="version">
+        <h2 id="version" th:text="${current} ? 'Publicar versión nueva' : 'Publicar primera versión'">Publicar versión</h2>
+        <form th:action="@{/admin/documents/{id}/versions(id=${document.id})}" method="post" enctype="multipart/form-data">
+            <div class="color-grid">
+                <div class="field"><label for="file">PDF</label><input id="file" type="file" name="file" accept="application/pdf" required></div>
+                <div class="field"><label for="lastUpdatedOn">Fecha de última actualización</label>
+                    <input id="lastUpdatedOn" type="date" name="lastUpdatedOn" required th:value="${today}" th:attr="max=${today}"></div>
+                <div class="field"><label for="academicYear">Año académico <span class="muted" th:unless="${regulatory}">(opcional)</span></label>
+                    <input id="academicYear" type="number" name="academicYear" th:required="${regulatory}" th:value="${today.year}"></div>
+            </div>
+            <p class="hint" th:if="${regulatory}">Se publicarán junto al documento el año académico, el nombre del establecimiento,
+                el RBD y la fecha de última actualización, como exige la REX N°781.</p>
+            <div class="checks"><label><input type="checkbox" name="accessiblePdf" value="true">
+                El PDF es accesible (texto seleccionable, etiquetado y con estructura de títulos)</label></div>
+            <p class="hint">Si no lo es, el sitio lo avisa y ofrece pedirlo en otro formato (DOC-05).</p>
+            <div class="field"><label for="changeNotes">Qué cambió <span class="muted">(opcional)</span></label><textarea id="changeNotes" name="changeNotes" rows="2" maxlength="1000"></textarea></div>
+            <button type="submit" class="btn">Publicar versión</button>
+        </form>
+    </section>
+
+    <section class="card section" aria-labelledby="historial" th:if="${current}">
+        <h2 id="historial">Historial</h2>
+        <div class="table-wrap">
+            <table class="data">
+                <caption class="visually-hidden">Versiones publicadas</caption>
+                <thead><tr><th scope="col">Versión</th><th scope="col">Año</th><th scope="col">Actualizado</th><th scope="col">Publicó</th><th scope="col">Notas</th></tr></thead>
+                <tbody>
+                <tr>
+                    <td><a th:with="fileHref=${@fileLinks.of(current.file)}" th:href="@{${fileHref}}">Vigente</a></td>
+                    <td th:text="${current.academicYear}">2026</td>
+                    <td th:text="${@formats.date(current.lastUpdatedOn)}">1 de marzo</td>
+                    <td th:text="${current.publishedBy != null ? current.publishedBy.name : '—'}">Ana</td>
+                    <td th:text="${current.changeNotes}">—</td>
+                </tr>
+                <tr th:each="v : ${document.archivedVersions()}">
+                    <td><a th:with="fileHref=${@fileLinks.of(v.file)}" th:href="@{${fileHref}}">Archivada</a></td>
+                    <td th:text="${v.academicYear}">2025</td>
+                    <td th:text="${@formats.date(v.lastUpdatedOn)}">1 de marzo</td>
+                    <td th:text="${v.publishedBy != null ? v.publishedBy.name : '—'}">Ana</td>
+                    <td th:text="${v.changeNotes}">—</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <form class="card section" th:action="@{/admin/documents/{id}(id=${document.id})}" method="post">
+        <h2>Datos</h2>
+        <div class="color-grid">
+            <div class="field"><label for="title">Título</label><input id="title" type="text" name="title" required maxlength="200" th:value="${document.title}"></div>
+            <div class="field"><label for="sortOrder">Orden en la página</label><input id="sortOrder" type="number" name="sortOrder" th:value="${document.sortOrder}"></div>
+            <div class="field" th:if="${document.category.name() == 'PROTOCOL' or document.category.name() == 'ANNEX'}">
+                <label for="parentId">Dentro de</label>
+                <select id="parentId" name="parentId">
+                    <option value="">—</option>
+                    <option th:each="r : ${regulations}" th:value="${r.id}" th:text="${r.title}" th:selected="${document.parent != null and document.parent.id == r.id}">Reglamento Interno</option>
+                </select></div>
+        </div>
+        <div class="field"><label for="description">Descripción</label><textarea id="description" name="description" rows="2" maxlength="1000" th:text="${document.description}"></textarea></div>
+        <button type="submit" class="btn btn-secondary">Guardar datos</button>
+    </form>
+
+    <form th:unless="${current}" th:action="@{/admin/documents/{id}/delete(id=${document.id})}" method="post">
+        <button type="submit" class="btn btn-danger">Eliminar documento</button>
+    </form>
+</main>
+</body>
+</html>

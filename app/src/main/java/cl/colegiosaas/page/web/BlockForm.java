@@ -1,11 +1,13 @@
 package cl.colegiosaas.page.web;
 
+import cl.colegiosaas.documents.DocumentCategory;
 import cl.colegiosaas.page.Block;
 import cl.colegiosaas.page.BlockType;
 import cl.colegiosaas.page.PageException;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.Function;
@@ -33,6 +35,10 @@ public class BlockForm {
     private Long categoryId;
     private Long albumId;
     private String items;
+    private String email;
+    private String phone;
+    private String inPerson;
+    private List<DocumentCategory> documentCategories = new ArrayList<>();
     /** Se conservan al editar una portada; se eligen desde la biblioteca de medios (fase 5). */
     private Long imageAssetId;
     private Long videoAssetId;
@@ -93,6 +99,18 @@ public class BlockForm {
                 form.title = b.title();
                 form.categoryId = b.categoryId();
             }
+            case Block.Documents b -> {
+                form.title = b.title();
+                form.documentCategories = new ArrayList<>(b.categories());
+            }
+            case Block.ReportChannel b -> {
+                form.title = b.title();
+                form.text = b.text();
+                form.email = b.email();
+                form.phone = b.phone();
+                form.inPerson = b.inPerson();
+                form.buttonUrl = b.formUrl();
+            }
         }
         return form;
     }
@@ -119,6 +137,9 @@ public class BlockForm {
                     parse(parts -> new Block.TimelineEntry(parts[0], part(parts, 1), part(parts, 2)), 3));
             case LOCATION -> new Block.Location(blank(title));
             case FAQ -> new Block.Faq(blank(title), categoryId);
+            case DOCUMENTS -> new Block.Documents(blank(title), documentCategories);
+            case REPORT_CHANNEL -> new Block.ReportChannel(blank(title), blank(text), blank(email), blank(phone),
+                    blank(inPerson), blank(buttonUrl));
         };
     }
 

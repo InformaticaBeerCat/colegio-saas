@@ -1,5 +1,6 @@
 package cl.colegiosaas.page;
 
+import cl.colegiosaas.documents.DocumentCategory;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
@@ -29,6 +30,8 @@ import java.util.List;
         @JsonSubTypes.Type(value = Block.Timeline.class, name = "timeline"),
         @JsonSubTypes.Type(value = Block.Location.class, name = "location"),
         @JsonSubTypes.Type(value = Block.Faq.class, name = "faq"),
+        @JsonSubTypes.Type(value = Block.Documents.class, name = "documents"),
+        @JsonSubTypes.Type(value = Block.ReportChannel.class, name = "report-channel"),
 })
 public sealed interface Block {
 
@@ -93,5 +96,20 @@ public sealed interface Block {
 
     /** Preguntas frecuentes; sin categoría muestra todas. */
     record Faq(String title, Long categoryId) implements Block {
+    }
+
+    /** Documentos institucionales vigentes de esas categorías (p. ej. protocolos en la página de convivencia). */
+    record Documents(String title, List<DocumentCategory> categories) implements Block {
+        public Documents {
+            categories = categories == null ? List.of() : List.copyOf(categories);
+        }
+    }
+
+    /**
+     * Canal de denuncia de convivencia escolar (DOC-07): a quién acudir y cómo. El formulario propio llega
+     * con el módulo de contacto (fase 7); mientras, {@code formUrl} puede apuntar a uno externo.
+     */
+    record ReportChannel(String title, String text, String email, String phone, String inPerson, String formUrl)
+            implements Block {
     }
 }

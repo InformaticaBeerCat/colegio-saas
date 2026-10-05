@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="es-CL" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{public/layout :: head(${pageTitle}, ${metaDescription}, ${noindex})}"></head>
+<body th:class="|theme-${site.themeId}|">
+<div th:replace="~{public/layout :: top}"></div>
+<main id="contenido" tabindex="-1">
+    <header class="page-header">
+        <div class="wrap">
+            <p class="breadcrumb"><a th:href="@{/calendario}">Calendario</a></p>
+            <h1 th:text="${event.title}">Reunión de apoderados</h1>
+        </div>
+    </header>
+    <div class="wrap block">
+        <dl class="details">
+            <dt>Cuándo</dt>
+            <dd><time th:datetime="${event.startsAt}" th:text="${@eventDates.of(event)}">12 de octubre, 19:00 h</time></dd>
+            <dt>Tipo</dt>
+            <dd th:text="${#messages.msg('eventKind.' + event.kind)}">Reunión de apoderados</dd>
+            <th:block th:if="${event.location}"><dt>Lugar</dt><dd th:text="${event.location}">Gimnasio</dd></th:block>
+            <th:block th:unless="${#sets.isEmpty(event.courses)}">
+                <dt>Cursos</dt>
+                <dd><span th:each="c, it : ${event.courses}" th:text="${c.displayName()} + (${it.last} ? '' : ', ')">1° A</span></dd>
+            </th:block>
+            <th:block th:if="${#sets.isEmpty(event.courses) and not #sets.isEmpty(event.gradeLevels)}">
+                <dt>Niveles</dt>
+                <dd><span th:each="l, it : ${event.gradeLevels}" th:text="${l.name} + (${it.last} ? '' : ', ')">1° Básico</span></dd>
+            </th:block>
+        </dl>
+        <p th:if="${event.description}" class="prose pre-line" th:text="${event.description}">Descripción</p>
+        <p><a class="button" th:href="@{/calendario/{s}.ics(s=${event.slug})}">Agregar a mi calendario</a></p>
+    </div>
+</main>
+<footer th:replace="~{public/layout :: footer}"></footer>
+</body>
+</html>

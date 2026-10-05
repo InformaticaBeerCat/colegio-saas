@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head(title=${workshop == null ? 'Nuevo taller' : workshop.name})}"></head>
+<body>
+<header th:replace="~{fragments/layout :: admin-header}"></header>
+<main id="contenido" class="container">
+    <p><a th:href="@{/admin/info/workshops}">← Talleres</a></p>
+    <h1 th:text="${workshop == null ? 'Nuevo taller' : workshop.name}">Taller</h1>
+    <div th:replace="~{fragments/layout :: flash}"></div>
+    <form class="card section" method="post" th:action="${workshop == null} ? @{/admin/info/workshops} : @{/admin/info/workshops/{id}(id=${workshop.id})}">
+        <div class="color-grid">
+            <div class="field"><label for="name">Nombre</label><input id="name" type="text" name="name" required maxlength="120" th:value="${workshop?.name}"></div>
+            <div class="field"><label for="academicYear">Año</label><input id="academicYear" type="number" name="academicYear" required th:value="${workshop != null ? workshop.academicYear : defaultYear}"></div>
+            <div class="field"><label for="schedule">Horario</label><input id="schedule" type="text" name="schedule" maxlength="200" placeholder="Martes y jueves, 15:30 a 17:00" th:value="${workshop?.schedule}"></div>
+            <div class="field"><label for="instructor">A cargo</label><input id="instructor" type="text" name="instructor" maxlength="120" th:value="${workshop?.instructor}"></div>
+            <div class="field"><label for="capacity">Cupos <span class="muted">(opcional)</span></label><input id="capacity" type="number" min="1" name="capacity" th:value="${workshop?.capacity}"></div>
+        </div>
+        <div class="field"><label for="description">Descripción</label><textarea id="description" name="description" rows="4" maxlength="2000" th:text="${workshop?.description}"></textarea></div>
+        <fieldset th:unless="${#lists.isEmpty(gradeLevels)}">
+            <legend>Niveles que pueden participar</legend>
+            <div class="checks checks-grid">
+                <label th:each="l : ${gradeLevels}"><input type="checkbox" name="gradeLevelIds" th:value="${l.id}" th:checked="${selectedLevels.contains(l.id)}"> <span th:text="${l.name}">1° Básico</span></label>
+            </div>
+        </fieldset>
+        <div class="checks"><label><input type="checkbox" name="active" value="true" th:checked="${workshop == null or workshop.active}"> Visible en el sitio</label></div>
+        <button type="submit" class="btn">Guardar</button>
+    </form>
+    <form th:if="${workshop}" th:action="@{/admin/info/workshops/{id}/delete(id=${workshop.id})}" method="post"><button type="submit" class="btn btn-danger">Eliminar taller</button></form>
+</main>
+</body>
+</html>

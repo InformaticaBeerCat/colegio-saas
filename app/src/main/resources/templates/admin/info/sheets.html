@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head(title='Útiles, uniforme y minuta')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: admin-header}"></header>
+<main id="contenido" class="container">
+    <div class="page-head">
+        <h1>Útiles, uniforme y minuta</h1>
+        <a class="btn" th:href="@{/admin/info/sheets/new}">Nueva ficha</a>
+    </div>
+    <div th:replace="~{fragments/layout :: flash}"></div>
+    <div class="table-wrap">
+        <table class="data">
+            <caption class="visually-hidden">Fichas de información práctica</caption>
+            <thead><tr><th scope="col">Título</th><th scope="col">Tipo</th><th scope="col">Nivel</th><th scope="col">Año</th><th scope="col">Estado</th></tr></thead>
+            <tbody>
+            <tr th:each="s : ${sheets}">
+                <td><a th:href="@{/admin/info/sheets/{id}(id=${s.id})}" th:text="${s.title}">Lista de útiles</a></td>
+                <td th:text="${#messages.msg('sheetKind.' + s.kind)}">Útiles</td>
+                <td th:text="${s.gradeLevel != null ? s.gradeLevel.name : 'Todos'}">1° Básico</td>
+                <td th:text="${s.academicYear}">2027</td>
+                <td><span th:if="${s.published}" class="badge badge-ok">Publicada</span><span th:unless="${s.published}" class="badge">Borrador</span></td>
+            </tr>
+            <tr th:if="${#lists.isEmpty(sheets)}"><td colspan="5" class="muted">Todavía no hay fichas.</td></tr>
+            </tbody>
+        </table>
+    </div>
+</main>
+</body>
+</html>

@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="es-CL" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{public/layout :: head(${pageTitle}, ${metaDescription}, ${noindex})}"></head>
+<body th:class="|theme-${site.themeId}|">
+<div th:replace="~{public/layout :: top}"></div>
+<main id="contenido" tabindex="-1">
+    <header class="page-header"><div class="wrap"><h1 th:text="|Talleres ${year}|">Talleres 2026</h1></div></header>
+    <div class="wrap block">
+        <p th:if="${#lists.isEmpty(workshops)}" class="muted">Todavía no hay talleres publicados para este año.</p>
+        <ul class="cards">
+            <li th:each="w : ${workshops}" class="card">
+                <h2 class="card__title" th:text="${w.name}">Robótica</h2>
+                <dl class="details details--compact">
+                    <th:block th:if="${w.schedule}"><dt>Horario</dt><dd th:text="${w.schedule}">Martes 15:30</dd></th:block>
+                    <th:block th:if="${w.instructor}"><dt>A cargo</dt><dd th:text="${w.instructor}">Profesor</dd></th:block>
+                    <th:block th:if="${w.capacity}"><dt>Cupos</dt><dd th:text="${w.capacity}">20</dd></th:block>
+                    <th:block th:unless="${#sets.isEmpty(w.gradeLevels)}"><dt>Niveles</dt>
+                        <dd><span th:each="l, it : ${w.gradeLevels}" th:text="${l.name} + (${it.last} ? '' : ', ')">1° Básico</span></dd></th:block>
+                </dl>
+                <p th:if="${w.description}" class="pre-line" th:text="${w.description}">Descripción</p>
+            </li>
+        </ul>
+    </div>
+</main>
+<footer th:replace="~{public/layout :: footer}"></footer>
+</body>
+</html>

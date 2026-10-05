@@ -18,7 +18,7 @@
 </section>
 
 <section th:fragment="rich-text(b)" class="block block--text">
-    <div class="wrap prose" th:utext="${b.html}">Texto</div>
+    <div class="wrap"><div class="prose" th:utext="${b.html}">Texto</div></div>
 </section>
 
 <section th:fragment="quick-links(b, links)" class="block block--quick-links" th:attr="aria-label=${b.title == null} ? 'Accesos rápidos' : null">
@@ -37,11 +37,12 @@
         <h2 class="block__title" th:text="${b.title != null ? b.title : 'Noticias'}">Noticias</h2>
         <ul class="cards">
             <li th:each="n : ${items}" class="card">
-                <h3 class="card__title" th:text="${n.title}">Título</h3>
+                <h3 class="card__title"><a th:href="@{${n.href}}" th:text="${n.title}">Título</a></h3>
                 <p th:if="${n.date}" class="card__meta" th:text="${n.date}">12 de octubre</p>
                 <p th:if="${n.summary}" th:text="${n.summary}">Resumen</p>
             </li>
         </ul>
+        <p class="block__more"><a th:href="@{/noticias}">Todas las noticias</a></p>
     </div>
 </section>
 
@@ -51,10 +52,11 @@
         <ul class="event-list">
             <li th:each="e : ${items}" class="event">
                 <time class="event__when" th:datetime="${e.isoDate}" th:text="${e.when}">12 de octubre, 19:00 h</time>
-                <span class="event__title" th:text="${e.title}">Reunión de apoderados</span>
+                <a class="event__title" th:href="@{${e.href}}" th:text="${e.title}">Reunión de apoderados</a>
                 <span th:if="${e.location}" class="event__where" th:text="${e.location}">Gimnasio</span>
             </li>
         </ul>
+        <p class="block__more"><a th:href="@{/calendario}">Ver el calendario</a></p>
     </div>
 </section>
 
@@ -128,6 +130,33 @@
             </details>
         </div>
     </div>
+</section>
+
+<section th:fragment="documents(b, docs)" class="block block--documents">
+    <div class="wrap">
+        <h2 class="block__title" th:text="${b.title != null ? b.title : 'Documentos'}">Protocolos</h2>
+        <ul class="document-links">
+            <li th:each="d : ${docs}" th:with="v=${d.currentVersion().get()}">
+                <a th:href="@{/documentos/{s}(s=${d.slug})}" th:text="${d.title}">Protocolo de acoso escolar</a>
+                <span class="muted" th:text="|actualizado el ${@formats.date(v.lastUpdatedOn)}|">actualizado el 1 de marzo</span>
+            </li>
+        </ul>
+        <p class="block__more"><a th:href="@{/documentos}">Todos los documentos</a></p>
+    </div>
+</section>
+
+<!-- Canal de denuncia (DOC-07): debe ser fácil de encontrar y decir claramente a quién acudir. -->
+<section th:fragment="report-channel(b)" class="block block--report">
+    <div class="wrap"><div class="report-channel">
+        <h2 class="block__title" th:text="${b.title != null ? b.title : 'Canal de denuncia'}">Canal de denuncia</h2>
+        <p th:if="${b.text}" class="pre-line" th:text="${b.text}">Si sufres o presencias una situación de violencia o acoso, avísanos.</p>
+        <ul class="contact-list">
+            <li th:if="${b.email}">Correo: <a th:href="|mailto:${b.email}|" th:text="${b.email}">convivencia@colegio.cl</a></li>
+            <li th:if="${b.phone}">Teléfono: <a th:href="|tel:${#strings.replace(b.phone, ' ', '')}|" th:text="${b.phone}">+56 2 2345 6789</a></li>
+            <li th:if="${b.inPerson}" th:text="|Presencial: ${b.inPerson}|">Presencial: oficina de convivencia</li>
+        </ul>
+        <p th:if="${b.formUrl}"><a class="button" th:href="@{${b.formUrl}}">Hacer una denuncia</a></p>
+    </div></div>
 </section>
 
 </body>

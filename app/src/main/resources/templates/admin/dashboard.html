@@ -13,7 +13,31 @@
         <a class="btn" th:href="@{/admin/welcome}">Abrir el asistente</a>
     </section>
 
+    <!-- DOC-04: documentos con más de 12 meses sin actualizar. -->
+    <div class="alert alert-problem" role="alert" th:unless="${#lists.isEmpty(documentsDue)}">
+        <strong th:text="|${documentsDue.size()} documento(s) con más de 12 meses sin actualizar:|">Documentos por revisar:</strong>
+        <a th:each="d, it : ${documentsDue}" th:href="@{/admin/documents/{id}(id=${d.id})}" th:text="${d.title} + (${it.last} ? '' : ',')">Reglamento Interno</a>
+    </div>
+    <div class="alert alert-warn" role="status" th:if="${newsInReview > 0}">
+        <a th:href="@{/admin/news}" th:text="|${newsInReview} noticia(s) esperan tu revisión|">Noticias por revisar</a>
+    </div>
+
     <div class="cards">
+        <section class="card" aria-labelledby="contenido-panel"
+                 sec:authorize="hasAnyAuthority('NEWS_EDIT', 'ANNOUNCEMENTS', 'CALENDAR', 'GENERAL_INFO', 'DOCUMENTS')">
+            <h2 id="contenido-panel">Contenido</h2>
+            <ul>
+                <li sec:authorize="hasAuthority('NEWS_EDIT')"><a th:href="@{/admin/news}">Noticias</a></li>
+                <li sec:authorize="hasAuthority('ANNOUNCEMENTS')"><a th:href="@{/admin/announcements}">Comunicados y circulares</a></li>
+                <li sec:authorize="hasAuthority('ANNOUNCEMENTS')"><a th:href="@{/admin/alerts}">Avisos urgentes</a></li>
+                <li sec:authorize="hasAuthority('CALENDAR')"><a th:href="@{/admin/calendar}">Calendario</a></li>
+                <li sec:authorize="hasAuthority('DOCUMENTS')"><a th:href="@{/admin/documents}">Documentos institucionales</a></li>
+                <li sec:authorize="hasAuthority('GENERAL_INFO')"><a th:href="@{/admin/info/faq}">Preguntas frecuentes</a></li>
+                <li sec:authorize="hasAuthority('GENERAL_INFO')"><a th:href="@{/admin/info/workshops}">Talleres</a></li>
+                <li sec:authorize="hasAuthority('GENERAL_INFO')"><a th:href="@{/admin/info/sheets}">Útiles, uniforme y minuta</a></li>
+            </ul>
+        </section>
+
         <section class="card" aria-labelledby="sitio" sec:authorize="hasAnyAuthority('PAGES', 'SITE_DESIGN')">
             <h2 id="sitio">Sitio web</h2>
             <ul>
@@ -38,17 +62,18 @@
             <p><a th:href="@{/admin/profile}">Mi cuenta y contraseña</a></p>
         </section>
 
-        <section class="card" aria-labelledby="admin" sec:authorize="hasAnyAuthority('USERS', 'AUDIT_LOG')">
+        <section class="card" aria-labelledby="admin" sec:authorize="hasAnyAuthority('USERS', 'AUDIT_LOG', 'SCHOOL_SETTINGS')">
             <h2 id="admin">Administración</h2>
             <ul>
                 <li sec:authorize="hasAuthority('USERS')"><a th:href="@{/admin/users}">Usuarios y permisos</a></li>
+                <li sec:authorize="hasAuthority('SCHOOL_SETTINGS')"><a th:href="@{/admin/structure}">Niveles y cursos</a></li>
                 <li sec:authorize="hasAuthority('AUDIT_LOG')"><a th:href="@{/admin/audit}">Registro de auditoría</a></li>
             </ul>
         </section>
 
         <section class="card" aria-labelledby="proximo">
             <h2 id="proximo">En construcción</h2>
-            <p class="muted">Noticias, calendario, documentos y medios se habilitan en las próximas fases.</p>
+            <p class="muted">Biblioteca de medios y fotos, privacidad, formularios y agenda se habilitan en las próximas fases.</p>
         </section>
     </div>
 </main>

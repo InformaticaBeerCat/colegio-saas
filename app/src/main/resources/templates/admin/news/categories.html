@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head(title='Categorías de noticias')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: admin-header}"></header>
+<main id="contenido" class="container">
+    <p><a th:href="@{/admin/news}">← Noticias</a></p>
+    <h1>Categorías de noticias</h1>
+    <div th:replace="~{fragments/layout :: flash}"></div>
+    <section class="card">
+        <ul class="block-list" th:unless="${#lists.isEmpty(categories)}">
+            <li th:each="c : ${categories}" class="block-row">
+                <strong th:text="${c.name}">Deportes</strong>
+                <form th:action="@{/admin/news/categories/{id}/delete(id=${c.id})}" method="post">
+                    <button type="submit" class="btn btn-danger btn-small">Eliminar<span class="visually-hidden" th:text="| ${c.name}|"></span></button>
+                </form>
+            </li>
+        </ul>
+        <form th:action="@{/admin/news/categories}" method="post">
+            <div class="field"><label for="name">Nueva categoría</label><input id="name" type="text" name="name" required maxlength="80"></div>
+            <button type="submit" class="btn">Agregar</button>
+        </form>
+    </section>
+</main>
+</body>
+</html>

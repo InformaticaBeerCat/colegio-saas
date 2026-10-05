@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head(title='Preguntas frecuentes')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: admin-header}"></header>
+<main id="contenido" class="container">
+    <div class="page-head">
+        <h1>Preguntas frecuentes</h1>
+        <a class="btn btn-secondary" th:href="@{/preguntas-frecuentes}">Ver en el sitio</a>
+    </div>
+    <div th:replace="~{fragments/layout :: flash}"></div>
+
+    <div class="cards section">
+        <section class="card" aria-labelledby="categorias">
+            <h2 id="categorias">Categorías</h2>
+            <ul class="block-list" th:unless="${#lists.isEmpty(categories)}">
+                <li th:each="c : ${categories}" class="block-row">
+                    <strong th:text="${c.name}">Admisión</strong>
+                    <form th:action="@{/admin/info/faq/categories/{id}/delete(id=${c.id})}" method="post">
+                        <button type="submit" class="btn btn-danger btn-small">Eliminar<span class="visually-hidden" th:text="| ${c.name}|"></span></button>
+                    </form>
+                </li>
+            </ul>
+            <form th:action="@{/admin/info/faq/categories}" method="post">
+                <div class="field"><label for="category-name">Nueva categoría</label><input id="category-name" type="text" name="name" required maxlength="80"></div>
+                <button type="submit" class="btn btn-secondary">Agregar categoría</button>
+            </form>
+        </section>
+
+        <section class="card" aria-labelledby="nueva" th:unless="${#lists.isEmpty(categories)}">
+            <h2 id="nueva">Nueva pregunta</h2>
+            <form th:action="@{/admin/info/faq}" method="post">
+                <div class="field"><label for="categoryId">Categoría</label>
+                    <select id="categoryId" name="categoryId"><option th:each="c : ${categories}" th:value="${c.id}" th:text="${c.name}">Admisión</option></select></div>
+                <div class="field"><label for="question">Pregunta</label><input id="question" type="text" name="question" required maxlength="300"></div>
+                <div class="field"><label for="answer">Respuesta</label><textarea id="answer" name="answer" rows="4" required></textarea></div>
+                <div class="checks"><label><input type="checkbox" name="published" value="true" checked> Publicada</label></div>
+                <button type="submit" class="btn">Agregar pregunta</button>
+            </form>
+        </section>
+    </div>
+
+    <div class="table-wrap">
+        <table class="data">
+            <caption class="visually-hidden">Preguntas</caption>
+            <thead><tr><th scope="col">Pregunta</th><th scope="col">Categoría</th><th scope="col">Estado</th></tr></thead>
+            <tbody>
+            <tr th:each="e : ${entries}">
+                <td><a th:href="@{/admin/info/faq/{id}(id=${e.id})}" th:text="${e.question}">¿Pregunta?</a></td>
+                <td th:text="${e.category.name}">Admisión</td>
+                <td><span th:if="${e.published}" class="badge badge-ok">Publicada</span><span th:unless="${e.published}" class="badge">Oculta</span></td>
+            </tr>
+            <tr th:if="${#lists.isEmpty(entries)}"><td colspan="3" class="muted">Todavía no hay preguntas.</td></tr>
+            </tbody>
+        </table>
+    </div>
+</main>
+</body>
+</html>

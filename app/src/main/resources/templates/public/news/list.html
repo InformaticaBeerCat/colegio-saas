@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="es-CL" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{public/layout :: head(${pageTitle}, ${metaDescription}, ${noindex})}"></head>
+<body th:class="|theme-${site.themeId}|">
+<div th:replace="~{public/layout :: top}"></div>
+<main id="contenido" tabindex="-1">
+    <header class="page-header"><div class="wrap"><h1>Noticias</h1></div></header>
+    <div class="wrap block">
+        <form class="filters" th:action="@{/noticias}" method="get" th:if="${not #lists.isEmpty(categories) or not #lists.isEmpty(levels)}">
+            <div class="filter" th:unless="${#lists.isEmpty(categories)}">
+                <label for="categoria">Categoría</label>
+                <select id="categoria" name="categoria">
+                    <option value="">Todas</option>
+                    <option th:each="c : ${categories}" th:value="${c.slug}" th:text="${c.name}" th:selected="${c.slug == categoria}">Deportes</option>
+                </select>
+            </div>
+            <div class="filter" th:unless="${#lists.isEmpty(levels)}">
+                <label for="nivel">Nivel</label>
+                <select id="nivel" name="nivel">
+                    <option value="">Todos</option>
+                    <option th:each="l : ${levels}" th:value="${l.slug}" th:text="${l.name}" th:selected="${l.slug == nivel}">1° Básico</option>
+                </select>
+            </div>
+            <button type="submit" class="button">Filtrar</button>
+        </form>
+
+        <p th:if="${articles.empty}" class="muted">No hay noticias publicadas con esos filtros.</p>
+        <ul class="news-list" th:unless="${articles.empty}">
+            <li th:each="a : ${articles}" class="card news-item">
+                <h2 class="card__title"><a th:href="@{/noticias/{s}(s=${a.slug})}" th:text="${a.title}">Título</a></h2>
+                <p class="card__meta">
+                    <time th:datetime="${a.publishAt}" th:text="${@formats.date(a.publishAt)}">12 de octubre de 2026</time>
+                    <span th:if="${a.category}" th:text="| · ${a.category.name}|">· Deportes</span>
+                </p>
+                <p th:if="${a.summary}" th:text="${a.summary}">Resumen</p>
+            </li>
+        </ul>
+
+        <nav class="pagination" aria-label="Páginas de noticias" th:if="${articles.totalPages > 1}">
+            <a th:if="${articles.hasPrevious()}" th:href="@{/noticias(pagina=${articles.number}, categoria=${categoria}, nivel=${nivel})}" rel="prev">← Más recientes</a>
+            <span th:text="|Página ${articles.number + 1} de ${articles.totalPages}|">Página 1 de 3</span>
+            <a th:if="${articles.hasNext()}" th:href="@{/noticias(pagina=${articles.number + 2}, categoria=${categoria}, nivel=${nivel})}" rel="next">Anteriores →</a>
+        </nav>
+    </div>
+</main>
+<footer th:replace="~{public/layout :: footer}"></footer>
+</body>
+</html>

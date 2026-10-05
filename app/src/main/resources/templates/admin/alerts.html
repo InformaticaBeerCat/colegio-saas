@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head(title='Avisos urgentes')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: admin-header}"></header>
+<main id="contenido" class="container">
+    <h1>Avisos urgentes</h1>
+    <p class="muted">Un aviso activo aparece arriba en todas las páginas del sitio: suspensión de clases, emergencias, simulacros.</p>
+    <div th:replace="~{fragments/layout :: flash}"></div>
+
+    <div class="alert alert-warn" role="status" th:unless="${#lists.isEmpty(visible)}">
+        <strong th:text="|${visible.size()} aviso(s) visible(s) ahora en el sitio.|">1 aviso visible.</strong>
+    </div>
+
+    <section class="card section" aria-labelledby="nuevo">
+        <h2 id="nuevo">Nuevo aviso</h2>
+        <form th:action="@{/admin/alerts}" method="post">
+            <div class="field"><label for="message">Mensaje</label><input id="message" type="text" name="message" required maxlength="300"
+                   placeholder="Mañana martes se suspenden las clases por el sistema frontal"></div>
+            <div class="color-grid">
+                <div class="field"><label for="severity">Tipo</label>
+                    <select id="severity" name="severity"><option th:each="s : ${severities}" th:value="${s}" th:text="${#messages.msg('severity.' + s)}">Información</option></select></div>
+                <div class="field"><label for="linkUrl">Enlace <span class="muted">(opcional)</span></label><input id="linkUrl" type="text" name="linkUrl" placeholder="/comunicados"></div>
+                <div class="field"><label for="linkLabel">Texto del enlace</label><input id="linkLabel" type="text" name="linkLabel" maxlength="60" placeholder="Ver comunicado"></div>
+                <div class="field"><label for="startsAt">Desde <span class="muted">(opcional)</span></label><input id="startsAt" type="datetime-local" name="startsAt"></div>
+                <div class="field"><label for="endsAt">Hasta <span class="muted">(opcional; se apaga sola)</span></label><input id="endsAt" type="datetime-local" name="endsAt"></div>
+            </div>
+            <div class="checks"><label><input type="checkbox" name="activateNow" value="true" checked> Activar ahora</label></div>
+            <button type="submit" class="btn">Guardar aviso</button>
+        </form>
+    </section>
+
+    <div class="table-wrap">
+        <table class="data">
+            <caption class="visually-hidden">Avisos</caption>
+            <thead><tr><th scope="col">Mensaje</th><th scope="col">Tipo</th><th scope="col">Ventana</th><th scope="col">Estado</th><th scope="col">Acciones</th></tr></thead>
+            <tbody>
+            <tr th:each="a : ${alerts}">
+                <td th:text="${a.message}">Mensaje</td>
+                <td th:text="${#messages.msg('severity.' + a.severity)}">Emergencia</td>
+                <td><span th:text="${@formats.dateTime(a.startsAt)}">—</span> a <span th:text="${@formats.dateTime(a.endsAt)}">—</span></td>
+                <td><span th:if="${visible.contains(a)}" class="badge badge-ok">Visible</span>
+                    <span th:if="${a.active and !visible.contains(a)}" class="badge">Activo, fuera de horario</span>
+                    <span th:unless="${a.active}" class="badge">Inactivo</span></td>
+                <td class="actions">
+                    <form th:action="@{/admin/alerts/{id}/active(id=${a.id})}" method="post">
+                        <input type="hidden" name="active" th:value="${!a.active}">
+                        <button type="submit" class="btn btn-secondary btn-small" th:text="${a.active} ? 'Desactivar' : 'Activar'">Desactivar</button>
+                    </form>
+                    <form th:action="@{/admin/alerts/{id}/delete(id=${a.id})}" method="post"><button type="submit" class="btn btn-danger btn-small">Eliminar</button></form>
+                </td>
+            </tr>
+            <tr th:if="${#lists.isEmpty(alerts)}"><td colspan="5" class="muted">No hay avisos.</td></tr>
+            </tbody>
+        </table>
+    </div>
+</main>
+</body>
+</html>

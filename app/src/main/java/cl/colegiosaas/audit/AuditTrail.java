@@ -38,6 +38,12 @@ public class AuditTrail {
         save(ActorType.USER, actor.getId(), actor.getName(), action, entityType, entityId, details);
     }
 
+    /** Acción de una tarea automática (publicación programada, borrado por retención…). */
+    @Transactional
+    public void recordSystem(AuditAction action, String entityType, Object entityId, String details) {
+        save(ActorType.SYSTEM, null, null, action, entityType, entityId, details);
+    }
+
     @Transactional
     public void recordAnonymous(AuditAction action, String entityType, Object entityId, String details) {
         save(ActorType.ANONYMOUS, null, null, action, entityType, entityId, details);

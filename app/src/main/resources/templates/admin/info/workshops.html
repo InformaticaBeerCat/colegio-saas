@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head(title='Talleres')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: admin-header}"></header>
+<main id="contenido" class="container">
+    <div class="page-head">
+        <h1>Talleres y actividades extraprogramáticas</h1>
+        <a class="btn" th:href="@{/admin/info/workshops/new}">Nuevo taller</a>
+    </div>
+    <div th:replace="~{fragments/layout :: flash}"></div>
+    <div class="table-wrap">
+        <table class="data">
+            <caption class="visually-hidden">Talleres</caption>
+            <thead><tr><th scope="col">Taller</th><th scope="col">Año</th><th scope="col">Horario</th><th scope="col">Estado</th></tr></thead>
+            <tbody>
+            <tr th:each="w : ${workshops}">
+                <td><a th:href="@{/admin/info/workshops/{id}(id=${w.id})}" th:text="${w.name}">Robótica</a></td>
+                <td th:text="${w.academicYear}">2026</td>
+                <td th:text="${w.schedule}">Martes 15:30</td>
+                <td><span th:if="${w.active}" class="badge badge-ok">Visible</span><span th:unless="${w.active}" class="badge">Oculto</span></td>
+            </tr>
+            <tr th:if="${#lists.isEmpty(workshops)}"><td colspan="4" class="muted">Todavía no hay talleres.</td></tr>
+            </tbody>
+        </table>
+    </div>
+</main>
+</body>
+</html>

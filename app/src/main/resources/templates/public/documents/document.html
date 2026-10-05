@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="es-CL" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{public/layout :: head(${pageTitle}, ${metaDescription}, ${noindex})}"></head>
+<body th:class="|theme-${site.themeId}|">
+<div th:replace="~{public/layout :: top}"></div>
+<main id="contenido" tabindex="-1">
+    <header class="page-header">
+        <div class="wrap">
+            <p class="breadcrumb"><a th:href="@{/documentos}">Documentos</a></p>
+            <h1 th:text="${document.title}">Reglamento Interno</h1>
+        </div>
+    </header>
+    <div class="wrap block">
+        <article th:replace="~{public/documents/fragments :: card(${document})}"></article>
+        <section class="section-group" th:unless="${#lists.isEmpty(document.archivedVersions())}" aria-labelledby="historial">
+            <h2 id="historial">Versiones anteriores</h2>
+            <ul class="history">
+                <li th:each="v : ${document.archivedVersions()}">
+                    <a th:with="fileHref=${@fileLinks.of(v.file)}" th:href="@{${fileHref}}"
+                       th:text="|Versión ${v.academicYear != null ? v.academicYear + ', ' : ''}actualizada el ${@formats.date(v.lastUpdatedOn)} (PDF)|">Versión 2025</a>
+                    <span th:if="${v.changeNotes}" class="muted" th:text="| — ${v.changeNotes}|"></span>
+                </li>
+            </ul>
+        </section>
+    </div>
+</main>
+<footer th:replace="~{public/layout :: footer}"></footer>
+</body>
+</html>

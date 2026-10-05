@@ -199,7 +199,7 @@ main:focus { outline: none; }
 
 /* --- Bloques --- */
 .page-header { padding: 2.5rem 0 1rem; }
-.block { padding: 2.5rem 0; }
+.block { padding-top: 2.5rem; padding-bottom: 2.5rem; }
 .block + .block:nth-of-type(even) { background: var(--color-surface); }
 .block__title { margin-bottom: 1.25rem; }
 
@@ -293,6 +293,61 @@ main:focus { outline: none; }
 .faq__item { border: 1px solid var(--color-border); border-radius: var(--radius); background: var(--color-bg); }
 .faq__item summary { cursor: pointer; padding: .9rem 1rem; font-weight: 600; min-height: 44px; }
 .faq__item p { padding: 0 1rem 1rem; margin: 0; }
+
+/* --- Páginas de módulos (noticias, calendario, documentos, información) --- */
+.breadcrumb { margin-bottom: .25rem; font-size: .95rem; }
+.lead { font-size: 1.15rem; max-width: 60ch; }
+.pre-line { white-space: pre-line; }
+.block__more { margin-top: 1.25rem; font-weight: 600; }
+.section-group + .section-group { margin-top: 2.5rem; }
+
+.filters { display: flex; flex-wrap: wrap; gap: .75rem 1rem; align-items: flex-end; margin-bottom: 2rem; }
+.filter { display: flex; flex-direction: column; gap: .25rem; min-width: 12rem; }
+.filter label { font-weight: 600; }
+.filter select {
+    font: inherit;
+    min-height: 44px;
+    padding: .5rem .6rem;
+    color: var(--color-text);
+    background: var(--color-bg);
+    border: 2px solid var(--color-control);
+    border-radius: var(--radius);
+}
+button.button { font: inherit; font-weight: 700; cursor: pointer; }
+
+.news-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 1rem; }
+.announcement + .announcement { margin-top: 1rem; }
+
+.pagination, .month-nav { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: .5rem 1rem; margin: 2rem 0 1rem; }
+.month-nav { margin-top: 0; }
+.month-nav__title { margin: 0; font-size: 1.4rem; }
+/* En el teléfono el mes va primero, a todo el ancho, y los enlaces debajo. */
+@media (max-width: 599px) {
+    .month-nav__title { order: -1; flex-basis: 100%; }
+}
+
+.calendar-day { margin-bottom: 1.5rem; }
+.calendar-day__title { font-size: 1.05rem; color: var(--color-text); border-bottom: 1px solid var(--color-border); padding-bottom: .35rem; }
+
+.details { display: grid; grid-template-columns: max-content 1fr; gap: .4rem 1rem; margin: 0 0 1.25rem; }
+.details dt { font-weight: 700; }
+.details dd { margin: 0; }
+.details--compact { font-size: .95rem; margin-bottom: .75rem; }
+
+.file-link { font-weight: 700; }
+.file-link::before { content: "↓ "; }
+.notice { padding: .75rem 1rem; border-left: 4px solid var(--color-accent); background: var(--color-surface); border-radius: var(--radius); font-size: .95rem; }
+
+.document { margin-bottom: 1rem; }
+.document-children { margin-left: .5rem; padding-left: .75rem; border-left: 3px solid var(--color-border); }
+@media (min-width: 600px) {
+    .document-children { margin-left: 1.25rem; padding-left: 1rem; }
+}
+.document-links, .history, .contact-list { padding-left: 1.2rem; }
+.document-links li, .history li, .contact-list li { margin-bottom: .4rem; }
+.report-channel { border: 2px solid var(--color-primary); border-radius: var(--radius-lg); padding: 1.5rem 1rem; }
+.faq__answer { padding: 0 1rem 1rem; }
+.sheet summary .muted { font-weight: 400; }
 
 /* --- Pie --- */
 .site-footer { background: var(--color-secondary); color: var(--color-on-secondary); padding: 2.5rem 0 1rem; margin-top: 2rem; }

@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head(title=${event == null ? 'Nuevo evento' : event.title})}"></head>
+<body>
+<header th:replace="~{fragments/layout :: admin-header}"></header>
+<main id="contenido" class="container">
+    <p><a th:href="@{/admin/calendar}">← Calendario</a></p>
+    <div class="page-head">
+        <h1 th:text="${event == null ? 'Nuevo evento' : event.title}">Evento</h1>
+        <div class="actions" th:if="${event}">
+            <a class="btn btn-secondary" th:if="${event.published}" th:href="@{/calendario/{s}(s=${event.slug})}">Ver en el sitio</a>
+            <form th:unless="${event.published}" th:action="@{/admin/calendar/{id}/publish(id=${event.id})}" method="post"><button type="submit" class="btn">Publicar</button></form>
+            <form th:if="${event.published}" th:action="@{/admin/calendar/{id}/unpublish(id=${event.id})}" method="post"><button type="submit" class="btn btn-secondary">Retirar</button></form>
+        </div>
+    </div>
+    <div th:replace="~{fragments/layout :: flash}"></div>
+
+    <form class="card section" th:action="${event == null} ? @{/admin/calendar} : @{/admin/calendar/{id}(id=${event.id})}" th:object="${form}" method="post">
+        <div class="color-grid">
+            <div class="field"><label for="title">Título</label><input type="text" th:field="*{title}" required maxlength="200"></div>
+            <div class="field"><label for="kind">Tipo</label>
+                <select th:field="*{kind}"><option th:each="k : ${kinds}" th:value="${k}" th:text="${#messages.msg('eventKind.' + k)}">Acto</option></select></div>
+        </div>
+        <div class="checks"><label><input type="checkbox" th:field="*{allDay}"> Todo el día (feriados, vacaciones, jornadas)</label></div>
+        <div class="color-grid">
+            <div class="field"><label for="startDate">Desde</label><input type="date" th:field="*{startDate}" required></div>
+            <div class="field"><label for="startTime">Hora de inicio</label><input type="time" th:field="*{startTime}"></div>
+            <div class="field"><label for="endDate">Hasta <span class="muted">(opcional)</span></label><input type="date" th:field="*{endDate}"></div>
+            <div class="field"><label for="endTime">Hora de término <span class="muted">(opcional)</span></label><input type="time" th:field="*{endTime}"></div>
+        </div>
+        <p class="hint">Hora del colegio. En un evento de todo el día las horas se ignoran.</p>
+        <div class="field"><label for="location">Lugar</label><input type="text" th:field="*{location}" maxlength="200"></div>
+        <div class="field"><label for="description">Descripción</label><textarea th:field="*{description}" rows="4" maxlength="2000"></textarea></div>
+        <fieldset th:unless="${#lists.isEmpty(gradeLevels)}">
+            <legend>Niveles <span class="muted">(ninguno = todo el colegio)</span></legend>
+            <div class="checks checks-grid">
+                <label th:each="l : ${gradeLevels}"><input type="checkbox" th:field="*{gradeLevelIds}" th:value="${l.id}"> <span th:text="${l.name}">1° Básico</span></label>
+            </div>
+        </fieldset>
+        <fieldset th:unless="${#lists.isEmpty(courses)}">
+            <legend>Cursos convocados <span class="muted">(reuniones de apoderados)</span></legend>
+            <div class="checks checks-grid">
+                <label th:each="c : ${courses}"><input type="checkbox" th:field="*{courseIds}" th:value="${c.id}"> <span th:text="${c.displayName()}">1° A</span></label>
+            </div>
+        </fieldset>
+        <button type="submit" class="btn">Guardar</button>
+    </form>
+
+    <form th:if="${event}" th:action="@{/admin/calendar/{id}/delete(id=${event.id})}" method="post">
+        <button type="submit" class="btn btn-danger">Eliminar evento</button>
+    </form>
+</main>
+</body>
+</html>

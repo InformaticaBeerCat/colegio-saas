@@ -3,12 +3,12 @@ package cl.colegiosaas.page;
 import cl.colegiosaas.audit.AuditAction;
 import cl.colegiosaas.audit.AuditTrail;
 import cl.colegiosaas.shared.html.HtmlSanitizer;
+import cl.colegiosaas.shared.text.Slugs;
 import cl.colegiosaas.shared.web.SafeUrls;
 import cl.colegiosaas.site.SiteSection;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.text.Normalizer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -30,7 +30,8 @@ public class PageService {
     static final Set<String> RESERVED_SLUGS = Set.of(
             "admin", "setup", "api", "actuator", "error", "site", "css", "js", "fonts", "images", "media",
             "login", "logout", "noticias", "calendario", "comunicados", "documentos", "galerias", "contacto",
-            "admision", "agenda", "privacidad", "buscar", "sitemap", "robots", "favicon");
+            "admision", "agenda", "privacidad", "buscar", "sitemap", "robots", "favicon", "archivos",
+            "talleres", "preguntas-frecuentes", "informacion-practica");
 
     private static final Pattern SLUG = Pattern.compile("[a-z0-9]+(-[a-z0-9]+)*");
     private static final int MAX_LIST_ITEMS = 12;
@@ -176,11 +177,7 @@ public class PageService {
 
     /** "Proyecto Educativo (PEI)" → "proyecto-educativo-pei". */
     public static String slugify(String text) {
-        if (text == null) {
-            return "";
-        }
-        String ascii = Normalizer.normalize(text, Normalizer.Form.NFD).replaceAll("\\p{M}", "");
-        return ascii.toLowerCase(Locale.ROOT).replaceAll("[^a-z0-9]+", "-").replaceAll("(^-|-$)", "");
+        return Slugs.slugify(text);
     }
 
     /**
@@ -202,6 +199,9 @@ public class PageService {
             case Block.Gallery b -> b;
             case Block.Location b -> b;
             case Block.Faq b -> b;
+            case Block.Documents b -> b;
+            case Block.ReportChannel b -> new Block.ReportChannel(b.title(), b.text(), checkEmail(b.email()),
+                    b.phone(), b.inPerson(), optionalUrl(b.formUrl()));
         };
     }
 
@@ -241,6 +241,16 @@ public class PageService {
             throw new PageException("Enlace no permitido: usa una ruta del sitio (/admision) o una dirección https://");
         }
         return url.strip();
+    }
+
+    private static String checkEmail(String email) {
+        if (email == null || email.isBlank()) {
+            return null;
+        }
+        if (!email.strip().matches("[^@\\s]+@[^@\\s]+\\.[^@\\s]+")) {
+            throw new PageException("El correo del canal de denuncia no es válido");
+        }
+        return email.strip();
     }
 
     private static int clampCount(int count) {

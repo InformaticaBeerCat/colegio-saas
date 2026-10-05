@@ -20,7 +20,10 @@ public enum BlockType {
     GALLERY("gallery", Block.Gallery.class, false),
     TIMELINE("timeline", Block.Timeline.class, true),
     LOCATION("location", Block.Location.class, true),
-    FAQ("faq", Block.Faq.class, true);
+    FAQ("faq", Block.Faq.class, true),
+    DOCUMENTS("documents", Block.Documents.class, true),
+    /** Canal de denuncia de convivencia escolar (DOC-07). */
+    REPORT_CHANNEL("report-channel", Block.ReportChannel.class, true);
 
     private final String key;
     private final Class<? extends Block> blockClass;

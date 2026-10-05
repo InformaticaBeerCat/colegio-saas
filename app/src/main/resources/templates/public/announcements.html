@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="es-CL" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{public/layout :: head(${pageTitle}, ${metaDescription}, ${noindex})}"></head>
+<body th:class="|theme-${site.themeId}|">
+<div th:replace="~{public/layout :: top}"></div>
+<main id="contenido" tabindex="-1">
+    <header class="page-header"><div class="wrap"><h1>Comunicados</h1></div></header>
+    <div class="wrap block">
+        <p th:if="${announcements.empty}" class="muted">No hay comunicados publicados.</p>
+        <article th:each="a : ${announcements}" class="card announcement">
+            <h2 class="card__title" th:text="${a.title}">Suspensión de clases</h2>
+            <p class="card__meta">
+                <time th:datetime="${a.publishedAt}" th:text="${@formats.date(a.publishedAt)}">12 de octubre de 2026</time>
+                · Para: <span th:text="${a.audience}">Todo el colegio</span>
+            </p>
+            <div class="prose" th:utext="${a.body}">Texto</div>
+            <p th:if="${a.attachmentHref}">
+                <a class="file-link" th:href="@{${a.attachmentHref}}">
+                    <span th:text="|Descargar circular (PDF, ${@formats.size(a.attachmentBytes)})|">Descargar circular (PDF, 120 KB)</span>
+                </a>
+            </p>
+        </article>
+        <nav class="pagination" aria-label="Páginas de comunicados" th:if="${announcements.totalPages > 1}">
+            <a th:if="${announcements.hasPrevious()}" th:href="@{/comunicados(pagina=${announcements.number})}" rel="prev">← Más recientes</a>
+            <span th:text="|Página ${announcements.number + 1} de ${announcements.totalPages}|">Página 1</span>
+            <a th:if="${announcements.hasNext()}" th:href="@{/comunicados(pagina=${announcements.number + 2})}" rel="next">Anteriores →</a>
+        </nav>
+    </div>
+</main>
+<footer th:replace="~{public/layout :: footer}"></footer>
+</body>
+</html>

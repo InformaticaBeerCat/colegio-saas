@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="es-CL" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{public/layout :: head(${pageTitle}, ${metaDescription}, ${noindex})}"></head>
+<body th:class="|theme-${site.themeId}|">
+<div th:replace="~{public/layout :: top}"></div>
+<main id="contenido" tabindex="-1">
+    <header class="page-header"><div class="wrap"><h1>Calendario escolar</h1></div></header>
+    <div class="wrap block">
+        <form class="filters" th:action="@{/calendario}" method="get">
+            <input type="hidden" name="mes" th:value="${month}">
+            <div class="filter">
+                <label for="tipo">Tipo</label>
+                <select id="tipo" name="tipo">
+                    <option value="">Todos</option>
+                    <option th:each="k : ${kinds}" th:value="${k.slug}" th:text="${#messages.msg('eventKind.' + k.label)}" th:selected="${k.slug == tipo}">Acto</option>
+                </select>
+            </div>
+            <div class="filter" th:unless="${#lists.isEmpty(levels)}">
+                <label for="nivel">Nivel</label>
+                <select id="nivel" name="nivel">
+                    <option value="">Todos</option>
+                    <option th:each="l : ${levels}" th:value="${l.slug}" th:text="${l.label}" th:selected="${l.slug == nivel}">1° Básico</option>
+                </select>
+            </div>
+            <button type="submit" class="button">Filtrar</button>
+        </form>
+
+        <nav class="month-nav" aria-label="Cambiar de mes">
+            <a th:href="@{/calendario(mes=${month.minusMonths(1)}, tipo=${tipo}, nivel=${nivel})}" rel="prev"
+               th:text="|← ${@formats.month(month.minusMonths(1))}|">← septiembre</a>
+            <h2 class="month-nav__title" th:text="${#strings.capitalize(@formats.month(month))}">Octubre de 2026</h2>
+            <a th:href="@{/calendario(mes=${month.plusMonths(1)}, tipo=${tipo}, nivel=${nivel})}" rel="next"
+               th:text="|${@formats.month(month.plusMonths(1))} →|">noviembre →</a>
+        </nav>
+
+        <p th:if="${#lists.isEmpty(days)}" class="muted">No hay eventos publicados este mes con esos filtros.</p>
+        <section th:each="d : ${days}" class="calendar-day">
+            <h3 class="calendar-day__title"><time th:datetime="${d.day}" th:text="${#strings.capitalize(@eventDates.weekday(d.day))}">Lunes 12 de octubre</time></h3>
+            <ul class="event-list">
+                <li th:each="e : ${d.events}" class="event">
+                    <span class="event__when" th:text="${@eventDates.hours(e)}">19:00 a 20:30 h</span>
+                    <a class="event__title" th:href="@{/calendario/{s}(s=${e.slug})}" th:text="${e.title}">Reunión</a>
+                    <span class="event__where">
+                        <span th:text="${#messages.msg('eventKind.' + e.kind)}">Acto</span><span th:if="${e.location}" th:text="| · ${e.location}|"> · Gimnasio</span>
+                    </span>
+                </li>
+            </ul>
+        </section>
+
+        <p class="block__more">
+            <a th:href="@{/calendario.ics(tipo=${tipo}, nivel=${nivel})}">Agregar este calendario a mi teléfono (.ics)</a>
+        </p>
+    </div>
+</main>
+<footer th:replace="~{public/layout :: footer}"></footer>
+</body>
+</html>

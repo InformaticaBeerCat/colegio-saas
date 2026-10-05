@@ -23,6 +23,8 @@
             <th:block th:case="'call-to-action'"><section th:replace="~{public/blocks :: call-to-action(${rb.block})}"></section></th:block>
             <th:block th:case="'timeline'"><section th:replace="~{public/blocks :: timeline(${rb.block})}"></section></th:block>
             <th:block th:case="'location'"><section th:replace="~{public/blocks :: location(${rb.block}, ${rb.data})}"></section></th:block>
+            <th:block th:case="'documents'"><section th:replace="~{public/blocks :: documents(${rb.block}, ${rb.data})}"></section></th:block>
+            <th:block th:case="'report-channel'"><section th:replace="~{public/blocks :: report-channel(${rb.block})}"></section></th:block>
             <th:block th:case="'faq'"><section th:replace="~{public/blocks :: faq(${rb.block}, ${rb.data})}"></section></th:block>
         </th:block>
 

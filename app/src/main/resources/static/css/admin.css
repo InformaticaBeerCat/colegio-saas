@@ -215,3 +215,17 @@ code { font-family: ui-monospace, monospace; font-size: .9em; }
 .tabs a[aria-current="page"] { border-bottom: 3px solid var(--primary); }
 
 .welcome-card { border: 2px solid var(--primary); }
+
+/* --- Fase 4: contenido --- */
+.checks-grid { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); }
+input[type=date], input[type=time], input[type=datetime-local], input[type=file] {
+    font: inherit;
+    padding: .5rem .6rem;
+    border: 1px solid #9aa3b2;
+    border-radius: 6px;
+    background: var(--surface);
+    color: var(--ink);
+    width: 100%;
+}
+fieldset[disabled] { opacity: .7; }
+td.actions { display: flex; gap: .5rem; flex-wrap: wrap; }

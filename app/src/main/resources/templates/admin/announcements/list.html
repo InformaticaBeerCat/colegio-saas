@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head(title='Comunicados')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: admin-header}"></header>
+<main id="contenido" class="container">
+    <h1>Comunicados y circulares</h1>
+    <div th:replace="~{fragments/layout :: flash}"></div>
+    <section class="card section" aria-labelledby="nuevo">
+        <h2 id="nuevo">Nuevo comunicado</h2>
+        <form th:action="@{/admin/announcements}" method="post">
+            <div class="field"><label for="title">Título</label><input id="title" type="text" name="title" required maxlength="200"></div>
+            <button type="submit" class="btn">Crear borrador</button>
+        </form>
+    </section>
+    <div class="table-wrap">
+        <table class="data">
+            <caption class="visually-hidden">Comunicados</caption>
+            <thead><tr><th scope="col">Título</th><th scope="col">Estado</th><th scope="col">Publicado</th></tr></thead>
+            <tbody>
+            <tr th:each="a : ${announcements}">
+                <td><a th:href="@{/admin/announcements/{id}(id=${a.id})}" th:text="${a.title}">Título</a></td>
+                <td><span th:if="${a.published}" class="badge badge-ok">Publicado</span><span th:unless="${a.published}" class="badge">Borrador</span></td>
+                <td th:text="${@formats.dateTime(a.publishedAt)}">—</td>
+            </tr>
+            <tr th:if="${#lists.isEmpty(announcements)}"><td colspan="3" class="muted">Todavía no hay comunicados.</td></tr>
+            </tbody>
+        </table>
+    </div>
+</main>
+</body>
+</html>

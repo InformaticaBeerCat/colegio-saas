@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head(title=${sheet == null ? 'Nueva ficha' : sheet.title})}"></head>
+<body>
+<header th:replace="~{fragments/layout :: admin-header}"></header>
+<main id="contenido" class="container">
+    <p><a th:href="@{/admin/info/sheets}">← Útiles, uniforme y minuta</a></p>
+    <div class="page-head">
+        <h1 th:text="${sheet == null ? 'Nueva ficha' : sheet.title}">Ficha</h1>
+        <form th:if="${sheet}" th:action="@{/admin/info/sheets/{id}/publish(id=${sheet.id})}" method="post">
+            <input type="hidden" name="published" th:value="${!sheet.published}">
+            <button type="submit" class="btn" th:classappend="${sheet.published} ? 'btn-secondary'" th:text="${sheet.published} ? 'Retirar del sitio' : 'Publicar'">Publicar</button>
+        </form>
+    </div>
+    <div th:replace="~{fragments/layout :: flash}"></div>
+    <form class="card section" method="post" th:action="${sheet == null} ? @{/admin/info/sheets} : @{/admin/info/sheets/{id}(id=${sheet.id})}">
+        <div class="color-grid">
+            <div class="field"><label for="kind">Tipo</label>
+                <select id="kind" name="kind"><option th:each="k : ${kinds}" th:value="${k}" th:text="${#messages.msg('sheetKind.' + k)}" th:selected="${sheet != null and sheet.kind == k}">Útiles</option></select></div>
+            <div class="field"><label for="title">Título</label><input id="title" type="text" name="title" required maxlength="200" th:value="${sheet?.title}"></div>
+            <div class="field"><label for="gradeLevelId">Nivel</label>
+                <select id="gradeLevelId" name="gradeLevelId">
+                    <option value="">Todos los niveles</option>
+                    <option th:each="l : ${gradeLevels}" th:value="${l.id}" th:text="${l.name}" th:selected="${sheet != null and sheet.gradeLevel != null and sheet.gradeLevel.id == l.id}">1° Básico</option>
+                </select></div>
+            <div class="field"><label for="academicYear">Año escolar</label><input id="academicYear" type="number" name="academicYear" required th:value="${sheet != null ? sheet.academicYear : defaultYear}"></div>
+            <div class="field"><label for="validFrom">Vigente desde <span class="muted">(opcional)</span></label><input id="validFrom" type="date" name="validFrom" th:value="${sheet?.validFrom}"></div>
+            <div class="field"><label for="validUntil">Vigente hasta <span class="muted">(opcional)</span></label><input id="validUntil" type="date" name="validUntil" th:value="${sheet?.validUntil}"></div>
+        </div>
+        <p class="hint">La vigencia sirve para la minuta mensual: fuera de esas fechas no se muestra.</p>
+        <div class="field"><label for="content">Contenido para ver en la web <span class="muted">(opcional si adjuntas PDF)</span></label>
+            <textarea id="content" name="content" rows="10" th:text="${sheet?.content}"></textarea>
+            <span class="hint">HTML básico: listas, tablas, negritas. Leerlo en la web es más cómodo en el teléfono que un PDF.</span></div>
+        <button type="submit" class="btn">Guardar</button>
+    </form>
+
+    <section class="card section" th:if="${sheet}" aria-labelledby="pdf">
+        <h2 id="pdf">PDF para descargar</h2>
+        <div th:if="${sheet.file}" class="actions">
+            <span th:text="${sheet.file.originalName}">utiles.pdf</span>
+            <form th:action="@{/admin/info/sheets/{id}/file/delete(id=${sheet.id})}" method="post"><button type="submit" class="btn btn-secondary btn-small">Quitar</button></form>
+        </div>
+        <form th:action="@{/admin/info/sheets/{id}/file(id=${sheet.id})}" method="post" enctype="multipart/form-data">
+            <div class="field"><label for="file">Subir PDF</label><input id="file" type="file" name="file" accept="application/pdf" required></div>
+            <button type="submit" class="btn btn-secondary">Subir</button>
+        </form>
+    </section>
+    <form th:if="${sheet}" th:action="@{/admin/info/sheets/{id}/delete(id=${sheet.id})}" method="post"><button type="submit" class="btn btn-danger">Eliminar ficha</button></form>
+</main>
+</body>
+</html>

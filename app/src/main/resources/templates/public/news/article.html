@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="es-CL" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{public/layout :: head(${pageTitle}, ${metaDescription}, ${noindex})}"></head>
+<body th:class="|theme-${site.themeId}|">
+<div th:replace="~{public/layout :: top}"></div>
+<main id="contenido" tabindex="-1">
+    <article>
+        <header class="page-header">
+            <div class="wrap">
+                <p class="breadcrumb"><a th:href="@{/noticias}">Noticias</a></p>
+                <h1 th:text="${article.title}">Título</h1>
+                <p class="card__meta">
+                    <time th:datetime="${article.publishAt}" th:text="${@formats.date(article.publishAt)}">12 de octubre de 2026</time>
+                    <span th:if="${article.category}" th:text="| · ${article.category.name}|">· Deportes</span>
+                </p>
+                <p class="lead" th:if="${article.summary}" th:text="${article.summary}">Bajada</p>
+            </div>
+        </header>
+        <div class="wrap block"><div class="prose" th:utext="${article.body}">Texto</div></div>
+        <div class="wrap" th:unless="${#sets.isEmpty(article.gradeLevels)}">
+            <p class="muted">Niveles: <span th:each="l, it : ${article.gradeLevels}" th:text="${l.name} + (${it.last} ? '' : ', ')">1° Básico</span></p>
+        </div>
+    </article>
+</main>
+<footer th:replace="~{public/layout :: footer}"></footer>
+</body>
+</html>

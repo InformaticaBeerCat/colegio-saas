@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head(title=${article.title})}"></head>
+<body>
+<header th:replace="~{fragments/layout :: admin-header}"></header>
+<main id="contenido" class="container" th:with="st=${article.status.name()}">
+    <p><a th:href="@{/admin/news}">← Noticias</a></p>
+    <div class="page-head">
+        <div>
+            <h1 th:text="${article.title}">Título</h1>
+            <p class="muted">
+                <span class="badge" th:text="${#messages.msg('newsStatus.' + article.status)}">Borrador</span>
+                Escrita por <span th:text="${article.author.name}">Ana</span>
+                <span th:if="${st == 'SCHEDULED'}" th:text="| · se publica el ${@formats.dateTime(article.publishAt)}|"></span>
+                <span th:if="${st == 'PUBLISHED'}" th:text="| · publicada el ${@formats.dateTime(article.publishedAt)}|"></span>
+            </p>
+        </div>
+        <a class="btn btn-secondary" th:if="${st == 'PUBLISHED'}" th:href="@{/noticias/{s}(s=${article.slug})}">Ver en el sitio</a>
+    </div>
+    <div th:replace="~{fragments/layout :: flash}"></div>
+
+    <div class="alert alert-warn" role="status" th:if="${st == 'DRAFT' and article.reviewNote != null}">
+        <strong>Comentario de revisión:</strong> <span th:text="${article.reviewNote}">Falta la fecha</span>
+    </div>
+
+    <section class="card section" aria-labelledby="flujo">
+        <h2 id="flujo">Publicación</h2>
+        <div class="stack">
+            <form th:if="${st == 'DRAFT' and !canPublish}" th:action="@{/admin/news/{id}/submit(id=${article.id})}" method="post">
+                <button type="submit" class="btn">Enviar a revisión</button>
+                <p class="hint">Guarda antes los cambios. Quien aprueba noticias recibirá un aviso por correo.</p>
+            </form>
+            <p th:if="${st == 'IN_REVIEW' and !canPublish}" class="muted">Esperando revisión. Mientras tanto no se puede editar.</p>
+
+            <form th:if="${canPublish and (st == 'DRAFT' or st == 'IN_REVIEW')}" th:action="@{/admin/news/{id}/approve(id=${article.id})}" method="post">
+                <div class="field">
+                    <label for="publishAt">Programar <span class="muted">(opcional; vacío = publicar ahora)</span></label>
+                    <input id="publishAt" type="datetime-local" name="publishAt">
+                </div>
+                <button type="submit" class="btn">Aprobar y publicar</button>
+            </form>
+            <form th:if="${canPublish and (st == 'IN_REVIEW' or st == 'SCHEDULED')}" th:action="@{/admin/news/{id}/return(id=${article.id})}" method="post">
+                <div class="field">
+                    <label for="note">Comentario para quien la escribió</label>
+                    <textarea id="note" name="note" rows="2" maxlength="500"></textarea>
+                </div>
+                <button type="submit" class="btn btn-secondary">Devolver a borrador</button>
+            </form>
+            <form th:if="${canPublish and (st == 'PUBLISHED' or st == 'SCHEDULED')}" th:action="@{/admin/news/{id}/archive(id=${article.id})}" method="post">
+                <button type="submit" class="btn btn-secondary">Archivar (sacar del sitio)</button>
+            </form>
+            <form th:if="${st == 'DRAFT' and article.publishedAt == null}" th:action="@{/admin/news/{id}/delete(id=${article.id})}" method="post">
+                <button type="submit" class="btn btn-danger">Eliminar borrador</button>
+            </form>
+        </div>
+    </section>
+
+    <form class="card" th:action="@{/admin/news/{id}(id=${article.id})}" th:object="${form}" method="post">
+        <h2>Contenido</h2>
+        <div class="alert alert-problem" role="alert" th:if="${#fields.hasErrors('*')}">
+            <p th:each="e : ${#fields.allErrors()}" th:text="${e}">Error</p>
+        </div>
+        <fieldset th:disabled="${!canPublish and st != 'DRAFT'}">
+            <div class="color-grid">
+                <div class="field"><label for="title">Título</label><input type="text" th:field="*{title}" required maxlength="200"></div>
+                <div class="field"><label for="slug">Dirección</label><input type="text" th:field="*{slug}" maxlength="120"></div>
+            </div>
+            <div class="field">
+                <label for="summary">Bajada <span class="muted">(aparece en el listado y al compartir)</span></label>
+                <textarea th:field="*{summary}" rows="2" maxlength="500"></textarea>
+            </div>
+            <div class="field">
+                <label for="body">Texto</label>
+                <textarea th:field="*{body}" rows="14" aria-describedby="body-hint"></textarea>
+                <span id="body-hint" class="hint">HTML básico: párrafos, h2, h3, negritas, listas y enlaces. Se quitan scripts,
+                    estilos e imágenes (las fotos llegan con la biblioteca de medios).</span>
+            </div>
+            <div class="color-grid">
+                <div class="field"><label for="categoryId">Categoría</label>
+                    <select th:field="*{categoryId}">
+                        <option value="">Sin categoría</option>
+                        <option th:each="c : ${categories}" th:value="${c.id}" th:text="${c.name}">Deportes</option>
+                    </select></div>
+                <div class="field" th:if="${sections.size() > 1}"><label for="section">Sección</label>
+                    <select th:field="*{section}">
+                        <option th:each="s : ${sections}" th:value="${s}" th:text="${#messages.msg('section.' + s)}">Principal</option>
+                    </select></div>
+            </div>
+            <fieldset th:unless="${#lists.isEmpty(gradeLevels)}">
+                <legend>Niveles <span class="muted">(ninguno = todo el colegio)</span></legend>
+                <div class="checks checks-grid">
+                    <label th:each="l : ${gradeLevels}"><input type="checkbox" th:field="*{gradeLevelIds}" th:value="${l.id}"> <span th:text="${l.name}">1° Básico</span></label>
+                </div>
+            </fieldset>
+            <fieldset>
+                <legend>Buscadores y redes</legend>
+                <div class="field"><label for="metaTitle">Título para buscadores</label><input type="text" th:field="*{metaTitle}" maxlength="120"></div>
+                <div class="field"><label for="metaDescription">Descripción</label><textarea th:field="*{metaDescription}" rows="2" maxlength="300"></textarea></div>
+            </fieldset>
+            <button type="submit" class="btn">Guardar</button>
+        </fieldset>
+    </form>
+</main>
+</body>
+</html>

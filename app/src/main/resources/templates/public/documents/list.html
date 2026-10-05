@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="es-CL" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{public/layout :: head(${pageTitle}, ${metaDescription}, ${noindex})}"></head>
+<body th:class="|theme-${site.themeId}|">
+<div th:replace="~{public/layout :: top}"></div>
+<main id="contenido" tabindex="-1">
+    <header class="page-header"><div class="wrap"><h1>Documentos institucionales</h1></div></header>
+    <div class="wrap block">
+        <p th:if="${groups.isEmpty()}" class="muted">Todavía no hay documentos publicados.</p>
+        <section th:each="g : ${groups}" class="section-group">
+            <h2 th:text="${#messages.msg('docCategory.' + g.key + '.plural')}">Reglamento Interno</h2>
+            <div th:each="d : ${g.value}" class="document-group">
+                <article th:replace="~{public/documents/fragments :: card(${d})}"></article>
+                <div class="document-children" th:if="${children.containsKey(d.id)}">
+                    <h3 class="visually-hidden" th:text="|Protocolos y anexos de ${d.title}|">Protocolos</h3>
+                    <!-- th:replace se procesa antes que th:each: el bucle va en un bloque aparte. -->
+                    <th:block th:each="c : ${children.get(d.id)}"><article th:replace="~{public/documents/fragments :: card(${c})}"></article></th:block>
+                </div>
+            </div>
+        </section>
+    </div>
+</main>
+<footer th:replace="~{public/layout :: footer}"></footer>
+</body>
+</html>

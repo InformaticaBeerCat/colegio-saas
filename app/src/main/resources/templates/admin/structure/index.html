@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head(title='Niveles y cursos')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: admin-header}"></header>
+<main id="contenido" class="container">
+    <h1>Niveles y cursos</h1>
+    <p class="muted">Sirven para filtrar noticias, calendario y comunicados por nivel o curso. No hay datos académicos.</p>
+    <div th:replace="~{fragments/layout :: flash}"></div>
+
+    <div class="cards">
+        <section class="card" aria-labelledby="niveles">
+            <h2 id="niveles">Niveles que imparte el colegio</h2>
+            <form th:if="${#lists.isEmpty(levels)}" th:action="@{/admin/structure/levels/standard}" method="post" class="section">
+                <button type="submit" class="btn">Cargar niveles de la educación chilena</button>
+                <p class="hint">Sala cuna a 4° medio. Después eliminas los que no correspondan.</p>
+            </form>
+            <ul class="block-list" th:unless="${#lists.isEmpty(levels)}">
+                <li th:each="l : ${levels}" class="block-row">
+                    <span><strong th:text="${l.name}">1° Básico</strong>
+                        <span class="muted" th:text="${#messages.msg('stage.' + l.stage)}">Básica</span></span>
+                    <form th:action="@{/admin/structure/levels/{id}/delete(id=${l.id})}" method="post">
+                        <button type="submit" class="btn btn-danger btn-small">Eliminar<span class="visually-hidden" th:text="| ${l.name}|"></span></button>
+                    </form>
+                </li>
+            </ul>
+            <form th:action="@{/admin/structure/levels}" method="post">
+                <div class="color-grid">
+                    <div class="field"><label for="level-name">Nuevo nivel</label><input id="level-name" type="text" name="name" required maxlength="60"></div>
+                    <div class="field"><label for="level-stage">Etapa</label>
+                        <select id="level-stage" name="stage">
+                            <option th:each="s : ${stages}" th:value="${s}" th:text="${#messages.msg('stage.' + s)}">Básica</option>
+                        </select></div>
+                </div>
+                <button type="submit" class="btn btn-secondary">Agregar nivel</button>
+            </form>
+        </section>
+
+        <section class="card" aria-labelledby="cursos">
+            <h2 id="cursos" th:text="|Cursos ${year}|">Cursos 2026</h2>
+            <p class="actions">
+                <a th:href="@{/admin/structure(year=${year - 1})}" th:text="|← ${year - 1}|">← 2025</a>
+                <a th:href="@{/admin/structure(year=${year + 1})}" th:text="|${year + 1} →|">2027 →</a>
+            </p>
+            <ul class="block-list" th:unless="${#lists.isEmpty(courses)}">
+                <li th:each="c : ${courses}" class="block-row">
+                    <strong th:text="${c.displayName()}">1° Básico A</strong>
+                    <form th:action="@{/admin/structure/courses/{id}/delete(id=${c.id})}" method="post">
+                        <input type="hidden" name="year" th:value="${year}">
+                        <button type="submit" class="btn btn-danger btn-small">Eliminar<span class="visually-hidden" th:text="| ${c.displayName()}|"></span></button>
+                    </form>
+                </li>
+            </ul>
+            <p th:if="${#lists.isEmpty(courses)}" class="muted">No hay cursos para este año.</p>
+            <form th:action="@{/admin/structure/courses}" method="post" th:unless="${#lists.isEmpty(levels)}">
+                <input type="hidden" name="year" th:value="${year}">
+                <div class="color-grid">
+                    <div class="field"><label for="course-level">Nivel</label>
+                        <select id="course-level" name="levelId">
+                            <option th:each="l : ${levels}" th:value="${l.id}" th:text="${l.name}">1° Básico</option>
+                        </select></div>
+                    <div class="field"><label for="course-section">Letra <span class="muted">(vacía si hay un solo curso)</span></label>
+                        <input id="course-section" type="text" name="section" maxlength="5"></div>
+                </div>
+                <button type="submit" class="btn btn-secondary">Agregar curso</button>
+            </form>
+        </section>
+    </div>
+</main>
+</body>
+</html>

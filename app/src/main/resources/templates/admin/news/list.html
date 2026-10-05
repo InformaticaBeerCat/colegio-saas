@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/layout :: head(title='Noticias')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: admin-header}"></header>
+<main id="contenido" class="container">
+    <div class="page-head">
+        <h1>Noticias</h1>
+        <a class="btn btn-secondary" sec:authorize="hasAuthority('NEWS_PUBLISH')" th:href="@{/admin/news/categories}">Categorías</a>
+    </div>
+    <div th:replace="~{fragments/layout :: flash}"></div>
+
+    <section class="card section" aria-labelledby="nueva">
+        <h2 id="nueva">Nueva noticia</h2>
+        <form th:action="@{/admin/news}" method="post">
+            <div class="color-grid">
+                <div class="field"><label for="title">Título</label><input id="title" type="text" name="title" required maxlength="200"></div>
+                <div class="field" th:if="${sections.size() > 1}"><label for="section">Sección</label>
+                    <select id="section" name="section">
+                        <option th:each="s : ${sections}" th:value="${s}" th:text="${#messages.msg('section.' + s)}">Principal</option>
+                    </select></div>
+            </div>
+            <button type="submit" class="btn">Crear borrador</button>
+        </form>
+    </section>
+
+    <div class="table-wrap">
+        <table class="data">
+            <caption class="visually-hidden">Noticias</caption>
+            <thead><tr><th scope="col">Título</th><th scope="col">Estado</th><th scope="col">Sección</th><th scope="col">Publicación</th></tr></thead>
+            <tbody>
+            <tr th:each="a : ${articles}">
+                <td><a th:href="@{/admin/news/{id}(id=${a.id})}" th:text="${a.title}">Título</a></td>
+                <td><span class="badge" th:classappend="${a.status.name() == 'PUBLISHED'} ? 'badge-ok' : (${a.status.name() == 'IN_REVIEW'} ? 'badge-warn' : '')"
+                          th:text="${#messages.msg('newsStatus.' + a.status)}">Borrador</span></td>
+                <td th:text="${#messages.msg('section.' + a.section)}">Principal</td>
+                <td th:text="${@formats.dateTime(a.publishAt)}">—</td>
+            </tr>
+            <tr th:if="${#lists.isEmpty(articles)}"><td colspan="4" class="muted">Todavía no hay noticias.</td></tr>
+            </tbody>
+        </table>
+    </div>
+</main>
+</body>
+</html>

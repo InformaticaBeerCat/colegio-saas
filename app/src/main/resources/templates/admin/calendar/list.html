@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head(title='Calendario')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: admin-header}"></header>
+<main id="contenido" class="container">
+    <div class="page-head">
+        <h1>Calendario</h1>
+        <a class="btn" th:href="@{/admin/calendar/new}">Nuevo evento</a>
+    </div>
+    <div th:replace="~{fragments/layout :: flash}"></div>
+    <nav class="actions section" aria-label="Meses">
+        <a th:href="@{/admin/calendar(mes=${month.minusMonths(1)})}">← Mes anterior</a>
+        <strong th:text="${@formats.month(month)}">octubre de 2026</strong>
+        <a th:href="@{/admin/calendar(mes=${month.plusMonths(1)})}">Mes siguiente →</a>
+    </nav>
+    <div class="table-wrap">
+        <table class="data">
+            <caption class="visually-hidden" th:text="|Eventos de ${@formats.month(month)}|">Eventos</caption>
+            <thead><tr><th scope="col">Fecha</th><th scope="col">Evento</th><th scope="col">Tipo</th><th scope="col">Estado</th></tr></thead>
+            <tbody>
+            <tr th:each="e : ${events}">
+                <td th:text="${@eventDates.of(e)}">12 de octubre</td>
+                <td><a th:href="@{/admin/calendar/{id}(id=${e.id})}" th:text="${e.title}">Evento</a></td>
+                <td th:text="${#messages.msg('eventKind.' + e.kind)}">Acto</td>
+                <td><span th:if="${e.published}" class="badge badge-ok">Publicado</span><span th:unless="${e.published}" class="badge">Borrador</span></td>
+            </tr>
+            <tr th:if="${#lists.isEmpty(events)}"><td colspan="4" class="muted">No hay eventos este mes.</td></tr>
+            </tbody>
+        </table>
+    </div>
+</main>
+</body>
+</html>

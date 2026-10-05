@@ -135,6 +135,12 @@ public class Event extends BaseEntity {
         allDay = false;
     }
 
+    /** Cambia las fechas de un evento de día completo (del inicio del primer día al final del último). */
+    public void rescheduleAllDay(LocalDateTime firstDayStart, LocalDateTime lastDayEnd) {
+        reschedule(firstDayStart, lastDayEnd);
+        allDay = true;
+    }
+
     public void publish() {
         publishedAt = Instant.now();
     }

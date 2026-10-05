@@ -61,4 +61,5 @@ quedan en `http://localhost:8025`.
 | `APP_SETUP_TOKEN` | Token de instalación fijo (instalaciones automatizadas) |
 | `APP_FIELD_KEY`, `APP_INDEX_KEY` | Llaves de cifrado de datos personales (`openssl rand -base64 32`) |
 | `APP_SECURE_COOKIES` | `true` en producción (HTTPS) |
+| `APP_STORAGE_DIR` | Carpeta de los PDF subidos (por defecto `./data/files`; en producción, un volumen persistente) |
 | `APP_ENFORCE_MFA` | `true` para exigir verificación en dos pasos a administradores y gestor de consentimientos |
