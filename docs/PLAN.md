@@ -123,11 +123,31 @@ entidades, repositorios, su migración Flyway y tests de persistencia.
 - Fuerza bruta: bloqueo de cuenta 15 min tras 5 fallos y límite por IP [SEG-06].
 - Auditoría de ingresos, fallos, bloqueos, invitaciones, permisos, bajas y MFA, con página de consulta [USR-03].
 
-### Fase 3 — Marca y motor de temas
-- Asistente inicial [CFG-01]; 3 temas base con variantes [CFG-02].
-- Tokens de diseño con verificación de contraste AA [CFG-03, ACC-01]; fuentes con licencia libre.
-- Render del sitio público por bloques [PUB-01, CFG-04]; menú y pie [CFG-05]; vista previa [CFG-08].
-- Base de accesibilidad: landmarks, foco visible, idioma, navegación por teclado [ACC-04]. Mobile-first [UX-01].
+### Fase 3 — Marca y motor de temas ✅
+- Asistente de marca [CFG-01] en `/admin/welcome`, segunda parte del primer arranque: se elige tema y variante y
+  se crean la portada (publicada) y las páginas institucionales (en borrador, ya en el menú). Nunca se publica
+  texto de ejemplo: las páginas en borrador no aparecen en el menú público.
+- 3 temas base con 3 variantes cada uno [CFG-02]: **Institucional** (`classic`: serif, barra de menú en el color
+  del colegio), **Moderno** (`modern`: geométrica, encabezado blanco fijo) y **Cercano** (`friendly`: formas
+  redondeadas, pensado para básica y párvulos). El tema define la estructura (`static/css/site.css`); los tokens,
+  los colores.
+- Tokens de diseño [CFG-03] servidos como `/site/theme.css?v=<huella>` (la CSP no permite estilos en línea;
+  caché de un año mientras la huella no cambie). `DesignReview` verifica contraste AA (4,5:1) de cada par que el
+  tema combina y rechaza el diseño que no cumple [ACC-01]; el texto sobre colores se elige solo (blanco o negro).
+  Modo "Automático" con versión oscura derivada que también cumple AA.
+- Fuentes con licencia libre (OFL/Apache) alojadas en el propio sitio (`static/fonts`, con sus licencias): no se
+  llama a Google Fonts, así los visitantes no entregan su IP a terceros.
+- Sitio público por bloques [PUB-01, CFG-04]: portada en `/`, páginas en `/{slug}`, direcciones reservadas para
+  el sistema y las próximas fases. HTML de los editores saneado con jsoup (sin scripts, estilos ni imágenes:
+  las fotos pasan por la biblioteca y su revisión). Enlaces revisados (`SafeUrls`: nada de `javascript:`).
+  Bloques que dependen de un módulo no contratado o sin contenido se omiten.
+- Menú principal y del pie con dos niveles, y pie con contacto, dirección, WhatsApp y redes [CFG-05].
+- Vista previa del borrador de diseño y de páginas en `/admin/preview` [CFG-08], solo para el panel y `noindex`.
+- Accesibilidad base [ACC-04]: `lang="es-CL"`, landmarks, salto al contenido, foco visible 3:1, un solo `h1`,
+  submenús con teclado (Escape cierra) y funcionando sin JavaScript. Móvil primero, áreas táctiles de 44 px [UX-01].
+
+> Pendiente para la fase 5: logo e imagen/video de la portada y el bloque galería (necesitan servir archivos de la
+> biblioteca de medios). Caché del contexto del sitio: fase 8, si las mediciones lo piden.
 
 ### Fase 4 — Contenido y documentos
 - Noticias con flujo borrador → revisión → publicado y programación [NOT-01, NOT-02].

@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="es-CL" xmlns:th="http://www.thymeleaf.org">
+<!--
+  Un fragmento por tipo de bloque (PUB-01, CFG-04). Cada bloque es una <section> con su título h2;
+  solo la portada que abre la página lleva el h1.
+-->
+<body>
+
+<section th:fragment="hero(b, first)" class="hero">
+    <div class="wrap hero__inner">
+        <h1 th:if="${first}" class="hero__title" th:text="${b.title}">Bienvenidos</h1>
+        <h2 th:unless="${first}" class="hero__title" th:text="${b.title}">Bienvenidos</h2>
+        <p th:if="${b.subtitle}" class="hero__subtitle" th:text="${b.subtitle}">Educamos desde 1985</p>
+        <p th:if="${b.buttonUrl != null and b.buttonLabel != null}">
+            <a class="button button--on-hero" th:href="@{${b.buttonUrl}}" th:text="${b.buttonLabel}">Admisión</a>
+        </p>
+    </div>
+</section>
+
+<section th:fragment="rich-text(b)" class="block block--text">
+    <div class="wrap prose" th:utext="${b.html}">Texto</div>
+</section>
+
+<section th:fragment="quick-links(b, links)" class="block block--quick-links" th:attr="aria-label=${b.title == null} ? 'Accesos rápidos' : null">
+    <div class="wrap">
+        <h2 th:if="${b.title}" class="block__title" th:text="${b.title}">Accesos rápidos</h2>
+        <ul class="quick-links">
+            <li th:each="link : ${links}">
+                <a class="quick-link" th:href="@{${link.url}}" rel="noopener" th:text="${link.label}">Classroom</a>
+            </li>
+        </ul>
+    </div>
+</section>
+
+<section th:fragment="latest-news(b, items)" class="block block--news">
+    <div class="wrap">
+        <h2 class="block__title" th:text="${b.title != null ? b.title : 'Noticias'}">Noticias</h2>
+        <ul class="cards">
+            <li th:each="n : ${items}" class="card">
+                <h3 class="card__title" th:text="${n.title}">Título</h3>
+                <p th:if="${n.date}" class="card__meta" th:text="${n.date}">12 de octubre</p>
+                <p th:if="${n.summary}" th:text="${n.summary}">Resumen</p>
+            </li>
+        </ul>
+    </div>
+</section>
+
+<section th:fragment="upcoming-events(b, items)" class="block block--events">
+    <div class="wrap">
+        <h2 class="block__title" th:text="${b.title != null ? b.title : 'Próximos eventos'}">Próximos eventos</h2>
+        <ul class="event-list">
+            <li th:each="e : ${items}" class="event">
+                <time class="event__when" th:datetime="${e.isoDate}" th:text="${e.when}">12 de octubre, 19:00 h</time>
+                <span class="event__title" th:text="${e.title}">Reunión de apoderados</span>
+                <span th:if="${e.location}" class="event__where" th:text="${e.location}">Gimnasio</span>
+            </li>
+        </ul>
+    </div>
+</section>
+
+<section th:fragment="stats(b)" class="block block--stats">
+    <div class="wrap">
+        <h2 th:if="${b.title}" class="block__title" th:text="${b.title}">En cifras</h2>
+        <ul class="stats">
+            <li th:each="s : ${b.items}" class="stat">
+                <span class="stat__value" th:text="${s.value}">1.200</span>
+                <span class="stat__label" th:text="${s.label}">estudiantes</span>
+            </li>
+        </ul>
+    </div>
+</section>
+
+<section th:fragment="testimonials(b)" class="block block--testimonials">
+    <div class="wrap">
+        <h2 th:if="${b.title}" class="block__title" th:text="${b.title}">Testimonios</h2>
+        <div class="cards">
+            <figure th:each="t : ${b.items}" class="card testimonial">
+                <blockquote><p th:text="${t.quote}">Cita</p></blockquote>
+                <figcaption>
+                    <span class="testimonial__author" th:text="${t.author}">Autor</span>
+                    <span th:if="${t.role}" class="card__meta" th:text="${t.role}">Apoderada</span>
+                </figcaption>
+            </figure>
+        </div>
+    </div>
+</section>
+
+<section th:fragment="call-to-action(b)" class="block block--cta">
+    <div class="wrap cta">
+        <h2 class="cta__title" th:text="${b.title}">¿Quieres conocernos?</h2>
+        <p th:if="${b.text}" th:text="${b.text}">Agenda una visita guiada.</p>
+        <p th:if="${b.buttonUrl != null and b.buttonLabel != null}">
+            <a class="button" th:href="@{${b.buttonUrl}}" th:text="${b.buttonLabel}">Agendar</a>
+        </p>
+    </div>
+</section>
+
+<section th:fragment="timeline(b)" class="block block--timeline">
+    <div class="wrap">
+        <h2 th:if="${b.title}" class="block__title" th:text="${b.title}">Nuestra historia</h2>
+        <ol class="timeline">
+            <li th:each="e : ${b.entries}" class="timeline__entry">
+                <span class="timeline__year" th:text="${e.year}">1985</span>
+                <h3 class="timeline__title" th:text="${e.title}">Fundación</h3>
+                <p th:if="${e.text}" th:text="${e.text}">Texto</p>
+            </li>
+        </ol>
+    </div>
+</section>
+
+<section th:fragment="location(b, place)" class="block block--location">
+    <div class="wrap">
+        <h2 class="block__title" th:text="${b.title != null ? b.title : 'Dónde estamos'}">Dónde estamos</h2>
+        <address class="location">
+            <p th:text="${place.address}">Av. Principal 123, Comuna</p>
+            <p><a th:href="${place.mapUrl}" rel="noopener">Ver en el mapa<span class="visually-hidden"> (OpenStreetMap, otro sitio)</span></a></p>
+        </address>
+    </div>
+</section>
+
+<section th:fragment="faq(b, entries)" class="block block--faq">
+    <div class="wrap">
+        <h2 class="block__title" th:text="${b.title != null ? b.title : 'Preguntas frecuentes'}">Preguntas frecuentes</h2>
+        <div class="faq">
+            <details th:each="q : ${entries}" class="faq__item">
+                <summary th:text="${q.question}">¿Pregunta?</summary>
+                <p th:text="${q.answer}">Respuesta.</p>
+            </details>
+        </div>
+    </div>
+</section>
+
+</body>
+</html>

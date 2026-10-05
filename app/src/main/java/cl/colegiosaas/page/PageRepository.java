@@ -11,4 +11,6 @@ public interface PageRepository extends JpaRepository<Page, Long> {
     Optional<Page> findFirstByKind(PageKind kind);
 
     boolean existsBySlug(String slug);
+
+    boolean existsByKind(PageKind kind);
 }

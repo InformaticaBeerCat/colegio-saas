@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="es-CL" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{public/layout :: head(${site.schoolName}, null, ${site.preview})}"></head>
+<body th:class="|theme-${site.themeId}|">
+<div th:replace="~{public/layout :: top}"></div>
+
+<main id="contenido" tabindex="-1">
+    <section class="hero">
+        <div class="wrap hero__inner">
+            <h1 class="hero__title" th:text="${site.schoolName}">Colegio</h1>
+            <p class="hero__subtitle">Nuestro nuevo sitio está en construcción. Muy pronto encontrarás aquí noticias,
+                calendario, documentos y admisión.</p>
+        </div>
+    </section>
+</main>
+
+<footer th:replace="~{public/layout :: footer}"></footer>
+</body>
+</html>

@@ -7,7 +7,24 @@
     <h1 th:text="|Hola, ${account.name}|">Hola</h1>
     <div th:replace="~{fragments/layout :: flash}"></div>
 
+    <section class="card section welcome-card" aria-labelledby="asistente" th:if="${showWelcome}">
+        <h2 id="asistente">Primeros pasos: dale identidad al sitio</h2>
+        <p>Elige un tema y crea la portada y las páginas institucionales en un solo paso.</p>
+        <a class="btn" th:href="@{/admin/welcome}">Abrir el asistente</a>
+    </section>
+
     <div class="cards">
+        <section class="card" aria-labelledby="sitio" sec:authorize="hasAnyAuthority('PAGES', 'SITE_DESIGN')">
+            <h2 id="sitio">Sitio web</h2>
+            <ul>
+                <li sec:authorize="hasAuthority('PAGES')"><a th:href="@{/admin/pages}">Páginas</a></li>
+                <li sec:authorize="hasAuthority('PAGES')"><a th:href="@{/admin/menus}">Menús</a></li>
+                <li sec:authorize="hasAuthority('SITE_DESIGN')"><a th:href="@{/admin/design}">Diseño y colores</a></li>
+                <li sec:authorize="hasAuthority('SITE_DESIGN') and hasAuthority('SCHOOL_SETTINGS')"><a th:href="@{/admin/footer}">Pie de página y contacto</a></li>
+                <li><a th:href="@{/admin/preview}">Vista previa del borrador</a></li>
+            </ul>
+        </section>
+
         <section class="card" aria-labelledby="cuenta">
             <h2 id="cuenta">Tu cuenta</h2>
             <p>
@@ -31,7 +48,7 @@
 
         <section class="card" aria-labelledby="proximo">
             <h2 id="proximo">En construcción</h2>
-            <p class="muted">Diseño del sitio, páginas, noticias, documentos y medios se habilitan en las próximas fases.</p>
+            <p class="muted">Noticias, calendario, documentos y medios se habilitan en las próximas fases.</p>
         </section>
     </div>
 </main>

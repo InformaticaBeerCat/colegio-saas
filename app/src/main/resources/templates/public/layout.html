@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="es-CL" xmlns:th="http://www.thymeleaf.org">
+<!-- Fragmentos comunes del sitio público. Landmarks, salto al contenido y foco visible (ACC-04). -->
+<head th:fragment="head(title, description, noindex)">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title th:text="${title}">Colegio</title>
+    <meta name="description" th:if="${description}" th:content="${description}">
+    <meta name="robots" th:if="${noindex}" content="noindex, nofollow">
+    <link rel="stylesheet" th:href="@{/css/site.css}">
+    <link rel="stylesheet" th:href="@{${site.stylesheetUrl}}">
+    <script th:src="@{/js/site.js}" defer></script>
+</head>
+<body>
+
+<div th:fragment="top" th:remove="tag">
+    <a class="skip-link" href="#contenido">Saltar al contenido</a>
+
+    <div class="preview-bar" th:if="${site.preview}" role="note">
+        <strong>Vista previa del borrador.</strong> Lo que ves aquí todavía no es público.
+        <a th:href="@{/admin}">Volver al panel</a>
+    </div>
+
+    <section class="site-alerts" th:unless="${#lists.isEmpty(site.alerts)}" aria-label="Avisos importantes">
+        <p th:each="alert : ${site.alerts}" class="site-alert" th:classappend="|site-alert--${#strings.toLowerCase(alert.severity)}|">
+            <span th:text="${alert.message}">Se suspenden las clases.</span>
+            <a th:if="${alert.linkUrl}" th:href="@{${alert.linkUrl}}"
+               th:text="${alert.linkLabel != null ? alert.linkLabel : 'Más información'}">Más información</a>
+        </p>
+    </section>
+
+    <header class="site-header">
+        <div class="site-header__inner wrap">
+            <a class="site-brand" th:href="@{${site.homeHref}}" th:text="${site.schoolName}">Colegio</a>
+            <nav class="site-nav" aria-label="Principal" th:unless="${#lists.isEmpty(site.headerMenu)}">
+                <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="menu-principal" hidden>
+                    Menú
+                </button>
+                <ul id="menu-principal" class="menu">
+                    <li th:each="item : ${site.headerMenu}" class="menu__item" th:classappend="${item.hasChildren()} ? 'menu__item--parent'">
+                        <a th:replace="~{:: menu-link(${item})}"></a>
+                        <span th:replace="~{:: menu-label(${item})}"></span>
+                        <button th:if="${item.hasChildren()}" class="submenu-toggle" type="button" aria-expanded="false"
+                                th:attr="aria-controls=|submenu-${item.id}|" hidden>
+                            <span class="visually-hidden" th:text="|Abrir submenú de ${item.label}|">Abrir submenú</span>
+                        </button>
+                        <ul th:if="${item.hasChildren()}" th:id="|submenu-${item.id}|" class="submenu">
+                            <li th:each="child : ${item.children}"><a th:replace="~{:: menu-link(${child})}"></a></li>
+                        </ul>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+</div>
+
+<!-- Enlace de menú: la página actual se marca para lectores de pantalla; los enlaces externos se anuncian. -->
+<a th:fragment="menu-link(item)" th:if="${item.href}" th:href="@{${item.href}}"
+   th:attr="aria-current=${item.current} ? 'page' : null, rel=${item.external} ? 'noopener' : null"><span
+        th:text="${item.label}">Inicio</span><span th:if="${item.external}" class="visually-hidden"> (otro sitio)</span></a>
+<span th:fragment="menu-label(item)" class="menu__label" th:unless="${item.href}" th:text="${item.label}">Comunidad</span>
+
+<footer th:fragment="footer" class="site-footer">
+    <div class="wrap site-footer__grid">
+        <section aria-labelledby="pie-contacto">
+            <h2 id="pie-contacto" th:text="${site.schoolName}">Colegio</h2>
+            <address>
+                <p th:if="${site.footer.address != null and site.footer.address.street != null}">
+                    <span th:text="${site.footer.address.street}">Av. Principal 123</span><br>
+                    <span th:text="${site.footer.address.locality()}">Comuna, Región</span>
+                </p>
+                <p th:if="${site.footer.phone}">Teléfono: <a th:href="|tel:${#strings.replace(site.footer.phone, ' ', '')}|" th:text="${site.footer.phone}">+56 2 2345 6789</a></p>
+                <p th:if="${site.footer.contactEmail}">Correo: <a th:href="|mailto:${site.footer.contactEmail}|" th:text="${site.footer.contactEmail}">contacto@colegio.cl</a></p>
+                <p th:if="${site.whatsappHref()}"><a th:href="${site.whatsappHref()}" rel="noopener">WhatsApp<span class="visually-hidden"> (otro sitio)</span></a></p>
+            </address>
+        </section>
+
+        <nav th:unless="${#lists.isEmpty(site.footerMenu)}" aria-label="Pie de página">
+            <ul class="footer-menu">
+                <li th:each="item : ${site.footerMenu}">
+                    <a th:replace="~{:: menu-link(${item})}"></a>
+                    <span th:replace="~{:: menu-label(${item})}"></span>
+                    <ul th:if="${item.hasChildren()}">
+                        <li th:each="child : ${item.children}"><a th:replace="~{:: menu-link(${child})}"></a></li>
+                    </ul>
+                </li>
+            </ul>
+        </nav>
+
+        <section th:unless="${#lists.isEmpty(site.footer.socialLinks)}" aria-labelledby="pie-redes">
+            <h2 id="pie-redes">Síguenos</h2>
+            <ul class="social-links">
+                <li th:each="link : ${site.footer.socialLinks}">
+                    <a th:href="${link.url}" rel="noopener" th:text="${#messages.msg('social.' + link.network)}">Instagram</a>
+                </li>
+            </ul>
+        </section>
+    </div>
+    <div class="wrap site-footer__bottom">
+        <p th:if="${site.footer.footerText}" th:text="${site.footer.footerText}">Texto del pie</p>
+        <p>© <span th:text="${#dates.year(#dates.createNow())}">2026</span> <span th:text="${site.schoolName}">Colegio</span></p>
+    </div>
+</footer>
+
+</body>
+</html>

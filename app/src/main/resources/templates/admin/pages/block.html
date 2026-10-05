@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head(title=${#messages.msg('block.' + block.type)})}"></head>
+<body>
+<header th:replace="~{fragments/layout :: admin-header}"></header>
+<main id="contenido" class="container">
+    <p><a th:href="@{/admin/pages/{id}(id=${page.id})}" th:text="|← ${page.title}|">← Inicio</a></p>
+    <h1 th:text="|${index == null ? 'Nuevo bloque' : 'Editar bloque'}: ${#messages.msg('block.' + block.type)}|">Bloque</h1>
+    <div th:replace="~{fragments/layout :: flash}"></div>
+
+    <form class="card" method="post" th:object="${block}"
+          th:action="${index == null} ? @{/admin/pages/{id}/blocks(id=${page.id})} : @{/admin/pages/{id}/blocks/{i}(id=${page.id},i=${index})}"
+          th:with="t=${block.type}">
+        <input type="hidden" th:field="*{type}">
+        <input type="hidden" th:field="*{imageAssetId}">
+        <input type="hidden" th:field="*{videoAssetId}">
+
+        <div class="field" th:if="${t != 'rich-text'}">
+            <label for="title">Título <span class="muted" th:unless="${t == 'hero' or t == 'call-to-action'}">(opcional)</span></label>
+            <input type="text" th:field="*{title}" maxlength="200">
+        </div>
+
+        <div class="field" th:if="${t == 'hero'}">
+            <label for="subtitle">Bajada <span class="muted">(opcional)</span></label>
+            <input type="text" th:field="*{subtitle}" maxlength="300">
+            <p class="hint">La imagen o el video de portada se eligen desde la biblioteca de medios cuando esté habilitada.</p>
+        </div>
+
+        <div class="field" th:if="${t == 'call-to-action'}">
+            <label for="text">Texto <span class="muted">(opcional)</span></label>
+            <textarea th:field="*{text}" rows="3" maxlength="600"></textarea>
+        </div>
+
+        <div class="color-grid" th:if="${t == 'hero' or t == 'call-to-action'}">
+            <div class="field">
+                <label for="buttonLabel">Texto del botón <span class="muted">(opcional)</span></label>
+                <input type="text" th:field="*{buttonLabel}" maxlength="60">
+            </div>
+            <div class="field">
+                <label for="buttonUrl">Enlace del botón</label>
+                <input type="text" th:field="*{buttonUrl}" placeholder="/quienes-somos o https://…" aria-describedby="url-hint">
+                <span id="url-hint" class="hint">Una dirección del sitio (empieza con /) o de otro sitio (https://).</span>
+            </div>
+        </div>
+
+        <div class="field" th:if="${t == 'rich-text'}">
+            <label for="html">Texto</label>
+            <textarea th:field="*{html}" rows="14" aria-describedby="html-hint"></textarea>
+            <span id="html-hint" class="hint">Admite HTML básico: párrafos, títulos (h2, h3), negritas, listas, tablas y enlaces.
+                Al guardar se quitan scripts, estilos e imágenes (las fotos se publican desde la biblioteca de medios).</span>
+        </div>
+
+        <div class="field" th:if="${t == 'latest-news' or t == 'upcoming-events'}">
+            <label for="count">Cantidad a mostrar</label>
+            <input type="number" th:field="*{count}" min="1" max="12">
+        </div>
+
+        <div class="field" th:if="${t == 'stats' or t == 'testimonials' or t == 'timeline'}">
+            <label for="items" th:text="${#messages.msg('block.' + t + '.items')}">Elementos</label>
+            <textarea th:field="*{items}" rows="8" aria-describedby="items-hint"></textarea>
+            <span id="items-hint" class="hint" th:text="${#messages.msg('block.' + t + '.itemsHelp')}">Uno por línea.</span>
+        </div>
+
+        <div class="field" th:if="${t == 'faq'}">
+            <label for="categoryId">Categoría</label>
+            <select th:field="*{categoryId}">
+                <option value="">Todas las preguntas</option>
+                <option th:each="c : ${faqCategories}" th:value="${c.id}" th:text="${c.name}">Admisión</option>
+            </select>
+        </div>
+
+        <p class="hint" th:if="${t == 'quick-links'}">Muestra los accesos rápidos activos (Classroom, pago de mensualidad…).</p>
+        <p class="hint" th:if="${t == 'location'}">Muestra la dirección del colegio que está en "Pie y contacto", con un enlace al mapa.</p>
+        <p class="hint" th:if="${t == 'latest-news' or t == 'upcoming-events' or t == 'faq'}">
+            Si no hay nada publicado, el bloque no se muestra.</p>
+
+        <div class="actions">
+            <button type="submit" class="btn">Guardar en el borrador</button>
+            <a th:href="@{/admin/pages/{id}(id=${page.id})}">Cancelar</a>
+        </div>
+    </form>
+</main>
+</body>
+</html>

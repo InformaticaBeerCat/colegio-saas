@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head(title='Asistente inicial')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: admin-header}"></header>
+<main id="contenido" class="container">
+    <p class="eyebrow">Asistente inicial</p>
+    <h1>Dale identidad al sitio</h1>
+    <p>Elige un tema para partir. Después podrás ajustar colores y fuentes a la marca del colegio en
+        <a th:href="@{/admin/design}">Diseño</a>, con verificación de contraste.</p>
+    <div th:replace="~{fragments/layout :: flash}"></div>
+
+    <form th:action="@{/admin/welcome}" method="post">
+        <fieldset th:each="t : ${themes}" class="card section">
+            <legend th:text="${#messages.msg('theme.' + t.id())}">Institucional</legend>
+            <p class="muted" th:text="${#messages.msg('theme.' + t.id() + '.help')}">Descripción</p>
+            <div class="variant-options">
+                <label th:each="v : ${t.variants()}" class="variant-option">
+                    <input type="radio" name="choice" required th:value="|${t.id()}:${v.id()}|"
+                           th:checked="${current == t.id() + ':' + v.id()}">
+                    <svg class="swatch" width="96" height="24" viewBox="0 0 96 24" aria-hidden="true" focusable="false">
+                        <rect x="0" y="0" width="32" height="24" th:attr="fill=${v.palette().primary()}"></rect>
+                        <rect x="32" y="0" width="32" height="24" th:attr="fill=${v.palette().secondary()}"></rect>
+                        <rect x="64" y="0" width="32" height="24" th:attr="fill=${v.palette().accent()}"></rect>
+                    </svg>
+                    <span th:text="${#messages.msg('theme.' + t.id() + '.' + v.id())}">Azul marino</span>
+                </label>
+            </div>
+        </fieldset>
+
+        <fieldset class="card section" th:unless="${starterExists}">
+            <legend>Contenido inicial</legend>
+            <div class="checks">
+                <label>
+                    <input type="checkbox" name="createPages" value="true" checked>
+                    Crear la portada y las páginas institucionales (Quiénes somos, Proyecto Educativo, Niveles,
+                    Infraestructura y Convivencia escolar) con su menú
+                </label>
+            </div>
+            <p class="hint">La portada se publica de inmediato. Las demás quedan en borrador hasta que escribas su contenido.</p>
+        </fieldset>
+
+        <button type="submit" class="btn">Aplicar y publicar</button>
+    </form>
+</main>
+</body>
+</html>

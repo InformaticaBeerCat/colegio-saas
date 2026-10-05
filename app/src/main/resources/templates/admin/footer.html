@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head(title='Pie y contacto')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: admin-header}"></header>
+<main id="contenido" class="container">
+    <div class="page-head">
+        <h1>Pie de página y contacto</h1>
+        <a class="btn btn-secondary" th:href="@{/admin/menus(menu='FOOTER')}">Enlaces del pie</a>
+    </div>
+    <div th:replace="~{fragments/layout :: flash}"></div>
+
+    <form class="card" th:action="@{/admin/footer}" th:object="${form}" method="post">
+        <div class="alert alert-problem" role="alert" th:if="${#fields.hasErrors('*')}">
+            <p th:each="e : ${#fields.allErrors()}" th:text="${e}">Error</p>
+        </div>
+        <p class="hint">Estos datos se publican de inmediato en el pie de todas las páginas.</p>
+
+        <fieldset>
+            <legend>Contacto</legend>
+            <div class="color-grid">
+                <div class="field">
+                    <label for="phone">Teléfono</label>
+                    <input type="tel" th:field="*{phone}" autocomplete="tel" placeholder="+56 2 2345 6789">
+                </div>
+                <div class="field">
+                    <label for="contactEmail">Correo</label>
+                    <input type="email" th:field="*{contactEmail}" th:attr="aria-invalid=${#fields.hasErrors('contactEmail')}">
+                </div>
+                <div class="field">
+                    <label for="whatsappNumber">WhatsApp <span class="muted">(opcional)</span></label>
+                    <input type="text" th:field="*{whatsappNumber}" placeholder="+56912345678"
+                           th:attr="aria-invalid=${#fields.hasErrors('whatsappNumber')}">
+                </div>
+            </div>
+        </fieldset>
+
+        <fieldset>
+            <legend>Dirección</legend>
+            <div class="color-grid">
+                <div class="field">
+                    <label for="street">Calle y número</label>
+                    <input type="text" th:field="*{street}" autocomplete="street-address">
+                </div>
+                <div class="field">
+                    <label for="commune">Comuna</label>
+                    <input type="text" th:field="*{commune}">
+                </div>
+                <div class="field">
+                    <label for="region">Región</label>
+                    <input type="text" th:field="*{region}">
+                </div>
+            </div>
+        </fieldset>
+
+        <fieldset>
+            <legend>Redes sociales</legend>
+            <p class="hint">Dirección completa de cada perfil (https://…). Las vacías no se muestran.</p>
+            <div class="color-grid">
+                <div class="field" th:each="n : ${networks}">
+                    <label th:for="|social-${n}|" th:text="${#messages.msg('social.' + n)}">Instagram</label>
+                    <input type="url" th:id="|social-${n}|" th:name="|social[${n}]|" th:value="${form.social.get(n)}" placeholder="https://">
+                </div>
+            </div>
+        </fieldset>
+
+        <div class="field">
+            <label for="footerText">Texto del pie <span class="muted">(opcional)</span></label>
+            <textarea th:field="*{footerText}" rows="2" maxlength="500"></textarea>
+        </div>
+
+        <button type="submit" class="btn">Guardar</button>
+    </form>
+</main>
+</body>
+</html>

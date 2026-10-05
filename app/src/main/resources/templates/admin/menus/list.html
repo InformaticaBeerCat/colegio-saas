@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head(title='Menús')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: admin-header}"></header>
+<main id="contenido" class="container">
+    <div class="page-head">
+        <h1>Menús</h1>
+        <a class="btn btn-secondary" th:href="@{/admin/preview}">Vista previa</a>
+    </div>
+    <div th:replace="~{fragments/layout :: flash}"></div>
+
+    <nav class="tabs" aria-label="Menú a editar">
+        <a th:each="m : ${menus}" th:href="@{/admin/menus(menu=${m})}" th:text="${#messages.msg('menu.' + m)}"
+           th:attr="aria-current=${m == menu} ? 'page' : null">Menú principal</a>
+    </nav>
+
+    <section class="card section" aria-labelledby="entradas">
+        <h2 id="entradas" th:text="${#messages.msg('menu.' + menu)}">Menú principal</h2>
+        <ul class="block-list" th:unless="${#lists.isEmpty(items)}">
+            <li th:each="item : ${items}" class="block-row" th:classappend="${item.parent != null} ? 'is-child'">
+                <div>
+                    <strong th:text="${item.label}">Nosotros</strong>
+                    <span class="muted" th:if="${item.page != null}"
+                          th:text="|página: ${item.page.title}${item.page.published ? '' : ' (borrador, no se muestra)'}|">página</span>
+                    <span class="muted" th:if="${item.url != null}" th:text="${item.url}">https://…</span>
+                </div>
+                <div class="actions">
+                    <a class="btn btn-secondary btn-small" th:href="@{/admin/menus/{id}(id=${item.id})}">Editar<span class="visually-hidden" th:text="| ${item.label}|"></span></a>
+                    <form th:action="@{/admin/menus/{id}/move(id=${item.id})}" method="post">
+                        <input type="hidden" name="direction" value="-1">
+                        <button type="submit" class="btn btn-secondary btn-small">Subir<span class="visually-hidden" th:text="| ${item.label}|"></span></button>
+                    </form>
+                    <form th:action="@{/admin/menus/{id}/move(id=${item.id})}" method="post">
+                        <input type="hidden" name="direction" value="1">
+                        <button type="submit" class="btn btn-secondary btn-small">Bajar<span class="visually-hidden" th:text="| ${item.label}|"></span></button>
+                    </form>
+                    <form th:action="@{/admin/menus/{id}/delete(id=${item.id})}" method="post">
+                        <button type="submit" class="btn btn-danger btn-small">Quitar<span class="visually-hidden" th:text="| ${item.label}|"></span></button>
+                    </form>
+                </div>
+            </li>
+        </ul>
+        <p th:if="${#lists.isEmpty(items)}" class="muted">Este menú está vacío.</p>
+    </section>
+
+    <section class="card section" aria-labelledby="agregar">
+        <h2 id="agregar">Agregar entrada</h2>
+        <form th:action="@{/admin/menus}" th:object="${form}" method="post">
+            <input type="hidden" th:field="*{menu}">
+            <div th:replace="~{admin/menus/target-fields :: fields}"></div>
+            <button type="submit" class="btn">Agregar</button>
+        </form>
+    </section>
+</main>
+</body>
+</html>

@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head(title='Páginas')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: admin-header}"></header>
+<main id="contenido" class="container">
+    <div class="page-head">
+        <h1>Páginas</h1>
+        <a class="btn btn-secondary" th:href="@{/admin/menus}">Menús</a>
+    </div>
+    <div th:replace="~{fragments/layout :: flash}"></div>
+
+    <div class="table-wrap section">
+        <table class="data">
+            <caption class="visually-hidden">Páginas del sitio</caption>
+            <thead>
+            <tr><th scope="col">Título</th><th scope="col">Dirección</th><th scope="col">Tipo</th><th scope="col">Estado</th></tr>
+            </thead>
+            <tbody>
+            <tr th:each="p : ${pages}">
+                <td><a th:href="@{/admin/pages/{id}(id=${p.id})}" th:text="${p.title}">Inicio</a></td>
+                <td><code th:text="${p.kind.name() == 'HOME'} ? '/' : |/${p.slug}|">/inicio</code></td>
+                <td th:text="${#messages.msg('pageKind.' + p.kind)}">Portada</td>
+                <td>
+                    <span th:if="${p.published}" class="badge badge-ok">Publicada</span>
+                    <span th:unless="${p.published}" class="badge">Borrador</span>
+                    <span th:if="${p.published and p.hasUnpublishedChanges()}" class="badge badge-warn">Cambios sin publicar</span>
+                </td>
+            </tr>
+            <tr th:if="${#lists.isEmpty(pages)}">
+                <td colspan="4" class="muted">Todavía no hay páginas. Usa el asistente del panel o crea la primera aquí.</td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <section class="card section" aria-labelledby="nueva">
+        <h2 id="nueva">Nueva página</h2>
+        <form th:action="@{/admin/pages}" th:object="${form}" method="post">
+            <div class="color-grid">
+                <div class="field">
+                    <label for="title">Título</label>
+                    <input type="text" th:field="*{title}" required maxlength="200">
+                </div>
+                <div class="field">
+                    <label for="slug">Dirección <span class="muted">(opcional)</span></label>
+                    <input type="text" th:field="*{slug}" placeholder="quienes-somos" aria-describedby="slug-hint" maxlength="120">
+                    <span id="slug-hint" class="hint">Minúsculas, números y guiones. Si la dejas vacía se arma con el título.</span>
+                </div>
+                <div class="field">
+                    <label for="kind">Tipo</label>
+                    <select th:field="*{kind}" aria-describedby="kind-hint">
+                        <option th:each="k : ${kinds}" th:value="${k}" th:text="${#messages.msg('pageKind.' + k)}">Personalizada</option>
+                    </select>
+                    <span id="kind-hint" class="hint">Cada tipo, salvo "Personalizada", existe una sola vez.</span>
+                </div>
+            </div>
+            <button type="submit" class="btn">Crear página</button>
+        </form>
+    </section>
+</main>
+</body>
+</html>

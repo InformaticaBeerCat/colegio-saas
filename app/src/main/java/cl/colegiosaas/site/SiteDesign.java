@@ -20,24 +20,14 @@ public record SiteDesign(
         Objects.requireNonNull(theme, "theme");
         Objects.requireNonNull(palette, "palette");
         Objects.requireNonNull(typography, "typography");
+        cornerRadius = Objects.requireNonNullElse(cornerRadius, CornerRadius.MEDIUM);
+        shadow = Objects.requireNonNullElse(shadow, Shadow.SOFT);
+        colorScheme = Objects.requireNonNullElse(colorScheme, ColorScheme.LIGHT);
     }
 
-    /** Punto de partida neutro; los 3 temas base reales se definen en la fase 3. */
+    /** Diseño con que parte una instalación: el tema institucional en azul marino. */
     public static SiteDesign defaults() {
-        return new SiteDesign(
-                "base",
-                "default",
-                new Palette(
-                        HexColor.of("#1F3A5F"),
-                        HexColor.of("#2E7D5B"),
-                        HexColor.of("#E0A526"),
-                        HexColor.of("#FFFFFF"),
-                        HexColor.of("#F4F5F7"),
-                        HexColor.of("#1A1A1A")),
-                new Typography("Merriweather", "Inter"),
-                CornerRadius.MEDIUM,
-                Shadow.SOFT,
-                ColorScheme.LIGHT);
+        return Theme.CLASSIC.design(Theme.CLASSIC.defaultVariant().id());
     }
 
     public SiteDesign withPalette(Palette newPalette) {
@@ -48,7 +38,10 @@ public record SiteDesign(
         return new SiteDesign(newTheme, newVariant, palette, typography, cornerRadius, shadow, colorScheme);
     }
 
-    /** El contraste AA entre texto y fondo se verifica al editar (fase 3), no aquí. */
+    /**
+     * El contraste AA se verifica al editar ({@link DesignReview}), no aquí: un diseño guardado antes de
+     * endurecer una regla tiene que poder leerse igual.
+     */
     public record Palette(
             HexColor primary,
             HexColor secondary,
@@ -58,7 +51,7 @@ public record SiteDesign(
             HexColor text) {
     }
 
-    /** Solo fuentes del catálogo con licencia libre (Ley 17.336); el catálogo llega en la fase 3. */
+    /** Solo fuentes de {@link FontCatalog}, todas con licencia libre (Ley 17.336). */
     public record Typography(String headingFont, String bodyFont) {
     }
 

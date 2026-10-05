@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head(title='Diseño del sitio')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: admin-header}"></header>
+<main id="contenido" class="container">
+    <div class="page-head">
+        <h1>Diseño del sitio</h1>
+        <div class="actions">
+            <a class="btn btn-secondary" th:href="@{/admin/preview}">Vista previa del borrador</a>
+            <a class="btn btn-secondary" th:href="@{/}">Ver sitio publicado</a>
+        </div>
+    </div>
+    <div th:replace="~{fragments/layout :: flash}"></div>
+
+    <div class="alert alert-warn" role="status" th:if="${unpublished}">
+        Hay cambios en el borrador que los visitantes todavía no ven.
+        <div class="actions">
+            <form th:action="@{/admin/design/publish}" method="post"><button type="submit" class="btn">Publicar diseño</button></form>
+            <form th:action="@{/admin/design/discard}" method="post"><button type="submit" class="btn btn-secondary">Descartar borrador</button></form>
+        </div>
+    </div>
+
+    <section class="card section" aria-labelledby="temas">
+        <h2 id="temas">Tema base</h2>
+        <p class="muted">Cada tema define la estructura del sitio; la variante es un punto de partida de colores.
+            Usar otro tema reemplaza colores, fuentes y formas del borrador.</p>
+        <div class="theme-grid">
+            <article th:each="t : ${themes}" class="theme-card" th:classappend="${t == currentTheme} ? 'is-current'">
+                <h3 th:text="${#messages.msg('theme.' + t.id())}">Institucional</h3>
+                <p class="muted" th:text="${#messages.msg('theme.' + t.id() + '.help')}">Descripción</p>
+                <ul class="variant-list">
+                    <li th:each="v : ${t.variants()}">
+                        <form th:action="@{/admin/design/theme}" method="post" class="variant">
+                            <input type="hidden" name="theme" th:value="${t.id()}">
+                            <input type="hidden" name="variant" th:value="${v.id()}">
+                            <svg class="swatch" width="96" height="24" viewBox="0 0 96 24" aria-hidden="true" focusable="false">
+                                <rect x="0" y="0" width="32" height="24" th:attr="fill=${v.palette().primary()}"></rect>
+                                <rect x="32" y="0" width="32" height="24" th:attr="fill=${v.palette().secondary()}"></rect>
+                                <rect x="64" y="0" width="32" height="24" th:attr="fill=${v.palette().accent()}"></rect>
+                            </svg>
+                            <span th:text="${#messages.msg('theme.' + t.id() + '.' + v.id())}">Azul marino</span>
+                            <span class="badge badge-ok" th:if="${t == currentTheme and v.id() == form.variant}">En uso</span>
+                            <button type="submit" class="btn btn-secondary btn-small">
+                                Usar<span class="visually-hidden" th:text="| ${#messages.msg('theme.' + t.id())}, ${#messages.msg('theme.' + t.id() + '.' + v.id())}|"></span>
+                            </button>
+                        </form>
+                    </li>
+                </ul>
+            </article>
+        </div>
+    </section>
+
+    <section class="card section" aria-labelledby="tokens">
+        <h2 id="tokens">Colores, fuentes y formas</h2>
+        <form th:action="@{/admin/design}" th:object="${form}" method="post" novalidate>
+            <div class="alert alert-problem" role="alert" th:if="${#fields.hasErrors('*')}">
+                <p th:each="e : ${#fields.globalErrors()}" th:text="${e}">Error</p>
+                <p th:unless="${#fields.hasGlobalErrors()}">Revisa los campos marcados.</p>
+            </div>
+            <input type="hidden" th:field="*{theme}">
+            <input type="hidden" th:field="*{variant}">
+
+            <fieldset>
+                <legend>Paleta</legend>
+                <p class="hint">El sistema elige solo el texto blanco o negro sobre cada color. Al guardar se verifica el
+                    contraste AA (4,5:1) de cada combinación que usa el sitio.</p>
+                <div class="color-grid">
+                    <div class="field" th:each="c : ${ {'primary','secondary','accent','background','surface','text'} }">
+                        <label th:for="${c}" th:text="${#messages.msg('palette.' + c)}">Primario</label>
+                        <span class="hint" th:id="|${c}-hint|" th:text="${#messages.msg('palette.' + c + '.help')}">Uso</span>
+                        <input type="color" th:field="*{__${c}__}" th:attr="aria-describedby=|${c}-hint|, aria-invalid=${#fields.hasErrors(c)}">
+                        <p class="field-error" th:if="${#fields.hasErrors(c)}" th:errors="*{__${c}__}"></p>
+                    </div>
+                </div>
+            </fieldset>
+
+            <fieldset>
+                <legend>Tipografía</legend>
+                <p class="hint">Fuentes con licencia libre, alojadas en el propio sitio (no se envían datos a terceros).</p>
+                <div class="color-grid">
+                    <div class="field">
+                        <label for="headingFont">Títulos</label>
+                        <select th:field="*{headingFont}">
+                            <option th:each="f : ${fonts}" th:value="${f.family()}" th:text="${f.family()}">Inter</option>
+                        </select>
+                    </div>
+                    <div class="field">
+                        <label for="bodyFont">Texto</label>
+                        <select th:field="*{bodyFont}">
+                            <option th:each="f : ${fonts}" th:value="${f.family()}" th:text="${f.family()}">Inter</option>
+                        </select>
+                    </div>
+                </div>
+            </fieldset>
+
+            <fieldset>
+                <legend>Formas y modo oscuro</legend>
+                <div class="color-grid">
+                    <div class="field">
+                        <label for="cornerRadius">Esquinas</label>
+                        <select th:field="*{cornerRadius}">
+                            <option th:each="r : ${radii}" th:value="${r}" th:text="${#messages.msg('radius.' + r)}">Medianas</option>
+                        </select>
+                    </div>
+                    <div class="field">
+                        <label for="shadow">Sombras</label>
+                        <select th:field="*{shadow}">
+                            <option th:each="s : ${shadows}" th:value="${s}" th:text="${#messages.msg('shadow.' + s)}">Suaves</option>
+                        </select>
+                    </div>
+                    <div class="field">
+                        <label for="colorScheme">Modo de color</label>
+                        <select th:field="*{colorScheme}" aria-describedby="scheme-hint">
+                            <option th:each="s : ${schemes}" th:value="${s}" th:text="${#messages.msg('scheme.' + s)}">Claro</option>
+                        </select>
+                        <span id="scheme-hint" class="hint">"Automático" agrega una versión oscura para quienes la tienen activada en su dispositivo.</span>
+                    </div>
+                </div>
+            </fieldset>
+
+            <button type="submit" class="btn">Guardar borrador</button>
+        </form>
+    </section>
+
+    <section class="card section" aria-labelledby="contraste" th:if="${review}">
+        <h2 id="contraste">Verificación de contraste (WCAG 2.1 AA)</h2>
+        <div class="table-wrap">
+            <table class="data">
+                <caption class="visually-hidden">Contraste de cada combinación de colores del borrador</caption>
+                <thead>
+                <tr><th scope="col">Combinación</th><th scope="col">Muestra</th><th scope="col">Contraste</th><th scope="col">Resultado</th></tr>
+                </thead>
+                <tbody>
+                <tr th:each="c : ${review.checks()}">
+                    <td th:text="${c.label()}">Texto sobre el fondo</td>
+                    <td>
+                        <svg width="56" height="28" viewBox="0 0 56 28" aria-hidden="true" focusable="false" class="sample">
+                            <rect width="56" height="28" rx="4" th:attr="fill=${c.background()}"></rect>
+                            <text x="28" y="19" text-anchor="middle" font-size="14" font-weight="700" th:attr="fill=${c.foreground()}">Aa</text>
+                        </svg>
+                    </td>
+                    <td th:text="${c.formattedRatio()}">4,50:1</td>
+                    <td>
+                        <span th:if="${c.passes()}" class="badge badge-ok">Cumple</span>
+                        <span th:unless="${c.passes()}" class="badge badge-problem" th:text="|No cumple (mínimo ${c.formattedRequired()})|">No cumple</span>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+        <ul th:unless="${#lists.isEmpty(review.problems())}">
+            <li th:each="p : ${review.problems()}" class="field-error" th:text="${p}">Problema</li>
+        </ul>
+    </section>
+</main>
+</body>
+</html>

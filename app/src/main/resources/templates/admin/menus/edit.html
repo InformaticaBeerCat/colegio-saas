@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head(title=${item.label})}"></head>
+<body>
+<header th:replace="~{fragments/layout :: admin-header}"></header>
+<main id="contenido" class="container">
+    <p><a th:href="@{/admin/menus(menu=${item.menu})}">← Menús</a></p>
+    <h1 th:text="|Editar: ${item.label}|">Editar</h1>
+    <div th:replace="~{fragments/layout :: flash}"></div>
+    <form class="card" th:action="@{/admin/menus/{id}(id=${item.id})}" th:object="${form}" method="post">
+        <div th:replace="~{admin/menus/target-fields :: fields}"></div>
+        <div class="actions">
+            <button type="submit" class="btn">Guardar</button>
+            <a th:href="@{/admin/menus(menu=${item.menu})}">Cancelar</a>
+        </div>
+    </form>
+</main>
+</body>
+</html>

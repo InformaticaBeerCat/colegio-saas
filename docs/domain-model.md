@@ -135,7 +135,11 @@ erDiagram
 - Borrador y publicado separados (`draft_*` / `published_*`) permiten vista previa sin afectar el sitio (CFG-08).
 - `section` + rol (`PARENTS_CENTER_EDITOR`…) restringe a los editores satélite (PUB-07).
 - Una página que está en el menú no se puede borrar (llave foránea sin `ON DELETE`).
-- Cada `PageKind` salvo `CUSTOM` existe a lo más una vez: lo controla el servicio de páginas (fase 3).
+- Cada `PageKind` salvo `CUSTOM` existe a lo más una vez: lo controla `PageService`, junto con las direcciones
+  reservadas y el saneamiento del HTML.
+- **Temas (fase 3):** `classic` (Institucional), `modern` (Moderno) y `friendly` (Cercano), con variantes
+  `navy/burgundy/forest`, `ocean/violet/graphite` y `sun/sea/sky`. Los ids se guardan en `SiteDesign`: no se renombran
+  sin migrar. Un diseño con un tema desconocido se muestra con la estructura de `classic`.
 - `GradeLevel` y `Course` son **solo estructura** (para filtrar calendario, álbumes por curso, vacantes, reuniones).
   No hay notas, asistencia ni nada académico.
 
@@ -557,6 +561,5 @@ erDiagram
 
 ## Pendiente de decidir
 
-- **Fase 3:** nombre y estilo de los 3 temas base.
 - **Fase 6:** plazo legal de respuesta a solicitudes de derechos (validar con abogado; el modelo ya lo recibe como `dueOn`).
 - **Fase 6:** plazos de conservación definitivos (hoy son valores iniciales editables).

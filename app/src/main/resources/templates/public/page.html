@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="es-CL" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{public/layout :: head(${pageTitle}, ${metaDescription}, ${noindex})}"></head>
+<body th:class="|theme-${site.themeId}|">
+<div th:replace="~{public/layout :: top}"></div>
+
+<main id="contenido" tabindex="-1">
+    <!-- Una página tiene un solo h1: el de la portada si parte con una, si no el título de la página. -->
+    <th:block th:with="startsWithHero=${not #lists.isEmpty(blocks) and blocks[0].type == 'hero'}">
+        <header class="page-header" th:unless="${startsWithHero}">
+            <div class="wrap"><h1 th:text="${page.title}">Quiénes somos</h1></div>
+        </header>
+
+        <!-- th:replace se procesa antes que th:case: cada caso envuelve su fragmento. -->
+        <th:block th:each="rb, it : ${blocks}" th:switch="${rb.type}">
+            <th:block th:case="'hero'"><section th:replace="~{public/blocks :: hero(${rb.block}, ${it.first})}"></section></th:block>
+            <th:block th:case="'rich-text'"><section th:replace="~{public/blocks :: rich-text(${rb.block})}"></section></th:block>
+            <th:block th:case="'quick-links'"><section th:replace="~{public/blocks :: quick-links(${rb.block}, ${rb.data})}"></section></th:block>
+            <th:block th:case="'latest-news'"><section th:replace="~{public/blocks :: latest-news(${rb.block}, ${rb.data})}"></section></th:block>
+            <th:block th:case="'upcoming-events'"><section th:replace="~{public/blocks :: upcoming-events(${rb.block}, ${rb.data})}"></section></th:block>
+            <th:block th:case="'stats'"><section th:replace="~{public/blocks :: stats(${rb.block})}"></section></th:block>
+            <th:block th:case="'testimonials'"><section th:replace="~{public/blocks :: testimonials(${rb.block})}"></section></th:block>
+            <th:block th:case="'call-to-action'"><section th:replace="~{public/blocks :: call-to-action(${rb.block})}"></section></th:block>
+            <th:block th:case="'timeline'"><section th:replace="~{public/blocks :: timeline(${rb.block})}"></section></th:block>
+            <th:block th:case="'location'"><section th:replace="~{public/blocks :: location(${rb.block}, ${rb.data})}"></section></th:block>
+            <th:block th:case="'faq'"><section th:replace="~{public/blocks :: faq(${rb.block}, ${rb.data})}"></section></th:block>
+        </th:block>
+
+        <div class="wrap block" th:if="${#lists.isEmpty(blocks)}">
+            <p class="muted">Esta página todavía no tiene contenido.</p>
+        </div>
+    </th:block>
+</main>
+
+<footer th:replace="~{public/layout :: footer}"></footer>
+</body>
+</html>

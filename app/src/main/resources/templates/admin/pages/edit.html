@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head(title=${page.title})}"></head>
+<body>
+<header th:replace="~{fragments/layout :: admin-header}"></header>
+<main id="contenido" class="container">
+    <p><a th:href="@{/admin/pages}">← Páginas</a></p>
+    <div class="page-head">
+        <div>
+            <h1 th:text="${page.title}">Inicio</h1>
+            <p class="muted">
+                <span th:text="${#messages.msg('pageKind.' + page.kind)}">Portada</span> ·
+                <span th:if="${page.published}" class="badge badge-ok">Publicada</span>
+                <span th:unless="${page.published}" class="badge">Borrador</span>
+                <span th:if="${page.published and page.hasUnpublishedChanges()}" class="badge badge-warn">Cambios sin publicar</span>
+            </p>
+        </div>
+        <div class="actions">
+            <a class="btn btn-secondary" th:href="@{${previewUrl}}">Vista previa</a>
+            <a class="btn btn-secondary" th:if="${page.published}" th:href="@{${publicUrl}}">Ver publicada</a>
+            <form th:action="@{/admin/pages/{id}/publish(id=${page.id})}" method="post">
+                <button type="submit" class="btn" th:text="${page.published} ? 'Publicar cambios' : 'Publicar'">Publicar</button>
+            </form>
+        </div>
+    </div>
+    <div th:replace="~{fragments/layout :: flash}"></div>
+
+    <section class="card section" aria-labelledby="bloques-titulo" id="bloques">
+        <h2 id="bloques-titulo">Contenido (borrador)</h2>
+        <p class="hint">Los cambios en los bloques se guardan en el borrador. Los visitantes los ven al publicar.</p>
+        <ol class="block-list" th:unless="${#lists.isEmpty(blocks)}">
+            <li th:each="b, it : ${blocks}" class="block-row">
+                <div>
+                    <strong th:text="${#messages.msg('block.' + b.type)}">Portada</strong>
+                    <span class="muted" th:text="${b.summary}">Bienvenidos</span>
+                </div>
+                <div class="actions">
+                    <a class="btn btn-secondary btn-small" th:href="@{/admin/pages/{id}/blocks/{i}(id=${page.id},i=${b.index})}">
+                        Editar<span class="visually-hidden" th:text="| bloque ${it.count}|"></span></a>
+                    <form th:action="@{/admin/pages/{id}/blocks/{i}/move(id=${page.id},i=${b.index})}" method="post" th:unless="${it.first}">
+                        <input type="hidden" name="direction" value="-1">
+                        <button type="submit" class="btn btn-secondary btn-small">Subir<span class="visually-hidden" th:text="| bloque ${it.count}|"></span></button>
+                    </form>
+                    <form th:action="@{/admin/pages/{id}/blocks/{i}/move(id=${page.id},i=${b.index})}" method="post" th:unless="${it.last}">
+                        <input type="hidden" name="direction" value="1">
+                        <button type="submit" class="btn btn-secondary btn-small">Bajar<span class="visually-hidden" th:text="| bloque ${it.count}|"></span></button>
+                    </form>
+                    <form th:action="@{/admin/pages/{id}/blocks/{i}/delete(id=${page.id},i=${b.index})}" method="post">
+                        <button type="submit" class="btn btn-danger btn-small">Quitar<span class="visually-hidden" th:text="| bloque ${it.count}|"></span></button>
+                    </form>
+                </div>
+            </li>
+        </ol>
+        <p th:if="${#lists.isEmpty(blocks)}" class="muted">La página no tiene bloques todavía.</p>
+
+        <form th:action="@{/admin/pages/{id}/blocks/new(id=${page.id})}" method="get" class="actions">
+            <label for="type">Agregar bloque</label>
+            <select id="type" name="type" class="inline-select">
+                <option th:each="t : ${blockTypes}" th:value="${t.key()}" th:text="${#messages.msg('block.' + t.key())}">Portada</option>
+            </select>
+            <button type="submit" class="btn btn-secondary">Agregar</button>
+        </form>
+    </section>
+
+    <section class="card section" aria-labelledby="datos">
+        <h2 id="datos">Datos de la página</h2>
+        <form th:action="@{/admin/pages/{id}(id=${page.id})}" th:object="${details}" method="post">
+            <div class="alert alert-problem" role="alert" th:if="${#fields.hasErrors('*')}">
+                <p th:each="e : ${#fields.allErrors()}" th:text="${e}">Error</p>
+            </div>
+            <div class="color-grid">
+                <div class="field">
+                    <label for="title">Título</label>
+                    <input type="text" th:field="*{title}" required maxlength="200">
+                </div>
+                <div class="field">
+                    <label for="slug">Dirección</label>
+                    <input type="text" th:field="*{slug}" required maxlength="120" aria-describedby="slug-hint">
+                    <span id="slug-hint" class="hint" th:if="${isHome}">La portada siempre se muestra en la raíz del sitio.</span>
+                    <span id="slug-hint" class="hint" th:unless="${isHome}">Cambiarla rompe los enlaces que otros ya tengan guardados.</span>
+                </div>
+                <div class="field">
+                    <label for="section">Sección</label>
+                    <select th:field="*{section}">
+                        <option th:each="s : ${sections}" th:value="${s}" th:text="${#messages.msg('section.' + s)}">Principal</option>
+                    </select>
+                </div>
+            </div>
+            <fieldset>
+                <legend>Buscadores y redes</legend>
+                <div class="field">
+                    <label for="metaTitle">Título para buscadores <span class="muted">(opcional)</span></label>
+                    <input type="text" th:field="*{metaTitle}" maxlength="120">
+                </div>
+                <div class="field">
+                    <label for="metaDescription">Descripción <span class="muted">(opcional, hasta 300 caracteres)</span></label>
+                    <textarea th:field="*{metaDescription}" rows="2" maxlength="300"></textarea>
+                </div>
+                <div class="checks">
+                    <label><input type="checkbox" th:field="*{noindex}"> No mostrar esta página en buscadores</label>
+                </div>
+            </fieldset>
+            <button type="submit" class="btn">Guardar datos</button>
+        </form>
+    </section>
+
+    <section class="card section" aria-labelledby="zona">
+        <h2 id="zona">Publicación</h2>
+        <div class="stack">
+            <form th:if="${page.published}" th:action="@{/admin/pages/{id}/unpublish(id=${page.id})}" method="post">
+                <button type="submit" class="btn btn-secondary">Retirar del sitio</button>
+                <p class="hint">Deja de verse en el sitio; el contenido se conserva para publicarlo de nuevo.</p>
+            </form>
+            <form th:unless="${isHome}" th:action="@{/admin/pages/{id}/delete(id=${page.id})}" method="post">
+                <div class="checks">
+                    <label><input type="checkbox" name="confirm" required> Confirmo que quiero eliminar esta página</label>
+                </div>
+                <p></p>
+                <button type="submit" class="btn btn-danger">Eliminar página</button>
+            </form>
+        </div>
+    </section>
+</main>
+</body>
+</html>

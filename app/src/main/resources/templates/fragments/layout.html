@@ -16,6 +16,9 @@
         <a class="brand" th:href="@{/admin}" th:text="${schoolName}">Colegio</a>
         <nav aria-label="Panel de administración">
             <a th:href="@{/admin}">Inicio</a>
+            <a sec:authorize="hasAuthority('PAGES')" th:href="@{/admin/pages}">Páginas</a>
+            <a sec:authorize="hasAuthority('PAGES')" th:href="@{/admin/menus}">Menús</a>
+            <a sec:authorize="hasAuthority('SITE_DESIGN')" th:href="@{/admin/design}">Diseño</a>
             <a sec:authorize="hasAuthority('USERS')" th:href="@{/admin/users}">Usuarios</a>
             <a sec:authorize="hasAuthority('AUDIT_LOG')" th:href="@{/admin/audit}">Auditoría</a>
             <a th:href="@{/admin/profile}">Mi cuenta</a>

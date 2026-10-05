@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<body>
+<!-- Campos comunes de crear y editar una entrada de menú. Requiere th:object="${form}". -->
+<div th:fragment="fields" th:remove="tag">
+    <div class="field">
+        <label for="label">Texto</label>
+        <input type="text" th:field="*{label}" required maxlength="80">
+    </div>
+    <fieldset>
+        <legend>Destino</legend>
+        <div class="checks">
+            <label><input type="radio" th:field="*{targetType}" value="page"> Una página del sitio</label>
+        </div>
+        <div class="field">
+            <label for="pageId">Página</label>
+            <select th:field="*{pageId}" aria-describedby="page-hint">
+                <option value="">Elige…</option>
+                <option th:each="p : ${pages}" th:value="${p.id}"
+                        th:text="${p.title} + (${p.published} ? '' : ' (borrador)')">Inicio</option>
+            </select>
+            <span id="page-hint" class="hint">Las páginas en borrador no aparecen en el menú público hasta publicarlas.</span>
+        </div>
+        <div class="checks">
+            <label><input type="radio" th:field="*{targetType}" value="url"> Un enlace</label>
+        </div>
+        <div class="field">
+            <label for="url">Enlace</label>
+            <input type="text" th:field="*{url}" placeholder="https://classroom.google.com o /noticias">
+        </div>
+    </fieldset>
+    <div class="field">
+        <label for="parentId">Ubicación</label>
+        <select th:field="*{parentId}">
+            <option value="">Primer nivel</option>
+            <option th:each="p : ${parents}" th:value="${p.id}" th:text="|Dentro de: ${p.label}|">Dentro de: Nosotros</option>
+        </select>
+    </div>
+</div>
+</body>
+</html>

@@ -53,7 +53,7 @@ class SiteSettingsRepositoryTest {
         repository.saveAndFlush(new SiteSettings(SiteDesign.defaults()));
 
         String json = jdbc.queryForObject("select published_design from site_settings", String.class);
-        assertThat(json).contains("\"primary\":\"#1F3A5F\"").contains("\"theme\":\"base\"");
+        assertThat(json).contains("\"primary\":\"#1F3A5F\"").contains("\"theme\":\"classic\"");
     }
 
     @Test
