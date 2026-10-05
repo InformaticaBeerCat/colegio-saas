@@ -36,6 +36,12 @@ tests en verde y algo demostrable. Los IDs entre corchetes (`PUB-01`, `MED-06`�
 - Una migración Flyway publicada no se edita nunca; los cambios van en una versión nueva.
 - Columnas de orden: `sort_order` (no `position`, que es palabra clave en algunos motores).
 - Valores estructurados (diseño, bloques) como `record` inmutable en columna JSON con `@JdbcTypeCode(SqlTypes.JSON)`.
+- Textos largos (HTML, mensajes): columna `LONGTEXT` y campo `String` sin anotaciones (no `@Lob`: H2 y MySQL lo validan distinto).
+- Datos personales que escribe el público: `@Convert(converter = EncryptedStringConverter.class)`; si hay que buscar por
+  email, columna `*_hash` calculada con `BlindIndex` en el constructor de la entidad.
+- Fechas de calendario y citas en hora local del colegio (`LocalDateTime`); marcas técnicas en UTC (`Instant`).
+- Tokens de enlaces públicos: se entrega el token, se guarda solo su hash (`SecureTokens`).
+- Tests de persistencia con `@RepositoryTest` (H2 + cifrado + `TestFixtures`); `MySqlCompatibilityTest` contra MySQL real.
 
 ## Estructura del repositorio
 
@@ -46,14 +52,23 @@ colegio-saas/
 └── app/                aplicación Spring Boot (Maven)
     ├── compose.yaml    MySQL + Mailpit para desarrollo
     └── src/main/java/cl/colegiosaas/
-        ├── shared/     persistencia base
+        ├── shared/     persistencia base, cifrado, tokens
         ├── platform/   perfil del colegio, planes y módulos
         ├── identity/   usuarios y roles
         ├── audit/      registro de auditoría
         ├── site/       diseño, accesos rápidos, alerta global
         ├── page/       páginas por bloques y menús
+        ├── structure/  niveles y cursos
         ├── media/      archivos, biblioteca, revisión de imagen y álbumes
-        └── structure/  niveles y cursos
+        ├── news/       noticias y comunicados
+        ├── calendar/   calendario, eventos e inscripciones
+        ├── info/       preguntas frecuentes, talleres, útiles/uniforme/menú
+        ├── documents/  documentos institucionales con versiones
+        ├── privacy/    textos legales, consentimientos, derechos, retención, brechas
+        ├── consent/    estudiantes y autorizaciones de imagen
+        ├── contact/    consultas con enrutamiento por área
+        ├── scheduling/ tipos de cita, disponibilidad y citas
+        └── admissions/ modo SAE/propio, hitos, vacantes y prospectos
 ```
 
 ---
@@ -63,7 +78,7 @@ colegio-saas/
 ### Fase 0 — Fundaciones ✅
 Proyecto Maven, perfiles (H2 por defecto / `mysql`), Flyway, `compose.yaml`, Testcontainers listo para MySQL.
 
-### Fase 1 — Modelo de dominio
+### Fase 1 — Modelo de dominio ✅
 Diseño completo en [domain-model.md](domain-model.md). Se implementa por iteraciones; cada una agrega
 entidades, repositorios, su migración Flyway y tests de persistencia.
 
@@ -72,11 +87,13 @@ entidades, repositorios, su migración Flyway y tests de persistencia.
 | 1.1 Núcleo | `BaseEntity`, `SingletonEntity`, `School` (perfil), `Feature`/`Plan`, `UserAccount`/`Role`, `AuditLogEntry` | ✅ |
 | 1.2 Sitio y estructura | `SiteSettings` (diseño JSON), `Page` (bloques JSON), `MenuItem`, `QuickLink`, `SiteAlert`, `GradeLevel`, `Course` | ✅ |
 | 1.3 Medios | `StoredFile`, `MediaFolder`, `MediaAsset`, `MediaTag`, `Album`, `AlbumItem`; logo y favicon del sitio | ✅ |
-| 1.4 Contenido y documentos | `NewsArticle`, `NewsCategory`, `Announcement`, `Event`, `FaqCategory`, `FaqEntry`, `Workshop`, `InfoSheet`, `InstitutionalDocument`, `DocumentVersion` | ⬜ |
-| 1.5 Privacidad y consentimientos | Cifrado de columnas, `LegalText`, `ConsentRecord`, `DataSubjectRequest`, `RetentionPolicy`, `SecurityIncident`, `Student`, `ImageConsent` | ⬜ |
-| 1.6 Interacción | `ContactArea`, `Inquiry`, `InquiryNote`, `AppointmentType`, `AvailabilityRule`, `AvailabilityBlock`, `Holiday`, `Appointment`, `EventRegistration`, `AdmissionSettings`, `AdmissionMilestone`, `Vacancy`, `Prospect` | ⬜ |
+| 1.4 Contenido y documentos | `NewsArticle`, `NewsCategory`, `Announcement`, `Event`, `FaqCategory`, `FaqEntry`, `Workshop`, `InfoSheet`, `InstitutionalDocument`, `DocumentVersion` | ✅ |
+| 1.5 Privacidad y consentimientos | Cifrado de columnas e índice ciego, `LegalText`, `ConsentRecord`, `DataSubjectRequest`, `RetentionPolicy`, `SecurityIncident`, `Student`, `ImageConsent`, `StudentAppearance` | ✅ |
+| 1.6 Interacción | `ContactArea`, `Inquiry`, `InquiryNote`, `AppointmentType`, `AvailabilityRule`, `AvailabilityBlock`, `Holiday`, `Appointment`, `EventRegistration`, `AdmissionSettings`, `AdmissionMilestone`, `Vacancy`, `Prospect` | ✅ |
 
 **Listo cuando:** todas las tablas MVP existen, Hibernate valida contra MySQL real y cada agregado tiene tests de persistencia de sus reglas.
+
+> Pendiente: correr `MySqlCompatibilityTest` con Docker encendido (se salta solo sin Docker). Hasta entonces, todo está probado sobre H2 en modo MySQL.
 
 ### Fase 2 — Seguridad e identidad
 - Instalador de primer arranque, como Nextcloud: crea la cuenta `SUPER_ADMIN`/`SCHOOL_ADMIN` y el perfil del colegio;

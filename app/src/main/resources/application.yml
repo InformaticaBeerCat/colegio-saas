@@ -27,3 +27,11 @@ spring:
 server:
   error:
     include-stacktrace: never
+
+app:
+  crypto:
+    # Los valores por defecto son SOLO para desarrollo y tests. Cada instalación genera las suyas
+    # (openssl rand -base64 32) y las entrega por variable de entorno; la fase 9 impide arrancar en
+    # producción con estas.
+    field-key: ${APP_FIELD_KEY:uZVrGeLHRbUrhdmF3EycAPb6SvRvwKdsZFCp8d0ZmH4=}
+    index-key: ${APP_INDEX_KEY:o8bfT9FdOu0BbSJmCBc15RAXiiNLjGv12HrxTX0NIR8=}

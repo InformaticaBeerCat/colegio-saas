@@ -1,5 +1,6 @@
 package cl.colegiosaas.site;
 
+import cl.colegiosaas.support.RepositoryTest;
 import cl.colegiosaas.media.MediaAsset;
 import cl.colegiosaas.media.MediaAssetRepository;
 import cl.colegiosaas.media.MediaKind;
@@ -7,8 +8,6 @@ import cl.colegiosaas.media.StoredFile;
 import cl.colegiosaas.media.StoredFileRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
-import org.springframework.boot.jdbc.test.autoconfigure.AutoConfigureTestDatabase;
 import org.springframework.boot.jpa.test.autoconfigure.TestEntityManager;
 import org.springframework.jdbc.core.JdbcTemplate;
 
@@ -17,8 +16,7 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-@DataJpaTest(showSql = false)
-@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
+@RepositoryTest
 class SiteSettingsRepositoryTest {
 
     @Autowired

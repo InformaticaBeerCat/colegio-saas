@@ -217,149 +217,174 @@ erDiagram
 
 ---
 
-## 1.4 Contenido y documentos
+## 1.4 Contenido y documentos ✅
 
 ```mermaid
 erDiagram
     NEWS_CATEGORY ||--o{ NEWS_ARTICLE : ""
-    NEWS_ARTICLE }o--o{ GRADE_LEVEL : "etiquetas por nivel"
+    NEWS_ARTICLE }o--o{ GRADE_LEVEL : "news_article_grade_level"
     NEWS_ARTICLE }o--o| ALBUM : "galería"
+    NEWS_ARTICLE }o--o| MEDIA_ASSET : "imagen destacada / video"
     USER_ACCOUNT ||--o{ NEWS_ARTICLE : "autor / revisor"
-    ANNOUNCEMENT }o--o{ COURSE : "destinatarios"
-    EVENT }o--o{ GRADE_LEVEL : "público"
+    ANNOUNCEMENT }o--o{ GRADE_LEVEL : "announcement_grade_level"
+    ANNOUNCEMENT }o--o{ COURSE : "announcement_course"
+    CALENDAR_EVENT }o--o{ GRADE_LEVEL : "público"
+    CALENDAR_EVENT }o--o{ COURSE : "reuniones por curso"
     FAQ_CATEGORY ||--o{ FAQ_ENTRY : ""
+    WORKSHOP }o--o{ GRADE_LEVEL : ""
     INSTITUTIONAL_DOCUMENT ||--o{ DOCUMENT_VERSION : ""
     INSTITUTIONAL_DOCUMENT ||--o{ INSTITUTIONAL_DOCUMENT : "protocolos y anexos"
-    DOCUMENT_VERSION ||--|| STORED_FILE : ""
+    DOCUMENT_VERSION }o--|| STORED_FILE : ""
 
     NEWS_ARTICLE {
-        varchar slug
+        varchar slug UK
         varchar title
         varchar summary
         longtext body "HTML saneado"
         bigint featured_image_id FK
-        varchar status "DRAFT, IN_REVIEW, SCHEDULED, PUBLISHED, ARCHIVED"
-        datetime publish_at "programación"
+        bigint video_id FK
+        bigint album_id FK
         varchar section
+        varchar status "DRAFT, IN_REVIEW, SCHEDULED, PUBLISHED, ARCHIVED"
+        datetime publish_at
+        datetime published_at
         bigint author_id FK
         bigint reviewer_id FK
+        varchar review_note
     }
     ANNOUNCEMENT {
         varchar title
         longtext body
-        varchar audience "ALL, GRADE_LEVELS, COURSES"
-        varchar visibility "PUBLIC, COMMUNITY"
-        bigint attachment_id FK
+        varchar audience "EVERYONE, GRADE_LEVELS, COURSES"
+        boolean community_only "ZON-02"
+        bigint attachment_id FK "stored_file"
         datetime published_at
     }
-    EVENT {
-        varchar slug
+    CALENDAR_EVENT {
+        varchar slug UK
         varchar title
         varchar kind "HOLIDAY, VACATION, PARENT_MEETING, CEREMONY, OPEN_HOUSE…"
-        datetime starts_at
-        datetime ends_at
+        datetime starts_at "hora local del colegio"
+        datetime ends_at "CHECK >= starts_at"
         boolean all_day
         varchar location
+        bigint album_id FK
+        datetime published_at
         boolean registration_enabled
-        int capacity
+        int capacity "nulo = sin límite"
         boolean waitlist_enabled
         datetime registration_closes_at
     }
     FAQ_ENTRY {
         bigint category_id FK
         varchar question
-        text answer
+        varchar answer
         int sort_order
+        boolean published
     }
     WORKSHOP {
         varchar name
         varchar schedule
         varchar instructor
         int capacity
+        bigint image_id FK
         int academic_year
     }
     INFO_SHEET {
         varchar kind "SUPPLY_LIST, UNIFORM, MENU"
         bigint grade_level_id FK
         int academic_year
-        bigint file_id FK
+        longtext content "vista web"
+        bigint file_id FK "descarga"
+        date valid_from
+        date valid_until
     }
     INSTITUTIONAL_DOCUMENT {
-        varchar category "INTERNAL_REGULATIONS, PROTOCOL, ANNEX, PISE…"
+        varchar category "INTERNAL_REGULATIONS, PROTOCOL, ANNEX, PISE, PEI…"
         varchar title
-        varchar slug
+        varchar slug UK
         bigint parent_id FK
     }
     DOCUMENT_VERSION {
         bigint document_id FK
         bigint file_id FK
-        int academic_year "DOC-02"
-        varchar school_name "DOC-02 copia al publicar"
-        varchar rbd "DOC-02"
-        date last_updated_on "DOC-02, alerta a 12 meses"
+        int academic_year "obligatorio en el RI"
+        varchar school_name "copia al publicar"
+        varchar rbd "copia al publicar"
+        date last_updated_on "alerta a 12 meses"
         boolean current_version
         boolean accessible_pdf "DOC-05"
     }
 ```
 
-- **Un solo `Event`** cubre calendario escolar (feriados, vacaciones), eventos con inscripción (puertas abiertas)
-  y reuniones de apoderados por curso (AGE-08): cambia el `kind` y si tiene inscripción.
-- `DOCUMENT_VERSION` copia nombre y RBD del colegio al publicar: la evidencia queda fija aunque el colegio cambie de nombre.
-- La alerta de 12 meses (DOC-04) se calcula con `last_updated_on`; no necesita tabla.
+- **Un solo `Event`** (tabla `calendar_event`, porque "event" es palabra clave en MySQL) cubre feriados, vacaciones,
+  actos, reuniones de apoderados por curso (AGE-08) y eventos con inscripción: cambia el `kind` y si abre inscripción.
+- **Fechas de calendario en hora local del colegio** (`LocalDateTime`): "reunión a las 19:00" se guarda tal cual.
+  Las marcas técnicas (`created_at`, `published_at`) van en UTC (`Instant`).
+- Noticias: aprobar con fecha futura las deja `SCHEDULED`; `isVisibleAt(now)` ya las muestra al llegar la hora,
+  aunque la tarea que las pasa a `PUBLISHED` todavía no haya corrido.
+- Reglamento Interno, protocolos y anexos exigen año académico y RBD (REX 781). Cada publicación archiva la versión
+  anterior y copia nombre y RBD del colegio como evidencia. Un documento con versiones no se puede borrar.
+- Los PDF (circulares, documentos, útiles) referencian `stored_file` directamente; `media_asset` queda para fotos y videos.
 
 ---
 
-## 1.5 Privacidad y consentimientos
+## 1.5 Privacidad y consentimientos ✅
 
 ```mermaid
 erDiagram
     LEGAL_TEXT ||--o{ CONSENT_RECORD : "versión aceptada"
     COURSE ||--o{ STUDENT : ""
     STUDENT ||--o{ IMAGE_CONSENT : ""
-    LEGAL_TEXT ||--o{ IMAGE_CONSENT : ""
-    STUDENT }o--o{ MEDIA_ASSET : "media_asset_student (etiquetado manual)"
+    LEGAL_TEXT ||--o{ IMAGE_CONSENT : "formulario firmado"
+    STUDENT ||--o{ STUDENT_APPEARANCE : ""
+    MEDIA_ASSET ||--o{ STUDENT_APPEARANCE : ""
 
     LEGAL_TEXT {
-        varchar kind "PRIVACY_POLICY, COOKIE_POLICY, TERMS, PROCESSING_NOTICE, IMAGE_CONSENT_FORM"
-        varchar form_key "CONTACT, SCHEDULING, EVENTS, ADMISSIONS…"
-        int version_number
+        varchar kind "PRIVACY_POLICY, COOKIE_POLICY, TERMS, IMAGE_CONSENT_FORM, NOTICE_CONTACT…"
+        int version_number "UK con kind"
+        varchar title
         longtext content
-        datetime effective_from
+        datetime effective_from "nulo = borrador"
     }
     CONSENT_RECORD {
-        varchar subject_email "🔒"
-        varchar subject_email_hash "búsqueda"
         varchar subject_name "🔒"
-        varchar purpose "CONTACT, NEWSLETTER, ANALYTICS, ADMISSIONS_FOLLOW_UP…"
+        varchar subject_email "🔒"
+        varchar subject_email_hash "índice ciego"
+        varchar purpose "CONTACT, SCHEDULING, NEWSLETTER, ANALYTICS_COOKIES…"
         bigint legal_text_id FK
-        boolean granted
-        datetime recorded_at
-        varchar source "formulario / url"
+        boolean granted "también se registra el no"
+        varchar source
+        varchar ip_address "🔒"
         datetime withdrawn_at
     }
     DATA_SUBJECT_REQUEST {
-        varchar kind "ACCESS, RECTIFICATION, ERASURE, OBJECTION, PORTABILITY, BLOCKING"
+        varchar tracking_code UK "D-XXXXXXXX"
+        varchar requested_right "ACCESS, RECTIFICATION, ERASURE, OBJECTION, PORTABILITY, BLOCKING"
         varchar requester_name "🔒"
         varchar requester_email "🔒"
-        varchar status "RECEIVED, VERIFYING, IN_PROGRESS, COMPLETED, REJECTED"
-        datetime due_at
-        bigint handled_by FK
+        boolean on_behalf_of_minor
+        longtext details "🔒"
+        varchar status "RECEIVED, VERIFYING_IDENTITY, IN_PROGRESS, COMPLETED, REJECTED"
+        date due_on
+        bigint handled_by_id FK
     }
     RETENTION_POLICY {
-        varchar data_category "INQUIRIES, PROSPECTS, APPOINTMENTS…"
+        varchar data_category UK "PROSPECTS, INQUIRIES, STUDENTS…"
         int retention_days
         varchar action "DELETE, ANONYMIZE"
     }
     SECURITY_INCIDENT {
         datetime detected_at
         varchar severity
-        text description
+        varchar affected_data
+        varchar status "OPEN, CONTAINED, CLOSED"
         datetime authority_notified_at
         datetime subjects_notified_at
     }
     STUDENT {
-        bigint course_id FK
         varchar full_name "🔒"
+        bigint course_id FK
         varchar guardian_email "🔒"
         varchar guardian_email_hash
         boolean active
@@ -367,70 +392,85 @@ erDiagram
     IMAGE_CONSENT {
         bigint student_id FK
         varchar channel "WEBSITE, SOCIAL_MEDIA, PRINT"
-        datetime granted_at
-        datetime revoked_at
+        varchar granted_by_name "🔒"
         varchar method "PAPER_FORM, COMMUNITY_AREA, EMAIL"
         bigint evidence_file_id FK
         bigint legal_text_id FK
-        bigint recorded_by FK
+        datetime granted_at
+        datetime revoked_at
+    }
+    STUDENT_APPEARANCE {
+        bigint student_id FK
+        bigint asset_id FK "UK con student_id"
+        bigint tagged_by_id FK
     }
 ```
 
-- `LEGAL_TEXT` es inmutable una vez publicado: un cambio crea una nueva versión, y cada consentimiento apunta a la versión exacta que se aceptó (PRV-04).
-- `CONSENT_RECORD` es solo-inserción. Retirar un consentimiento llena `withdrawn_at`; nunca se borra la evidencia.
-- `STUDENT` es el mínimo para gestionar autorizaciones de imagen: **sin RUN** (PRV-08), nombre cifrado.
-- `IMAGE_CONSENT`: una fila por autorización otorgada. Revocar llena `revoked_at`; volver a autorizar crea otra fila.
-  Así queda la historia completa y la vigente es la que no tiene `revoked_at`.
-- `media_asset_student` es opcional y manual (sin reconocimiento facial): permite, ante una revocación, encontrar y retirar todas las fotos del estudiante (MED-09).
+- **Cifrado de columnas** (🔒): AES-256-GCM con `EncryptedStringConverter`; se guarda `v1:<base64>`. El prefijo de versión
+  permite rotar la llave más adelante. Las llaves vienen de `APP_FIELD_KEY` y `APP_INDEX_KEY` (una por instalación).
+- **Índice ciego** (`*_hash`): HMAC-SHA256 del email normalizado. Permite encontrar todo lo de una persona (PRV-07) sin
+  guardar el email en claro. Las entidades lo calculan en su constructor, que recibe `BlindIndex`.
+- `LEGAL_TEXT` es inmutable una vez publicado; cada consentimiento apunta a la versión exacta aceptada.
+- `RETENTION_POLICY` viene con valores iniciales en la migración V5 (editables; validar con abogado).
+- `STUDENT` es el mínimo para autorizaciones de imagen: **sin RUN** (PRV-08), nombre cifrado.
+- `IMAGE_CONSENT`: revocar marca `revoked_at`; volver a autorizar crea otra fila. La vigente es la no revocada.
+- `STUDENT_APPEARANCE`: etiquetado manual (sin reconocimiento facial) de quién aparece en cada foto, para retirar todas
+  sus fotos ante una revocación (MED-09). Vive en el paquete `consent` para que `media` no dependa de estudiantes.
 
 ---
 
-## 1.6 Interacción
+## 1.6 Interacción ✅
 
 ```mermaid
 erDiagram
     CONTACT_AREA ||--o{ INQUIRY : "enrutamiento"
     INQUIRY ||--o{ INQUIRY_NOTE : ""
     INQUIRY }o--|| CONSENT_RECORD : ""
-    APPOINTMENT_TYPE }o--o{ USER_ACCOUNT : "gestores"
+    APPOINTMENT_TYPE }o--o{ USER_ACCOUNT : "appointment_type_host"
     USER_ACCOUNT ||--o{ AVAILABILITY_RULE : ""
     USER_ACCOUNT ||--o{ AVAILABILITY_BLOCK : ""
     APPOINTMENT_TYPE ||--o{ APPOINTMENT : ""
     USER_ACCOUNT ||--o{ APPOINTMENT : "atiende"
-    EVENT ||--o{ EVENT_REGISTRATION : ""
+    APPOINTMENT }o--|| CONSENT_RECORD : ""
+    CALENDAR_EVENT ||--o{ EVENT_REGISTRATION : ""
+    EVENT_REGISTRATION }o--|| CONSENT_RECORD : ""
     GRADE_LEVEL ||--o{ VACANCY : ""
     GRADE_LEVEL ||--o{ PROSPECT : "nivel de interés"
+    PROSPECT }o--|| CONSENT_RECORD : "registro / seguimiento"
 
     CONTACT_AREA {
-        varchar name "Admisión, Secretaría, Convivencia, Finanzas"
+        varchar name UK "Admisión, Secretaría, Convivencia, Finanzas"
         varchar notify_email
         boolean active
     }
     INQUIRY {
-        varchar ticket_number UK
+        varchar ticket_code UK "C-XXXXXXXX"
         bigint area_id FK
         varchar name "🔒"
         varchar email "🔒"
         varchar phone "🔒"
-        varchar subject
-        text message "🔒"
+        varchar subject "🔒"
+        longtext message "🔒"
         varchar status "NEW, IN_PROGRESS, RESOLVED, SPAM"
-        bigint assigned_to FK
-        datetime first_response_at
+        bigint assigned_to_id FK
+        datetime first_response_at "COM-02"
     }
     APPOINTMENT_TYPE {
         varchar name "Visita guiada, Entrevista profesor jefe…"
         int duration_minutes
         int buffer_minutes
-        varchar audience "PROSPECTIVE_FAMILY, GUARDIAN, ANY"
-        varchar mode "IN_PERSON, ONLINE, BOTH"
+        varchar audience "PROSPECTIVE_FAMILY, GUARDIAN, ANYONE"
+        boolean in_person_allowed
+        boolean online_allowed
     }
     AVAILABILITY_RULE {
         bigint host_id FK
-        bigint appointment_type_id FK
+        bigint appointment_type_id FK "nulo = todos"
         varchar day_of_week
         time start_time
         time end_time
+        date valid_from
+        date valid_until
     }
     AVAILABILITY_BLOCK {
         bigint host_id FK "nulo = todo el colegio"
@@ -439,45 +479,49 @@ erDiagram
         varchar reason
     }
     HOLIDAY {
-        date day UK
+        date holiday_date UK
         varchar name
-        boolean mandatory
+        boolean mandatory "irrenunciable"
     }
     APPOINTMENT {
-        bigint type_id FK
+        bigint appointment_type_id FK
         bigint host_id FK
         datetime starts_at
         datetime ends_at
+        varchar mode "IN_PERSON, ONLINE"
         varchar status "CONFIRMED, CANCELLED, ATTENDED, NO_SHOW"
         varchar contact_name "🔒"
         varchar contact_email "🔒"
-        varchar manage_token_hash "AGE-05"
-        varchar staff_notes "no sensibles (AGE-10)"
+        varchar student_name "🔒"
+        varchar manage_token_hash UK "AGE-05"
+        varchar staff_notes "no sensibles"
     }
     EVENT_REGISTRATION {
         bigint event_id FK
         varchar name "🔒"
         varchar email "🔒"
         int attendees
-        bigint course_id FK "reuniones por curso"
+        bigint course_id FK
         varchar status "CONFIRMED, WAITLISTED, CANCELLED, ATTENDED"
         int waitlist_position
-        varchar manage_token_hash
+        varchar manage_token_hash UK
     }
     ADMISSION_SETTINGS {
-        bigint id PK "siempre 1 (SingletonEntity)"
+        bigint id PK "siempre 1"
         varchar mode "SAE, OWN"
         varchar sae_url
         int process_year
-        json rules "ADM-08, reglas configurables"
+        longtext intro_text
+        json rules "AdmissionRules: niveles abiertos y fechas de nacimiento"
     }
     ADMISSION_MILESTONE {
+        int process_year
         varchar name
         date starts_on
         date ends_on
     }
     VACANCY {
-        bigint grade_level_id FK
+        bigint grade_level_id FK "UK con academic_year"
         int academic_year
         int seats
     }
@@ -485,24 +529,29 @@ erDiagram
         varchar guardian_name "🔒"
         varchar email "🔒"
         varchar email_hash
-        varchar phone "🔒"
         bigint grade_level_id FK
         int entry_year
-        varchar source "WEBSITE, OPEN_HOUSE, VISIT, REFERRAL, SOCIAL"
+        varchar source "WEBSITE_FORM, OPEN_HOUSE, GUIDED_VISIT…"
         varchar stage "INTERESTED, VISITED, APPLIED, ENROLLED, DISCARDED"
+        bigint consent_id FK
+        bigint follow_up_consent_id FK "ADM-06, aparte"
         date retain_until "PRV-06"
     }
 ```
 
-- Las visitas guiadas son `Appointment` de un tipo con audiencia `PROSPECTIVE_FAMILY`; las jornadas de puertas abiertas son `Event` con inscripción.
-- Los enlaces de reprogramar/cancelar llevan un token aleatorio; en la base solo se guarda su hash.
-- Evitar doble reserva: bloqueo pesimista sobre el gestor al reservar (MySQL no tiene índices únicos parciales portables).
-- `HOLIDAY` se precarga por migración con los feriados chilenos de cada año.
+- **Todo formulario público referencia su `consent_record`**: no se puede crear una consulta, cita, inscripción o
+  prospecto sin consentimiento sobre un aviso publicado.
+- Los enlaces de reprogramar/cancelar llevan un token aleatorio de 256 bits; en la base solo queda su hash SHA-256.
+  Al reservar, `Appointment.book(...)` devuelve la cita y el token para el correo (no queda en ningún otro lado).
+- Visitas guiadas = `Appointment` de un tipo con audiencia `PROSPECTIVE_FAMILY`; puertas abiertas = `Event` con inscripción.
+- Doble reserva y aforo: los controla el servicio con bloqueo pesimista (fase 7); MySQL no tiene índices únicos parciales.
+- `HOLIDAY` se carga desde una fuente oficial en la fase 7: los feriados chilenos cambian por ley y no se escriben a mano.
+- El embudo de prospectos solo avanza; los correos de seguimiento exigen un consentimiento propio.
 
 ---
 
-## Pendiente de decidir (antes de su iteración)
+## Pendiente de decidir
 
 - **Fase 3:** nombre y estilo de los 3 temas base.
-- **1.5:** gestión de la llave de cifrado (variable de entorno vs. KMS) y su rotación.
-- **1.6:** plazo legal de respuesta a solicitudes de derechos (validar con abogado; dejarlo configurable).
+- **Fase 6:** plazo legal de respuesta a solicitudes de derechos (validar con abogado; el modelo ya lo recibe como `dueOn`).
+- **Fase 6:** plazos de conservación definitivos (hoy son valores iniciales editables).
