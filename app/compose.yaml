@@ -1,0 +1,25 @@
+# Servicios de apoyo para desarrollo: docker compose up -d
+# Luego arrancar la app con el perfil mysql.
+services:
+  mysql:
+    image: mysql:8.4
+    environment:
+      MYSQL_DATABASE: colegio_saas
+      MYSQL_USER: colegio
+      MYSQL_PASSWORD: colegio
+      MYSQL_ROOT_PASSWORD: root
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_0900_ai_ci
+    ports:
+      - "3307:3306"  # 3307 para no chocar con un MySQL local
+    volumes:
+      - mysql-data:/var/lib/mysql
+
+  # Captura los correos que envía la app (http://localhost:8025). Se usa desde la fase 7.
+  mailpit:
+    image: axllent/mailpit:latest
+    ports:
+      - "1025:1025"
+      - "8025:8025"
+
+volumes:
+  mysql-data:

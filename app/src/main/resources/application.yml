@@ -1,0 +1,29 @@
+# Configuración común a todos los perfiles.
+# Sin perfil activo se usa H2 en memoria (modo MySQL): arranca sin instalar nada.
+# Para MySQL real: SPRING_PROFILES_ACTIVE=mysql (ver application-mysql.yml).
+spring:
+  application:
+    name: colegio-saas
+
+  datasource:
+    url: jdbc:h2:mem:colegio;MODE=MySQL;DATABASE_TO_LOWER=TRUE;DEFAULT_NULL_ORDERING=HIGH;DB_CLOSE_DELAY=-1
+    username: sa
+    password:
+
+  jpa:
+    # El esquema lo maneja Flyway; Hibernate solo verifica que las entidades calcen con las tablas.
+    hibernate:
+      ddl-auto: validate
+    # Sin "Open Session in View": cada transacción abre su sesión con el colegio correcto.
+    open-in-view: false
+    properties:
+      hibernate:
+        jdbc:
+          time_zone: UTC
+
+  flyway:
+    locations: classpath:db/migration
+
+server:
+  error:
+    include-stacktrace: never
