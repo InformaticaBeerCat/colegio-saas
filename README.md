@@ -45,8 +45,8 @@ Para un MySQL propio, definir `DB_URL`, `DB_USER` y `DB_PASSWORD`.
    ```
    (Con H2 en memoria la instalación se pierde al detener la app; con MySQL queda guardada.)
 2. Abre `http://localhost:8080/setup`, ingresa el token, los datos del colegio y tu cuenta.
-3. Ingresa en `http://localhost:8080/admin/login`. Tu cuenta es `SUPER_ADMIN`, así que el primer ingreso te pide
-   configurar la verificación en dos pasos con una app autenticadora (Google Authenticator, 1Password…).
+3. Ingresa en `http://localhost:8080/admin/login`. La verificación en dos pasos es opcional: actívala desde
+   "Mi cuenta" con una app autenticadora (Google Authenticator, 1Password…).
 
 Los correos (invitaciones, recuperar contraseña) se escriben en el log. Para verlos como correos reales, levanta
 Mailpit con `docker compose up -d` y arranca con `SPRING_MAIL_HOST=localhost SPRING_MAIL_PORT=1025`;
@@ -58,3 +58,4 @@ quedan en `http://localhost:8025`.
 | `APP_SETUP_TOKEN` | Token de instalación fijo (instalaciones automatizadas) |
 | `APP_FIELD_KEY`, `APP_INDEX_KEY` | Llaves de cifrado de datos personales (`openssl rand -base64 32`) |
 | `APP_SECURE_COOKIES` | `true` en producción (HTTPS) |
+| `APP_ENFORCE_MFA` | `true` para exigir verificación en dos pasos a administradores y gestor de consentimientos |

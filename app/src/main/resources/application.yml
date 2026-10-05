@@ -47,6 +47,9 @@ app:
     lockout-duration: 15m
     max-failed-logins-per-ip: 20
     ip-window: 15m
+    # MFA opcional: cada persona lo activa desde "Mi cuenta". En true se exige a los roles sensibles
+    # (Super Admin, administrador del colegio, gestor de consentimientos), como pide USR-02.
+    enforce-mfa: ${APP_ENFORCE_MFA:false}
   crypto:
     # Los valores por defecto son SOLO para desarrollo y tests. Cada instalación genera las suyas
     # (openssl rand -base64 32) y las entrega por variable de entorno; la fase 9 impide arrancar en

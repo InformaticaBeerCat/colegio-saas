@@ -136,6 +136,7 @@ form.inline { display: inline; }
 .alert { border-radius: 6px; padding: .75rem 1rem; margin: 0 0 1rem; }
 .alert-ok { background: var(--ok-bg); color: var(--ok-ink); }
 .alert-problem { background: var(--problem-bg); color: var(--problem-ink); }
+.alert-warn { background: #fff4d6; color: #6b4e00; }
 
 /* --- Tablas --- */
 .table-wrap { overflow-x: auto; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); }

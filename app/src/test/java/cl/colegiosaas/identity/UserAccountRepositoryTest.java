@@ -25,7 +25,7 @@ class UserAccountRepositoryTest {
 
         UserAccount loaded = users.findByEmail("ana@colegio.cl").orElseThrow();
         assertThat(loaded.getRoles()).containsExactlyInAnyOrder(Role.SCHOOL_ADMIN, Role.EDITOR);
-        assertThat(loaded.requiresMfa()).isTrue();
+        assertThat(loaded.mfaRecommended()).isTrue();
     }
 
     @Test

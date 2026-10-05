@@ -30,8 +30,8 @@ class RolePermissionsTest {
     }
 
     @Test
-    void mfaIsMandatoryForAdminsAndForWhoeverSeesMinorsData() {
-        assertThat(Arrays.stream(Role.values()).filter(Role::requiresMfa))
+    void mfaIsRecommendedForAdminsAndForWhoeverSeesMinorsData() {
+        assertThat(Arrays.stream(Role.values()).filter(Role::mfaRecommended))
                 .containsExactlyInAnyOrder(Role.SUPER_ADMIN, Role.SCHOOL_ADMIN, Role.CONSENT_MANAGER);
     }
 

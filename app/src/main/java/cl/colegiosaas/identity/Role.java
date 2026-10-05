@@ -26,17 +26,20 @@ public enum Role {
     GUARDIAN(false, EnumSet.noneOf(Permission.class)),
     STUDENT(false, EnumSet.noneOf(Permission.class));
 
-    private final boolean requiresMfa;
+    private final boolean mfaRecommended;
     private final Set<Permission> permissions;
 
-    Role(boolean requiresMfa, EnumSet<Permission> permissions) {
-        this.requiresMfa = requiresMfa;
+    Role(boolean mfaRecommended, EnumSet<Permission> permissions) {
+        this.mfaRecommended = mfaRecommended;
         this.permissions = Collections.unmodifiableSet(permissions);
     }
 
-    /** USR-02: MFA obligatorio para administradores y para quien ve datos de menores. */
-    public boolean requiresMfa() {
-        return requiresMfa;
+    /**
+     * Roles sensibles (administran o ven datos de menores): el panel les recomienda activar el MFA.
+     * Solo es obligatorio si la instalación activa {@code app.security.enforce-mfa} (USR-02).
+     */
+    public boolean mfaRecommended() {
+        return mfaRecommended;
     }
 
     public Set<Permission> permissions() {

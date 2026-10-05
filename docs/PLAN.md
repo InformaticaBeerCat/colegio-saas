@@ -111,9 +111,11 @@ entidades, repositorios, su migración Flyway y tests de persistencia.
 - Login de panel en `/admin/login` con mensajes genéricos (no revela qué correos existen), CSRF, cookie de sesión
   `HttpOnly` + `SameSite=Lax` (+ `Secure` con `APP_SECURE_COOKIES=true`), cabeceras CSP, Referrer-Policy y
   Permissions-Policy [SEG-01].
-- MFA TOTP obligatorio para `SUPER_ADMIN`, `SCHOOL_ADMIN` y `CONSENT_MANAGER` [USR-02]: QR (SVG sin JavaScript),
-  anti-repetición de códigos y 10 códigos de recuperación de un solo uso. Mientras falta el código, la sesión es
-  `MfaPendingAuthentication` y no abre el panel.
+- MFA TOTP **opcional**: cada persona lo activa o desactiva (con su contraseña) desde "Mi cuenta"; el panel lo
+  recomienda a los roles sensibles. Con `APP_ENFORCE_MFA=true` pasa a ser obligatorio para `SUPER_ADMIN`,
+  `SCHOOL_ADMIN` y `CONSENT_MANAGER`, como pide USR-02. QR en SVG sin JavaScript, anti-repetición de códigos y
+  10 códigos de recuperación de un solo uso. Mientras falta el código, la sesión es `MfaPendingAuthentication`
+  y no abre el panel.
 - Permisos por rol (`Role.permissions()` → `Permission`) y `@PreAuthorize` por sección [USR-01]; módulos
   contratados con `@RequiresFeature` (404 si no está activo) [CFG-07].
 - Usuarios: invitación por correo (7 días), aceptar, recuperar contraseña (1 hora), cambiar roles, reiniciar MFA y

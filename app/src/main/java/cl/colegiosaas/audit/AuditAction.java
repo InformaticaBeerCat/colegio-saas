@@ -20,6 +20,7 @@ public enum AuditAction {
     DEACTIVATE,
     PASSWORD_CHANGED,
     MFA_ENABLED,
+    MFA_DISABLED,
     MFA_RESET,
     SETUP_COMPLETED
 }

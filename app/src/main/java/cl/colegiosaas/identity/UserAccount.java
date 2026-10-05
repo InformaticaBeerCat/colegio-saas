@@ -198,8 +198,9 @@ public class UserAccount extends BaseEntity implements AuditActor {
 
     // --- MFA ---
 
-    public boolean requiresMfa() {
-        return roles.stream().anyMatch(Role::requiresMfa);
+    /** Tiene algún rol sensible: se le recomienda (o exige, si la instalación lo pide) el MFA. */
+    public boolean mfaRecommended() {
+        return roles.stream().anyMatch(Role::mfaRecommended);
     }
 
     public boolean isMfaEnabled() {
@@ -214,7 +215,10 @@ public class UserAccount extends BaseEntity implements AuditActor {
         recoveryCodeHashes.addAll(recoveryHashes);
     }
 
-    /** Lo hace un administrador si la persona perdió su teléfono: al próximo ingreso vuelve a enrolarse. */
+    /**
+     * Apaga el MFA: lo hace la persona desde "Mi cuenta", o un administrador si perdió su teléfono.
+     * Borra secreto y códigos de recuperación: volver a activarlo genera unos nuevos.
+     */
     public void resetMfa() {
         mfaSecret = null;
         mfaEnabledAt = null;

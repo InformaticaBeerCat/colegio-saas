@@ -30,6 +30,7 @@ import java.util.regex.Pattern;
 
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 
 /**
@@ -74,7 +75,7 @@ public abstract class WebTestSupport {
 
     /** Sesión ya autenticada, sin pasar por el formulario ni el MFA: para probar permisos de controladores. */
     protected static RequestPostProcessor as(UserAccount user) {
-        SchoolUser principal = SchoolUser.of(user, Instant.now());
+        SchoolUser principal = SchoolUser.of(user, Instant.now(), false);
         return authentication(UsernamePasswordAuthenticationToken.authenticated(principal, null, principal.getAuthorities()));
     }
 
@@ -85,6 +86,21 @@ public abstract class WebTestSupport {
 
     protected static MockHttpSession sessionOf(MvcResult result) {
         return (MockHttpSession) result.getRequest().getSession();
+    }
+
+    /** Secreto y códigos de recuperación de un MFA recién activado. */
+    protected record Enrollment(String secret, List<String> recoveryCodes) {
+    }
+
+    /** Ingresa y activa el MFA desde "Mi cuenta", como lo haría la persona (el MFA es opcional). */
+    @SuppressWarnings("unchecked")
+    protected Enrollment enrollMfa(String email) throws Exception {
+        MockHttpSession session = sessionOf(submitLogin(email, PASSWORD));
+        mvc.perform(get("/admin/mfa/enable").session(session));
+        String secret = (String) session.getAttribute("mfa.pendingSecret");
+        mvc.perform(post("/admin/mfa/enable").session(session).with(csrf())
+                .param("code", Totp.codeAt(secret, Totp.stepAt(Instant.now()))));
+        return new Enrollment(secret, (List<String>) session.getAttribute("mfa.recoveryCodes"));
     }
 
     /** Código válido para el siguiente intervalo: el actual ya lo consumió el enrolamiento. */

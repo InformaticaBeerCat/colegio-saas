@@ -11,8 +11,9 @@ import java.time.Duration;
  * @param lockoutDuration      cuánto dura ese bloqueo
  * @param maxFailedLoginsPerIp intentos fallidos desde una misma IP dentro de {@code ipWindow}
  * @param ipWindow             ventana de tiempo para contar los de una IP
+ * @param enforceMfa           si es true, los roles sensibles deben usar MFA (USR-02); si no, es opcional
  */
 @ConfigurationProperties("app.security")
 public record LoginPolicyProperties(int maxFailedLogins, Duration lockoutDuration,
-                                    int maxFailedLoginsPerIp, Duration ipWindow) {
+                                    int maxFailedLoginsPerIp, Duration ipWindow, boolean enforceMfa) {
 }

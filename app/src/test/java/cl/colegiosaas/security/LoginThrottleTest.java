@@ -10,7 +10,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 class LoginThrottleTest {
 
     final LoginThrottle throttle = new LoginThrottle(
-            new LoginPolicyProperties(5, Duration.ofMinutes(15), 3, Duration.ofMinutes(10)));
+            new LoginPolicyProperties(5, Duration.ofMinutes(15), 3, Duration.ofMinutes(10), false));
     final Instant now = Instant.parse("2026-10-05T12:00:00Z");
 
     @Test

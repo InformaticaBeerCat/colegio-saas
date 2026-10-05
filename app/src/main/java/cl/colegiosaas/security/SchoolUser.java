@@ -36,7 +36,7 @@ public final class SchoolUser implements UserDetails, CredentialsContainer, Audi
     private final boolean mfaRequired;
     private final boolean mfaEnabled;
 
-    private SchoolUser(UserAccount account, Instant now) {
+    private SchoolUser(UserAccount account, Instant now, boolean enforceMfa) {
         this.id = account.getId();
         this.email = account.getEmail();
         this.name = account.getName();
@@ -44,7 +44,7 @@ public final class SchoolUser implements UserDetails, CredentialsContainer, Audi
         this.roles = account.getRoles();
         this.active = account.canLogIn();
         this.locked = account.isLockedAt(now);
-        this.mfaRequired = account.requiresMfa();
+        this.mfaRequired = enforceMfa && account.mfaRecommended();
         this.mfaEnabled = account.isMfaEnabled();
         Set<GrantedAuthority> granted = new LinkedHashSet<>();
         roles.forEach(role -> granted.add(new SimpleGrantedAuthority("ROLE_" + role.name())));
@@ -52,8 +52,9 @@ public final class SchoolUser implements UserDetails, CredentialsContainer, Audi
         this.authorities = Set.copyOf(granted);
     }
 
-    public static SchoolUser of(UserAccount account, Instant now) {
-        return new SchoolUser(account, now);
+    /** @param enforceMfa si la instalación exige MFA a los roles sensibles ({@code app.security.enforce-mfa}) */
+    public static SchoolUser of(UserAccount account, Instant now, boolean enforceMfa) {
+        return new SchoolUser(account, now, enforceMfa);
     }
 
     public long id() {
@@ -86,7 +87,7 @@ public final class SchoolUser implements UserDetails, CredentialsContainer, Audi
         return authorities.contains(new SimpleGrantedAuthority(permission.name()));
     }
 
-    /** Pasa por el segundo factor si su rol lo exige o si lo activó voluntariamente. */
+    /** Pasa por el segundo factor si lo activó, o si la instalación se lo exige a su rol. */
     public boolean needsSecondFactor() {
         return mfaRequired || mfaEnabled;
     }

@@ -14,7 +14,10 @@
                 <span class="badge" th:each="r : ${account.roles}" th:text="${#messages.msg('role.' + r)}">Rol</span>
             </p>
             <p th:if="${account.mfaEnabled}"><span class="badge badge-ok">Verificación en dos pasos activa</span></p>
-            <p th:unless="${account.mfaEnabled}" class="muted">Verificación en dos pasos no activada.</p>
+            <p th:unless="${account.mfaEnabled}">
+                <span class="muted">Verificación en dos pasos no activada.</span>
+                <a th:if="${account.mfaRecommended()}" th:href="@{/admin/mfa/enable}">Te recomendamos activarla</a>
+            </p>
             <p><a th:href="@{/admin/profile}">Mi cuenta y contraseña</a></p>
         </section>
 

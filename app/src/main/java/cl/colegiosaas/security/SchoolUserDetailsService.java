@@ -15,10 +15,12 @@ import java.util.Locale;
 class SchoolUserDetailsService implements UserDetailsService {
 
     private final UserAccountRepository users;
+    private final LoginPolicyProperties policy;
     private final Clock clock;
 
-    SchoolUserDetailsService(UserAccountRepository users, Clock clock) {
+    SchoolUserDetailsService(UserAccountRepository users, LoginPolicyProperties policy, Clock clock) {
         this.users = users;
+        this.policy = policy;
         this.clock = clock;
     }
 
@@ -26,7 +28,7 @@ class SchoolUserDetailsService implements UserDetailsService {
     @Transactional(readOnly = true)
     public UserDetails loadUserByUsername(String email) {
         return users.findByEmail(email.strip().toLowerCase(Locale.ROOT))
-                .map(account -> SchoolUser.of(account, clock.instant()))
+                .map(account -> SchoolUser.of(account, clock.instant(), policy.enforceMfa()))
                 .orElseThrow(() -> new UsernameNotFoundException("Usuario no encontrado"));
     }
 }

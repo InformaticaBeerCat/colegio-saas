@@ -5,6 +5,7 @@ import cl.colegiosaas.audit.AuditTrail;
 import cl.colegiosaas.identity.UserAccount;
 import cl.colegiosaas.identity.UserAccountRepository;
 import cl.colegiosaas.shared.security.SecureTokens;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,11 +25,16 @@ public class MfaService {
     static final int RECOVERY_CODES = 10;
 
     private final UserAccountRepository users;
+    private final PasswordEncoder passwordEncoder;
+    private final LoginPolicyProperties policy;
     private final AuditTrail audit;
     private final Clock clock;
 
-    MfaService(UserAccountRepository users, AuditTrail audit, Clock clock) {
+    MfaService(UserAccountRepository users, PasswordEncoder passwordEncoder, LoginPolicyProperties policy,
+               AuditTrail audit, Clock clock) {
         this.users = users;
+        this.passwordEncoder = passwordEncoder;
+        this.policy = policy;
         this.audit = audit;
         this.clock = clock;
     }
@@ -57,6 +63,28 @@ public class MfaService {
         return codes;
     }
 
+    /**
+     * Apaga el MFA desde "Mi cuenta". Pide la contraseña: quien encuentre una sesión abierta no
+     * puede quitarle la protección a la cuenta. Si la instalación exige MFA a su rol, no se puede.
+     */
+    @Transactional
+    public void disable(long userId, String currentPassword) {
+        UserAccount user = users.findById(userId).orElseThrow();
+        if (policy.enforceMfa() && user.mfaRecommended()) {
+            throw new MfaChangeRejectedException("Esta instalación exige la verificación en dos pasos para tu rol.");
+        }
+        if (currentPassword == null || !passwordEncoder.matches(currentPassword, user.getPasswordHash())) {
+            throw new MfaChangeRejectedException("La contraseña no es correcta.");
+        }
+        user.resetMfa();
+        audit.recordFor(user, AuditAction.MFA_DISABLED, "UserAccount", user.getId(), null);
+    }
+
+    @Transactional(readOnly = true)
+    public boolean isEnabled(long userId) {
+        return users.findById(userId).map(UserAccount::isMfaEnabled).orElse(false);
+    }
+
     /** Acepta un código TOTP de 6 dígitos o un código de recuperación (cada uno, una sola vez). */
     @Transactional
     public boolean verify(long userId, String input) {
@@ -75,6 +103,12 @@ public class MfaService {
 
     private static String clean(String input) {
         return input == null ? "" : input.replaceAll("[\\s-]", "").toUpperCase(Locale.ROOT);
+    }
+
+    public static class MfaChangeRejectedException extends RuntimeException {
+        MfaChangeRejectedException(String message) {
+            super(message);
+        }
     }
 
     public static class InvalidMfaCodeException extends RuntimeException {

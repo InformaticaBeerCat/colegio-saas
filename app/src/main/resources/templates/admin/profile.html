@@ -12,10 +12,28 @@
             <h2 id="datos">Datos</h2>
             <p><strong th:text="${account.name}">Nombre</strong><br><span th:text="${account.email}">correo</span></p>
             <p><span class="badge" th:each="r : ${account.roles}" th:text="${#messages.msg('role.' + r)}">Rol</span></p>
-            <p th:if="${account.mfaEnabled}">
-                <span class="badge badge-ok">Verificación en dos pasos activa</span><br>
-                <span class="muted" th:text="|Códigos de recuperación disponibles: ${account.remainingRecoveryCodes()}|"></span>
-            </p>
+        </section>
+
+        <section class="card" aria-labelledby="mfa">
+            <h2 id="mfa">Verificación en dos pasos</h2>
+            <div th:if="${account.mfaEnabled}">
+                <p><span class="badge badge-ok">Activa</span></p>
+                <p class="muted" th:text="|Códigos de recuperación disponibles: ${account.remainingRecoveryCodes()}|"></p>
+                <form th:action="@{/admin/mfa/disable}" method="post">
+                    <div class="field">
+                        <label for="mfaPassword">Tu contraseña, para desactivarla</label>
+                        <input id="mfaPassword" name="currentPassword" type="password" autocomplete="current-password" required>
+                    </div>
+                    <button type="submit" class="btn btn-secondary">Desactivar</button>
+                </form>
+            </div>
+            <div th:unless="${account.mfaEnabled}">
+                <p>Al ingresar, además de tu contraseña te pediremos un código de tu teléfono.</p>
+                <p th:if="${account.mfaRecommended()}" class="alert alert-warn">
+                    Tu rol administra el sitio o ve datos de estudiantes: te recomendamos activarla.
+                </p>
+                <a class="btn" th:href="@{/admin/mfa/enable}">Activar</a>
+            </div>
         </section>
 
         <section class="card" aria-labelledby="clave">
