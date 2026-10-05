@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="es-CL" xmlns:th="http://www.thymeleaf.org">
+<body>
+<!--
+  Foto pública responsiva (MED-02): WebP con respaldo JPEG/PNG, varios anchos, dimensiones para no mover la
+  página al cargar y carga diferida salvo en la portada. Solo recibe imágenes aprobadas (@media.picture).
+-->
+<picture th:fragment="picture(img, sizes, cssClass, eager)" th:if="${img}">
+    <source type="image/webp" th:srcset="${img.webpSrcset}" th:sizes="${sizes}">
+    <img th:src="${img.src}" th:srcset="${img.fallbackSrcset}" th:sizes="${sizes}"
+         th:width="${img.width}" th:height="${img.height}" th:alt="${img.alt}" th:class="${cssClass}"
+         th:attr="loading=${eager} ? 'eager' : 'lazy', fetchpriority=${eager} ? 'high' : null" decoding="async">
+</picture>
+
+<!-- Video de YouTube (sin cookies) o Vimeo, con título para lectores de pantalla. -->
+<div th:fragment="video(asset)" class="video" th:if="${@media.embed(asset) != null}">
+    <iframe th:src="${@media.embed(asset)}" th:title="${asset.caption != null ? asset.caption : 'Video'}" loading="lazy"
+            allow="encrypted-media; picture-in-picture; fullscreen" referrerpolicy="strict-origin-when-cross-origin"></iframe>
+</div>
+</body>
+</html>

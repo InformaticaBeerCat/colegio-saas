@@ -8,21 +8,17 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.time.Clock;
 import java.time.YearMonth;
 import java.time.ZoneOffset;
 import java.util.Arrays;
-import java.util.HexFormat;
 import java.util.Locale;
 
 /**
  * Subida de PDF (documentos institucionales, circulares, listas de útiles). El tipo se decide por la
  * firma del archivo ({@code %PDF-}), no por la extensión ni por lo que declara el navegador.
  *
- * Mientras no exista el antivirus de la fase 5 (SEG-03), "limpio" significa que pasó esta revisión de
- * tipo y tamaño; los archivos los suben solo cuentas del panel.
+ * Después pasa por el antivirus (SEG-03); un archivo con amenazas no se guarda.
  */
 @Service
 public class DocumentUploads {
@@ -32,11 +28,13 @@ public class DocumentUploads {
 
     private final StoredFileRepository files;
     private final FileStorage storage;
+    private final FileScanner scanner;
     private final Clock clock;
 
-    DocumentUploads(StoredFileRepository files, FileStorage storage, Clock clock) {
+    DocumentUploads(StoredFileRepository files, FileStorage storage, FileScanner scanner, Clock clock) {
         this.files = files;
         this.storage = storage;
+        this.scanner = scanner;
         this.clock = clock;
     }
 
@@ -65,7 +63,8 @@ public class DocumentUploads {
                 || !Arrays.equals(content, 0, PDF_SIGNATURE.length, PDF_SIGNATURE, 0, PDF_SIGNATURE.length)) {
             throw new FileUploadException("El archivo no es un PDF");
         }
-        String sha256 = sha256(content);
+        UploadChecks.requireClean(scanner, content);
+        String sha256 = Hashes.sha256(content);
         return files.findFirstBySha256(sha256).orElseGet(() -> {
             YearMonth month = YearMonth.now(clock.withZone(ZoneOffset.UTC));
             String key = "documents/%d/%02d/%s.pdf".formatted(month.getYear(), month.getMonthValue(), sha256);
@@ -88,13 +87,5 @@ public class DocumentUploads {
             name = name + ".pdf";
         }
         return name.length() > 150 ? name.substring(0, 146) + ".pdf" : name;
-    }
-
-    private static String sha256(byte[] content) {
-        try {
-            return HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(content));
-        } catch (NoSuchAlgorithmException e) {
-            throw new IllegalStateException(e);
-        }
     }
 }

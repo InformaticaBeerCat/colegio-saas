@@ -14,7 +14,8 @@ public record NewsDraft(
         Set<Long> gradeLevelIds,
         SiteSection section,
         String metaTitle,
-        String metaDescription) {
+        String metaDescription,
+        Long featuredImageId) {
 
     public NewsDraft {
         gradeLevelIds = gradeLevelIds == null ? Set.of() : Set.copyOf(gradeLevelIds);

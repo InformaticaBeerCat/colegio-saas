@@ -6,14 +6,20 @@
 -->
 <body>
 
-<section th:fragment="hero(b, first)" class="hero">
+<section th:fragment="hero(b, first, img)" class="hero" th:classappend="${img} ? 'hero--with-image'">
     <div class="wrap hero__inner">
-        <h1 th:if="${first}" class="hero__title" th:text="${b.title}">Bienvenidos</h1>
-        <h2 th:unless="${first}" class="hero__title" th:text="${b.title}">Bienvenidos</h2>
-        <p th:if="${b.subtitle}" class="hero__subtitle" th:text="${b.subtitle}">Educamos desde 1985</p>
-        <p th:if="${b.buttonUrl != null and b.buttonLabel != null}">
-            <a class="button button--on-hero" th:href="@{${b.buttonUrl}}" th:text="${b.buttonLabel}">Admisión</a>
-        </p>
+        <div class="hero__text">
+            <h1 th:if="${first}" class="hero__title" th:text="${b.title}">Bienvenidos</h1>
+            <h2 th:unless="${first}" class="hero__title" th:text="${b.title}">Bienvenidos</h2>
+            <p th:if="${b.subtitle}" class="hero__subtitle" th:text="${b.subtitle}">Educamos desde 1985</p>
+            <p th:if="${b.buttonUrl != null and b.buttonLabel != null}">
+                <a class="button button--on-hero" th:href="@{${b.buttonUrl}}" th:text="${b.buttonLabel}">Admisión</a>
+            </p>
+        </div>
+        <!-- La foto va al lado del texto, nunca debajo: así el contraste del texto no depende de la imagen. -->
+        <div class="hero__media" th:if="${img}">
+            <picture th:replace="~{public/media :: picture(${img}, '(min-width: 900px) 540px, 100vw', 'hero__image', ${first})}"></picture>
+        </div>
     </div>
 </section>
 
@@ -37,6 +43,7 @@
         <h2 class="block__title" th:text="${b.title != null ? b.title : 'Noticias'}">Noticias</h2>
         <ul class="cards">
             <li th:each="n : ${items}" class="card">
+                <picture th:replace="~{public/media :: picture(${n.image}, '(min-width: 900px) 360px, 100vw', 'card__image', false)}"></picture>
                 <h3 class="card__title"><a th:href="@{${n.href}}" th:text="${n.title}">Título</a></h3>
                 <p th:if="${n.date}" class="card__meta" th:text="${n.date}">12 de octubre</p>
                 <p th:if="${n.summary}" th:text="${n.summary}">Resumen</p>
@@ -129,6 +136,18 @@
                 <p th:text="${q.answer}">Respuesta.</p>
             </details>
         </div>
+    </div>
+</section>
+
+<section th:fragment="gallery(b, g)" class="block block--gallery">
+    <div class="wrap">
+        <h2 class="block__title" th:text="${b.title != null ? b.title : g.albumTitle}">Galería</h2>
+        <ul class="gallery-grid gallery-grid--compact">
+            <li th:each="img : ${g.photos}" class="gallery-item">
+                <picture th:replace="~{public/media :: picture(${img}, '(min-width: 900px) 270px, 50vw', 'gallery-item__image', false)}"></picture>
+            </li>
+        </ul>
+        <p class="block__more"><a th:href="@{/galerias/{s}(s=${g.albumSlug})}" th:text="|Ver el álbum completo: ${g.albumTitle}|">Ver el álbum</a></p>
     </div>
 </section>
 

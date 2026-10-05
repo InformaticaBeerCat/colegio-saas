@@ -27,7 +27,8 @@ spring:
   servlet:
     multipart:
       max-file-size: 20MB
-      max-request-size: 25MB
+      # Subida masiva de fotos (MED-03): varias de hasta 15 MB en una sola petición.
+      max-request-size: 200MB
 
 server:
   error:
@@ -46,8 +47,20 @@ server:
 
 app:
   storage:
-    # Carpeta de archivos subidos (PDF). En producción, un volumen persistente; S3/MinIO llega en la fase 5.
+    # local: carpeta del servidor (un volumen persistente en producción). s3: AWS S3 o MinIO (OPS-07).
+    type: ${APP_STORAGE_TYPE:local}
     local-dir: ${APP_STORAGE_DIR:./data/files}
+    s3:
+      endpoint: ${APP_S3_ENDPOINT:}
+      region: ${APP_S3_REGION:us-east-1}
+      bucket: ${APP_S3_BUCKET:colegio}
+      access-key: ${APP_S3_ACCESS_KEY:}
+      secret-key: ${APP_S3_SECRET_KEY:}
+      path-style: ${APP_S3_PATH_STYLE:true}
+  antivirus:
+    # Sin host, los archivos solo pasan la revisión de tipo y tamaño (se avisa en el log al arrancar).
+    clamd-host: ${APP_CLAMD_HOST:}
+    clamd-port: ${APP_CLAMD_PORT:3310}
   base-url: ${APP_BASE_URL:http://localhost:8080}
   mail-from: ${APP_MAIL_FROM:no-responder@localhost}
   security:

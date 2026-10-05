@@ -86,6 +86,19 @@
                         <option th:each="s : ${sections}" th:value="${s}" th:text="${#messages.msg('section.' + s)}">Principal</option>
                     </select></div>
             </div>
+            <fieldset>
+                <legend>Imagen destacada <span class="muted">(solo fotos aprobadas por el gestor de consentimientos)</span></legend>
+                <div class="checks"><label><input type="radio" name="featuredImageId" value="" th:checked="${form.featuredImageId == null}"> Sin imagen</label></div>
+                <ul class="media-grid" th:unless="${#lists.isEmpty(images)}">
+                    <li th:each="a : ${images}" class="media-card">
+                        <label class="media-card__pick">
+                            <input type="radio" name="featuredImageId" th:value="${a.id}" th:checked="${form.featuredImageId == a.id}">
+                            <th:block th:replace="~{admin/media/fragments :: thumb(${a})}"></th:block>
+                            <span class="media-card__name" th:text="${a.altText}">Foto</span>
+                        </label>
+                    </li>
+                </ul>
+            </fieldset>
             <fieldset th:unless="${#lists.isEmpty(gradeLevels)}">
                 <legend>Niveles <span class="muted">(ninguno = todo el colegio)</span></legend>
                 <div class="checks checks-grid">

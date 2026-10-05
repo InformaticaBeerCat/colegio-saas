@@ -16,6 +16,9 @@
                 <p class="lead" th:if="${article.summary}" th:text="${article.summary}">Bajada</p>
             </div>
         </header>
+        <div class="wrap" th:if="${article.featuredImage != null}">
+            <th:block th:with="pic=${@media.picture(article.featuredImage)}"><picture th:replace="~{public/media :: picture(${pic}, '(min-width: 1140px) 1100px, 100vw', 'article__image', true)}"></picture></th:block>
+        </div>
         <div class="wrap block"><div class="prose" th:utext="${article.body}">Texto</div></div>
         <div class="wrap" th:unless="${#sets.isEmpty(article.gradeLevels)}">
             <p class="muted">Niveles: <span th:each="l, it : ${article.gradeLevels}" th:text="${l.name} + (${it.last} ? '' : ', ')">1° Básico</span></p>

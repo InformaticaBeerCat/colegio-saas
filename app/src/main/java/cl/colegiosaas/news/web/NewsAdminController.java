@@ -1,6 +1,7 @@
 package cl.colegiosaas.news.web;
 
 import cl.colegiosaas.identity.Permission;
+import cl.colegiosaas.media.MediaLibrary;
 import cl.colegiosaas.news.NewsArticle;
 import cl.colegiosaas.news.NewsCategoryService;
 import cl.colegiosaas.news.NewsService;
@@ -39,12 +40,15 @@ class NewsAdminController {
     private final NewsCategoryService categories;
     private final GradeLevelRepository gradeLevels;
     private final SchoolTime time;
+    private final MediaLibrary media;
 
-    NewsAdminController(NewsService news, NewsCategoryService categories, GradeLevelRepository gradeLevels, SchoolTime time) {
+    NewsAdminController(NewsService news, NewsCategoryService categories, GradeLevelRepository gradeLevels, SchoolTime time,
+                        MediaLibrary media) {
         this.news = news;
         this.categories = categories;
         this.gradeLevels = gradeLevels;
         this.time = time;
+        this.media = media;
     }
 
     @GetMapping
@@ -170,6 +174,7 @@ class NewsAdminController {
         model.addAttribute("sections", news.sectionsFor(me.id()));
         model.addAttribute("canPublish", me.can(Permission.NEWS_PUBLISH));
         model.addAttribute("publishAtLocal", time.toLocal(article.getPublishAt()));
+        model.addAttribute("images", media.displayableImages());
         return "admin/news/edit";
     }
 

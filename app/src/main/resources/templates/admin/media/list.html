@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/layout :: head(title='Biblioteca de medios')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: admin-header}"></header>
+<main id="contenido" class="container">
+    <div class="page-head">
+        <h1>Biblioteca de medios</h1>
+        <div class="actions">
+            <a class="btn btn-secondary" sec:authorize="hasAuthority('MEDIA_REVIEW')" th:href="@{/admin/review}">Revisión de fotos</a>
+            <a class="btn btn-secondary" th:href="@{/admin/albums}">Álbumes</a>
+        </div>
+    </div>
+    <div th:replace="~{fragments/layout :: flash}"></div>
+
+    <div class="cards section" sec:authorize="hasAuthority('MEDIA_UPLOAD')">
+        <section class="card" aria-labelledby="subir">
+            <h2 id="subir">Subir fotos</h2>
+            <form th:action="@{/admin/media/upload}" method="post" enctype="multipart/form-data">
+                <div class="field"><label for="files">Fotos (JPG, PNG o WebP, hasta 15 MB cada una)</label>
+                    <input id="files" type="file" name="files" accept="image/jpeg,image/png,image/webp" multiple required></div>
+                <div class="field"><label for="upload-folder">Carpeta</label>
+                    <select id="upload-folder" name="folderId"><option value="">Sin carpeta</option>
+                        <option th:each="f : ${folders}" th:value="${f.id}" th:text="${f.name}">Aniversario</option></select></div>
+                <div class="field"><label for="upload-tags">Etiquetas <span class="muted">(separadas por coma)</span></label>
+                    <input id="upload-tags" type="text" name="tags" placeholder="aniversario, 2026"></div>
+                <p class="hint">Al subirlas se borran los datos de ubicación y cámara (EXIF) y se crean versiones livianas.
+                    Ninguna foto se ve en el sitio hasta que el gestor de consentimientos la apruebe.</p>
+                <button type="submit" class="btn">Subir</button>
+            </form>
+        </section>
+        <section class="card" aria-labelledby="video">
+            <h2 id="video">Agregar video</h2>
+            <form th:action="@{/admin/media/embed}" method="post">
+                <div class="field"><label for="url">Dirección de YouTube o Vimeo</label><input id="url" type="url" name="url" required placeholder="https://www.youtube.com/watch?v=…"></div>
+                <div class="field"><label for="video-title">Título</label><input id="video-title" type="text" name="title" maxlength="500"></div>
+                <button type="submit" class="btn btn-secondary">Agregar video</button>
+            </form>
+            <h2 class="section-top">Nueva carpeta</h2>
+            <form th:action="@{/admin/media/folders}" method="post" class="actions">
+                <label class="visually-hidden" for="folder-name">Nombre de la carpeta</label>
+                <input id="folder-name" type="text" name="name" required maxlength="100" placeholder="Nombre">
+                <button type="submit" class="btn btn-secondary">Crear</button>
+            </form>
+        </section>
+    </div>
+
+    <form class="filters-admin section" th:action="@{/admin/media}" method="get">
+        <div class="field"><label for="estado">Estado</label>
+            <select id="estado" name="estado"><option value="">Todos</option>
+                <option th:each="s : ${statuses}" th:value="${s}" th:text="${#messages.msg('review.' + s)}" th:selected="${s == estado}">Pendiente</option></select></div>
+        <div class="field"><label for="carpeta">Carpeta</label>
+            <select id="carpeta" name="carpeta"><option value="">Todas</option>
+                <option th:each="f : ${folders}" th:value="${f.id}" th:text="${f.name}" th:selected="${f.id == carpeta}">Aniversario</option></select></div>
+        <div class="field"><label for="etiqueta">Etiqueta</label><input id="etiqueta" type="text" name="etiqueta" th:value="${etiqueta}"></div>
+        <button type="submit" class="btn btn-secondary">Filtrar</button>
+    </form>
+
+    <p th:if="${#lists.isEmpty(assets)}" class="muted">No hay medios con esos filtros.</p>
+    <ul class="media-grid">
+        <li th:each="a : ${assets}" class="media-card">
+            <a th:href="@{/admin/media/{id}(id=${a.id})}" class="media-card__link">
+                <th:block th:replace="~{admin/media/fragments :: thumb(${a})}"></th:block>
+                <span class="media-card__name" th:text="${a.altText != null ? a.altText : (a.file != null ? a.file.originalName : a.caption)}">foto.jpg</span>
+            </a>
+            <span th:replace="~{admin/media/fragments :: status(${a})}"></span>
+        </li>
+    </ul>
+</main>
+</body>
+</html>

@@ -229,3 +229,25 @@ input[type=date], input[type=time], input[type=datetime-local], input[type=file]
 }
 fieldset[disabled] { opacity: .7; }
 td.actions { display: flex; gap: .5rem; flex-wrap: wrap; }
+
+/* --- Fase 5: medios --- */
+.section-top { margin-top: 1.25rem; }
+.filters-admin { display: flex; flex-wrap: wrap; gap: 0 1rem; align-items: flex-end; }
+.filters-admin .field { min-width: 12rem; }
+.media-grid { list-style: none; margin: 0 0 1rem; padding: 0; display: grid; gap: .75rem; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); }
+.media-card { border: 1px solid var(--line); border-radius: var(--radius); padding: .5rem; background: var(--surface); display: grid; gap: .35rem; align-content: start; }
+.media-card__link, .media-card__pick { display: grid; gap: .35rem; text-decoration: none; color: var(--ink); }
+.media-card__pick { cursor: pointer; }
+.media-card__pick:has(input:checked) { outline: 3px solid var(--primary); outline-offset: 2px; border-radius: 4px; }
+.media-card__name { font-size: .85rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.thumb { width: 100%; height: auto; aspect-ratio: 4 / 3; object-fit: cover; border-radius: 4px; background: var(--bg); display: block; }
+.thumb--video { display: grid; place-items: center; font-weight: 700; color: var(--muted); }
+picture { display: block; }
+.media-edit { display: grid; gap: 1rem; margin-bottom: 1rem; }
+@media (min-width: 900px) { .media-edit { grid-template-columns: 3fr 2fr; } }
+.media-preview { max-width: 100%; height: auto; border-radius: var(--radius); display: block; }
+.brand-preview { max-height: 80px; width: auto; display: block; margin-bottom: .5rem; }
+.blur-editor { position: relative; display: inline-block; max-width: 100%; touch-action: none; cursor: crosshair; user-select: none; margin-bottom: 1rem; }
+.blur-editor__image { display: block; max-width: 100%; height: auto; pointer-events: none; }
+.blur-editor__box { position: absolute; border: 3px solid #ffd400; background: rgba(0, 0, 0, .35); box-shadow: 0 0 0 1px #000; }
+.blur-editor__box.is-drawing { border-style: dashed; }

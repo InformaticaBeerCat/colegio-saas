@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head(title='Estudiante')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: admin-header}"></header>
+<main id="contenido" class="container">
+    <p><a th:href="@{/admin/students}">← Estudiantes</a></p>
+    <div class="page-head">
+        <div>
+            <h1 th:text="${student.fullName}">Ana Pérez</h1>
+            <p class="muted"><span th:text="${student.course.displayName()}">1° A</span>
+                <span th:unless="${student.active}" class="badge">Retirado del colegio</span></p>
+        </div>
+    </div>
+    <div th:replace="~{fragments/layout :: flash}"></div>
+
+    <div class="cards section">
+        <section class="card" aria-labelledby="vigentes">
+            <h2 id="vigentes">Autorizaciones vigentes</h2>
+            <ul class="block-list">
+                <li th:each="c : ${channels}" class="block-row">
+                    <strong th:text="${#messages.msg('channel.' + c)}">Sitio web</strong>
+                    <span th:if="${active.get(c) == true}" class="badge badge-ok">Autorizado</span>
+                    <span th:unless="${active.get(c) == true}" class="badge">No autorizado</span>
+                    <form th:if="${active.get(c) == true}" th:action="@{/admin/students/{id}/consents/revoke(id=${student.id})}" method="post" class="actions">
+                        <input type="hidden" name="channel" th:value="${c}">
+                        <label class="visually-hidden" th:for="|note-${c}|">Nota</label>
+                        <input th:id="|note-${c}|" type="text" name="note" placeholder="Motivo (opcional)" maxlength="300">
+                        <button type="submit" class="btn btn-danger btn-small">Revocar</button>
+                    </form>
+                </li>
+            </ul>
+            <p class="hint">Revocar la del sitio web retira de inmediato todas las fotos donde el estudiante está etiquetado.</p>
+        </section>
+
+        <form class="card" th:if="${form}" th:action="@{/admin/students/{id}/consents(id=${student.id})}" method="post" enctype="multipart/form-data">
+            <h2>Registrar autorización</h2>
+            <div class="field"><label for="channel">Canal</label>
+                <select id="channel" name="channel"><option th:each="c : ${channels}" th:value="${c}" th:text="${#messages.msg('channel.' + c)}">Sitio web</option></select></div>
+            <div class="field"><label for="grantedByName">Apoderado que autoriza</label><input id="grantedByName" type="text" name="grantedByName" required maxlength="150"></div>
+            <div class="field"><label for="method">Cómo llegó</label>
+                <select id="method" name="method"><option th:each="m : ${methods}" th:value="${m}" th:text="${#messages.msg('method.' + m)}">Papel</option></select></div>
+            <div class="field"><label for="evidence">Formulario firmado escaneado <span class="muted">(PDF, opcional)</span></label>
+                <input id="evidence" type="file" name="evidence" accept="application/pdf"></div>
+            <p class="hint" th:text="|Según el formulario &quot;${form.title}&quot;, versión ${form.versionNumber}.|">Formulario v1</p>
+            <button type="submit" class="btn">Registrar</button>
+        </form>
+    </div>
+
+    <section class="card section" aria-labelledby="historial">
+        <h2 id="historial">Historial</h2>
+        <div class="table-wrap">
+            <table class="data">
+                <caption class="visually-hidden">Autorizaciones registradas</caption>
+                <thead><tr><th scope="col">Canal</th><th scope="col">Autorizó</th><th scope="col">Medio</th><th scope="col">Fecha</th><th scope="col">Revocada</th></tr></thead>
+                <tbody>
+                <tr th:each="h : ${history}">
+                    <td th:text="${#messages.msg('channel.' + h.channel)}">Sitio web</td>
+                    <td th:text="${h.grantedByName}">María</td>
+                    <td th:text="${#messages.msg('method.' + h.method)}">Papel</td>
+                    <td th:text="${@formats.dateTime(h.grantedAt)}">—</td>
+                    <td th:text="${h.revokedAt != null} ? ${@formats.dateTime(h.revokedAt)} : '—'">—</td>
+                </tr>
+                <tr th:if="${#lists.isEmpty(history)}"><td colspan="5" class="muted">Sin autorizaciones registradas.</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <section class="card section" aria-labelledby="fotos">
+        <h2 id="fotos">Fotos donde aparece</h2>
+        <p th:if="${#lists.isEmpty(photos)}" class="muted">No está etiquetado en ninguna foto.</p>
+        <ul class="media-grid">
+            <li th:each="a : ${photos}" class="media-card">
+                <a th:href="@{/admin/media/{id}(id=${a.id})}" class="media-card__link"><th:block th:replace="~{admin/media/fragments :: thumb(${a})}"></th:block></a>
+                <span th:replace="~{admin/media/fragments :: status(${a})}"></span>
+            </li>
+        </ul>
+    </section>
+
+    <form th:if="${student.active}" th:action="@{/admin/students/{id}/deactivate(id=${student.id})}" method="post">
+        <button type="submit" class="btn btn-secondary">Marcar como retirado del colegio</button>
+    </form>
+</main>
+</body>
+</html>

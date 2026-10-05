@@ -5,6 +5,11 @@ import cl.colegiosaas.calendar.EventDates;
 import cl.colegiosaas.calendar.EventRepository;
 import cl.colegiosaas.documents.DocumentService;
 import cl.colegiosaas.info.FaqCategoryRepository;
+import cl.colegiosaas.media.Album;
+import cl.colegiosaas.media.AlbumService;
+import cl.colegiosaas.media.MediaAssetRepository;
+import cl.colegiosaas.media.MediaUrls;
+import cl.colegiosaas.media.ResponsiveImage;
 import cl.colegiosaas.info.FaqEntry;
 import cl.colegiosaas.info.FaqEntryRepository;
 import cl.colegiosaas.news.NewsArticle;
@@ -40,6 +45,7 @@ import java.util.stream.Stream;
 @Service
 public class BlockRenderer {
 
+    private static final int GALLERY_PREVIEW = 8;
     private static final Locale CHILE = Locale.forLanguageTag("es-CL");
     private static final DateTimeFormatter DAY = DateTimeFormatter.ofPattern("d 'de' MMMM", CHILE);
 
@@ -50,11 +56,15 @@ public class BlockRenderer {
     private final FaqCategoryRepository faqCategories;
     private final QuickLinkRepository quickLinks;
     private final DocumentService documents;
+    private final MediaAssetRepository assets;
+    private final AlbumService albums;
+    private final MediaUrls mediaUrls;
     private final Clock clock;
 
     BlockRenderer(SchoolRepository schools, NewsArticleRepository news, EventRepository events,
                   FaqEntryRepository faqEntries, FaqCategoryRepository faqCategories,
-                  QuickLinkRepository quickLinks, DocumentService documents, Clock clock) {
+                  QuickLinkRepository quickLinks, DocumentService documents, MediaAssetRepository assets,
+                  AlbumService albums, MediaUrls mediaUrls, Clock clock) {
         this.schools = schools;
         this.news = news;
         this.events = events;
@@ -62,6 +72,9 @@ public class BlockRenderer {
         this.faqCategories = faqCategories;
         this.quickLinks = quickLinks;
         this.documents = documents;
+        this.assets = assets;
+        this.albums = albums;
+        this.mediaUrls = mediaUrls;
         this.clock = clock;
     }
 
@@ -88,13 +101,13 @@ public class BlockRenderer {
             case Block.Faq b -> withData(type, b, faq(b.categoryId()));
             case Block.Location b -> school == null || school.getAddress() == null || isBlank(school.getAddress().street())
                     ? null : new RenderedBlock(type, b, location(school.getAddress()));
-            // Las fotos del álbum se sirven desde la biblioteca de medios (fase 5).
-            case Block.Gallery b -> null;
+            case Block.Gallery b -> enabled(school, Feature.GALLERIES) && b.albumId() != null ? gallery(type, b) : null;
             case Block.Stats b -> b.items().isEmpty() ? null : new RenderedBlock(type, b, null);
             case Block.Testimonials b -> b.items().isEmpty() ? null : new RenderedBlock(type, b, null);
             case Block.Timeline b -> b.entries().isEmpty() ? null : new RenderedBlock(type, b, null);
             case Block.RichText b -> isBlank(b.html()) ? null : new RenderedBlock(type, b, null);
-            case Block.Hero b -> new RenderedBlock(type, b, null);
+            case Block.Hero b -> new RenderedBlock(type, b, b.imageAssetId() == null ? null
+                    : assets.findById(b.imageAssetId()).map(mediaUrls::picture).orElse(null));
             case Block.CallToAction b -> new RenderedBlock(type, b, null);
             case Block.Documents b -> withData(type, b, documents.published().stream()
                     .filter(d -> b.categories().isEmpty() || b.categories().contains(d.getCategory()))
@@ -103,9 +116,24 @@ public class BlockRenderer {
         };
     }
 
+    /** Las primeras fotos aprobadas del álbum (solo si es público y está publicado). */
+    private RenderedBlock gallery(String type, Block.Gallery block) {
+        Album album = albums.publicAlbum(block.albumId());
+        if (album == null) {
+            return null;
+        }
+        List<ResponsiveImage> photos = album.visibleAssets().stream()
+                .map(mediaUrls::picture)
+                .filter(Objects::nonNull)
+                .limit(GALLERY_PREVIEW)
+                .toList();
+        return photos.isEmpty() ? null : new RenderedBlock(type, block, new GalleryData(album.getTitle(), album.getSlug(), photos));
+    }
+
     private List<NewsItem> latestNews(int count, ZoneId zone) {
         return news.findVisibleAt(clock.instant(), PageRequest.of(0, count)).stream()
-                .map(n -> new NewsItem(n.getTitle(), n.getSummary(), date(n, zone), "/noticias/" + n.getSlug()))
+                .map(n -> new NewsItem(n.getTitle(), n.getSummary(), date(n, zone), "/noticias/" + n.getSlug(),
+                        mediaUrls.picture(n.getFeaturedImage())))
                 .toList();
     }
 
@@ -161,7 +189,7 @@ public class BlockRenderer {
     }
 
     /** Noticia resumida para la portada, con el enlace a su página. */
-    public record NewsItem(String title, String summary, String date, String href) {
+    public record NewsItem(String title, String summary, String date, String href, ResponsiveImage image) {
     }
 
     /** @param isoDate fecha para el atributo {@code datetime} de {@code <time>} */
@@ -169,5 +197,8 @@ public class BlockRenderer {
     }
 
     public record LocationData(String address, String mapUrl) {
+    }
+
+    public record GalleryData(String albumTitle, String albumSlug, List<ResponsiveImage> photos) {
     }
 }

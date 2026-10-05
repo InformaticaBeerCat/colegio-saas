@@ -2,6 +2,8 @@ package cl.colegiosaas.page.web;
 
 import cl.colegiosaas.documents.DocumentCategory;
 import cl.colegiosaas.info.FaqCategoryRepository;
+import cl.colegiosaas.media.AlbumService;
+import cl.colegiosaas.media.MediaLibrary;
 import cl.colegiosaas.page.Block;
 import cl.colegiosaas.page.BlockType;
 import cl.colegiosaas.page.NotFoundException;
@@ -37,10 +39,14 @@ class PageAdminController {
 
     private final PageService pages;
     private final FaqCategoryRepository faqCategories;
+    private final MediaLibrary media;
+    private final AlbumService albums;
 
-    PageAdminController(PageService pages, FaqCategoryRepository faqCategories) {
+    PageAdminController(PageService pages, FaqCategoryRepository faqCategories, MediaLibrary media, AlbumService albums) {
         this.pages = pages;
         this.faqCategories = faqCategories;
+        this.media = media;
+        this.albums = albums;
     }
 
     @GetMapping
@@ -183,6 +189,9 @@ class PageAdminController {
         model.addAttribute("index", index);
         model.addAttribute("faqCategories", faqCategories.findAllByOrderBySortOrderAsc());
         model.addAttribute("documentCategories", DocumentCategory.values());
+        // Solo fotos aprobadas o exentas: una foto pendiente no se puede poner en una página.
+        model.addAttribute("images", "hero".equals(form.getType()) ? media.displayableImages() : List.of());
+        model.addAttribute("albums", "gallery".equals(form.getType()) ? albums.list() : List.of());
         return "admin/pages/block";
     }
 

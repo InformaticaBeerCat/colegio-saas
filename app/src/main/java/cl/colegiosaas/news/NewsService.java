@@ -5,6 +5,9 @@ import cl.colegiosaas.audit.AuditTrail;
 import cl.colegiosaas.identity.Permission;
 import cl.colegiosaas.identity.UserAccount;
 import cl.colegiosaas.identity.UserAccountRepository;
+import cl.colegiosaas.media.MediaAsset;
+import cl.colegiosaas.media.MediaAssetRepository;
+import cl.colegiosaas.media.MediaKind;
 import cl.colegiosaas.page.SeoMetadata;
 import cl.colegiosaas.shared.html.HtmlSanitizer;
 import cl.colegiosaas.shared.mail.OutgoingMail;
@@ -45,18 +48,20 @@ public class NewsService {
     private final NewsCategoryRepository categories;
     private final GradeLevelRepository gradeLevels;
     private final UserAccountRepository users;
+    private final MediaAssetRepository assets;
     private final AuditTrail audit;
     private final ApplicationEventPublisher events;
     private final AppProperties app;
     private final Clock clock;
 
     NewsService(NewsArticleRepository articles, NewsCategoryRepository categories, GradeLevelRepository gradeLevels,
-                UserAccountRepository users, AuditTrail audit, ApplicationEventPublisher events, AppProperties app,
-                Clock clock) {
+                UserAccountRepository users, MediaAssetRepository assets, AuditTrail audit, ApplicationEventPublisher events,
+                AppProperties app, Clock clock) {
         this.articles = articles;
         this.categories = categories;
         this.gradeLevels = gradeLevels;
         this.users = users;
+        this.assets = assets;
         this.audit = audit;
         this.events = events;
         this.app = app;
@@ -162,6 +167,7 @@ public class NewsService {
         String metaTitle = blankToNull(draft.metaTitle());
         String metaDescription = blankToNull(draft.metaDescription());
         article.setSeo(metaTitle == null && metaDescription == null ? null : new SeoMetadata(metaTitle, metaDescription));
+        article.setFeaturedImage(featuredImage(draft.featuredImageId()));
         audit.record(AuditAction.UPDATE, "NewsArticle", id, article.getTitle());
     }
 
@@ -276,6 +282,18 @@ public class NewsService {
         return articles.findBySlug(slug)
                 .filter(a -> a.isVisibleAt(clock.instant()))
                 .orElseThrow(() -> new NotFound("La noticia no existe"));
+    }
+
+    /** Solo fotos aprobadas o exentas: una noticia no puede ser la puerta de entrada de una foto sin revisar. */
+    private MediaAsset featuredImage(Long assetId) {
+        if (assetId == null) {
+            return null;
+        }
+        MediaAsset asset = assets.findById(assetId).orElseThrow(() -> new RuleViolation("La foto elegida no existe"));
+        if (asset.getKind() != MediaKind.IMAGE || !asset.isDisplayable()) {
+            throw new RuleViolation("La imagen destacada tiene que ser una foto aprobada");
+        }
+        return asset;
     }
 
     private String checkSlug(String slug, NewsArticle article) {

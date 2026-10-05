@@ -18,6 +18,9 @@
         <strong th:text="|${documentsDue.size()} documento(s) con más de 12 meses sin actualizar:|">Documentos por revisar:</strong>
         <a th:each="d, it : ${documentsDue}" th:href="@{/admin/documents/{id}(id=${d.id})}" th:text="${d.title} + (${it.last} ? '' : ',')">Reglamento Interno</a>
     </div>
+    <div class="alert alert-warn" role="status" th:if="${photosInReview > 0}">
+        <a th:href="@{/admin/review}" th:text="|${photosInReview} foto(s) esperan revisión de autorización de imagen|">Fotos por revisar</a>
+    </div>
     <div class="alert alert-warn" role="status" th:if="${newsInReview > 0}">
         <a th:href="@{/admin/news}" th:text="|${newsInReview} noticia(s) esperan tu revisión|">Noticias por revisar</a>
     </div>
@@ -36,6 +39,17 @@
                 <li sec:authorize="hasAuthority('GENERAL_INFO')"><a th:href="@{/admin/info/workshops}">Talleres</a></li>
                 <li sec:authorize="hasAuthority('GENERAL_INFO')"><a th:href="@{/admin/info/sheets}">Útiles, uniforme y minuta</a></li>
             </ul>
+        </section>
+
+        <section class="card" aria-labelledby="medios-panel" sec:authorize="hasAnyAuthority('MEDIA_UPLOAD', 'MEDIA_REVIEW', 'STUDENTS_AND_CONSENTS')">
+            <h2 id="medios-panel">Fotos y autorizaciones</h2>
+            <ul>
+                <li sec:authorize="hasAnyAuthority('MEDIA_UPLOAD', 'MEDIA_REVIEW')"><a th:href="@{/admin/media}">Biblioteca de medios</a></li>
+                <li sec:authorize="hasAuthority('MEDIA_UPLOAD')"><a th:href="@{/admin/albums}">Álbumes</a></li>
+                <li sec:authorize="hasAuthority('MEDIA_REVIEW')"><a th:href="@{/admin/review}">Revisión de fotos</a></li>
+                <li sec:authorize="hasAuthority('STUDENTS_AND_CONSENTS')"><a th:href="@{/admin/students}">Estudiantes y autorizaciones de imagen</a></li>
+            </ul>
+            <p class="hint" th:unless="${antivirus}">Antivirus no configurado: los archivos solo se validan por tipo y tamaño.</p>
         </section>
 
         <section class="card" aria-labelledby="sitio" sec:authorize="hasAnyAuthority('PAGES', 'SITE_DESIGN')">
@@ -73,7 +87,7 @@
 
         <section class="card" aria-labelledby="proximo">
             <h2 id="proximo">En construcción</h2>
-            <p class="muted">Biblioteca de medios y fotos, privacidad, formularios y agenda se habilitan en las próximas fases.</p>
+            <p class="muted">Privacidad, formularios y agenda se habilitan en las próximas fases.</p>
         </section>
     </div>
 </main>

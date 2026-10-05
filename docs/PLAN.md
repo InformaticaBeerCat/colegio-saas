@@ -172,11 +172,33 @@ entidades, repositorios, su migración Flyway y tests de persistencia.
 > Pendiente para la fase 5: imagen destacada y galería en noticias, antivirus de archivos (SEG-03; hoy la revisión es
 > de tipo y tamaño, y solo suben archivos cuentas del panel). Formulario propio del canal de denuncia: fase 7 (contacto).
 
-### Fase 5 — Medios y autorización de imagen
-- Subida masiva a S3/MinIO, validación de tipo y tamaño, borrado de EXIF, WebP/AVIF responsivo [MED-01..03, MED-10, SEG-03].
-- Álbumes con visibilidad y revisión obligatoria por el gestor de consentimientos [MED-05, MED-06].
-- Difuminado manual de rostros [MED-07]; retiro de una foto de todo el sitio [MED-09].
-- Validación: sin nombres completos de estudiantes junto a fotos públicas [MED-12]; alt obligatorio [ACC-02].
+### Fase 5 — Medios y autorización de imagen ✅
+- Biblioteca de medios [MED-01] con carpetas y etiquetas; subida masiva de hasta 50 fotos [MED-03] donde cada
+  archivo informa su resultado. Tipo por firma (JPG, PNG, WebP; HEIC con mensaje), 15 MB, tope de 50 megapíxeles
+  contra bombas de descompresión.
+- Al subir, la foto se gira según su EXIF y se vuelve a codificar desde los píxeles: no queda GPS, cámara ni fecha
+  [MED-10]. Versiones WebP y JPEG a 480, 960 y 1600 px más la maestra (hasta 2560 px) [MED-02]; el sitio usa
+  `<picture>` con `srcset`, dimensiones y carga diferida. AVIF queda pendiente: no hay codificador Java confiable.
+- Antivirus ClamAV (`APP_CLAMD_HOST`) para fotos y PDF [SEG-03]; si no responde, la subida se rechaza. Sin
+  configurarlo, la app lo avisa en el log y en el panel.
+- Almacenamiento S3/MinIO (`APP_STORAGE_TYPE=s3`) o carpeta local [OPS-07]; `compose.yaml` trae MinIO y ClamAV.
+- Revisión obligatoria por el gestor de consentimientos [MED-06]: marca qué estudiantes aparecen (sin
+  reconocimiento facial) y el sistema revisa sus autorizaciones para el sitio web. Con alguien sin autorización
+  solo se aprueba si quedó difuminado y se confirma. Sin texto alternativo no se aprueba [ACC-02].
+- Difuminado manual con editor visual (o zonas escritas a mano) [MED-07]: pixelado irreversible sobre la original;
+  el público recibe solo la versión difuminada.
+- Retiro de todo el sitio en un clic [MED-09], y automático al revocar la autorización del sitio web de un
+  estudiante. Una foto subida dos veces se retira en todas sus copias, y un archivo con alguna copia retirada no se
+  sirve.
+- Pies de foto y textos alternativos sin nombre y apellido de estudiantes [MED-12].
+- Registro mínimo de estudiantes (nombre y curso, cifrados, sin RUN) y autorizaciones por canal con evidencia;
+  formulario base de autorización publicable (el editor de textos legales llega en la fase 6).
+- Álbumes con visibilidad pública, de comunidad o de curso [MED-05]; no se publican con fotos pendientes. Galerías
+  públicas en `/galerias`; videos de YouTube (sin cookies) y Vimeo.
+- Integración: foto en la portada (al lado del texto, para no depender del contraste), bloque galería, imagen
+  destacada en noticias (solo fotos aprobadas) y logo y favicon del colegio.
+
+> Pendiente: AVIF; descarga de álbumes (MED-11, v2); detección facial asistida (premium).
 
 ### Fase 6 — Privacidad (Ley 21.719)
 - Textos legales versionados desde plantilla [DOC-06]; aviso de tratamiento en cada formulario [PRV-01].

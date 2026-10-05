@@ -12,7 +12,7 @@
           th:action="${index == null} ? @{/admin/pages/{id}/blocks(id=${page.id})} : @{/admin/pages/{id}/blocks/{i}(id=${page.id},i=${index})}"
           th:with="t=${block.type}">
         <input type="hidden" th:field="*{type}">
-        <input type="hidden" th:field="*{imageAssetId}">
+        <input type="hidden" th:field="*{imageAssetId}" th:unless="${t == 'hero'}">
         <input type="hidden" th:field="*{videoAssetId}">
 
         <div class="field" th:if="${t != 'rich-text'}">
@@ -23,7 +23,30 @@
         <div class="field" th:if="${t == 'hero'}">
             <label for="subtitle">Bajada <span class="muted">(opcional)</span></label>
             <input type="text" th:field="*{subtitle}" maxlength="300">
-            <p class="hint">La imagen o el video de portada se eligen desde la biblioteca de medios cuando esté habilitada.</p>
+        </div>
+
+        <fieldset th:if="${t == 'hero'}">
+            <legend>Imagen <span class="muted">(opcional; solo fotos aprobadas)</span></legend>
+            <div class="checks"><label><input type="radio" name="imageAssetId" value="" th:checked="${block.imageAssetId == null}"> Sin imagen</label></div>
+            <ul class="media-grid">
+                <li th:each="a : ${images}" class="media-card">
+                    <label class="media-card__pick">
+                        <input type="radio" name="imageAssetId" th:value="${a.id}" th:checked="${block.imageAssetId == a.id}">
+                        <th:block th:replace="~{admin/media/fragments :: thumb(${a})}"></th:block>
+                        <span class="media-card__name" th:text="${a.altText}">Fachada</span>
+                    </label>
+                </li>
+            </ul>
+            <p th:if="${#lists.isEmpty(images)}" class="muted">No hay fotos aprobadas en la <a th:href="@{/admin/media}">biblioteca</a>.</p>
+        </fieldset>
+
+        <div class="field" th:if="${t == 'gallery'}">
+            <label for="albumId">Álbum</label>
+            <select th:field="*{albumId}">
+                <option value="">Elige…</option>
+                <option th:each="a : ${albums}" th:value="${a.id}" th:text="${a.title} + (${a.status.name() == 'PUBLISHED' and a.visibility.name() == 'PUBLIC'} ? '' : ' (no público: no se mostrará)')">Aniversario</option>
+            </select>
+            <span class="hint">Muestra hasta 8 fotos aprobadas del álbum y un enlace a la galería completa.</span>
         </div>
 
         <div class="field" th:if="${t == 'call-to-action' or t == 'report-channel'}">

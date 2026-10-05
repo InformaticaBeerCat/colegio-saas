@@ -31,7 +31,7 @@ public class PageService {
             "admin", "setup", "api", "actuator", "error", "site", "css", "js", "fonts", "images", "media",
             "login", "logout", "noticias", "calendario", "comunicados", "documentos", "galerias", "contacto",
             "admision", "agenda", "privacidad", "buscar", "sitemap", "robots", "favicon", "archivos",
-            "talleres", "preguntas-frecuentes", "informacion-practica");
+            "talleres", "preguntas-frecuentes", "informacion-practica", "medios");
 
     private static final Pattern SLUG = Pattern.compile("[a-z0-9]+(-[a-z0-9]+)*");
     private static final int MAX_LIST_ITEMS = 12;

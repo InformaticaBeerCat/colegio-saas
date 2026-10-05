@@ -1,5 +1,10 @@
 package cl.colegiosaas.site.web;
 
+import cl.colegiosaas.media.FileUploadException;
+import cl.colegiosaas.media.MediaLibrary;
+import cl.colegiosaas.security.SchoolUser;
+import cl.colegiosaas.shared.web.RuleViolation;
+import cl.colegiosaas.site.BrandService;
 import cl.colegiosaas.site.DesignRejectedException;
 import cl.colegiosaas.site.DesignReview;
 import cl.colegiosaas.site.FontCatalog;
@@ -8,6 +13,7 @@ import cl.colegiosaas.site.SiteDesignService;
 import cl.colegiosaas.site.Theme;
 import jakarta.validation.Valid;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -16,7 +22,11 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
+import java.io.IOException;
+import java.io.UncheckedIOException;
 
 /**
  * Editor de marca (CFG-02, CFG-03, CFG-08): elegir tema, ajustar tokens con verificación de contraste,
@@ -28,9 +38,11 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 class DesignController {
 
     private final SiteDesignService designs;
+    private final BrandService brand;
 
-    DesignController(SiteDesignService designs) {
+    DesignController(SiteDesignService designs, BrandService brand) {
         this.designs = designs;
+        this.brand = brand;
     }
 
     @ModelAttribute
@@ -94,11 +106,57 @@ class DesignController {
         return "redirect:/admin/design";
     }
 
+    @PostMapping("/logo")
+    String uploadLogo(@AuthenticationPrincipal SchoolUser me, @RequestParam("file") MultipartFile file, RedirectAttributes redirect) {
+        return brandUpload(redirect, "Logo actualizado", () -> brand.uploadLogo(read(file), me.id()));
+    }
+
+    @PostMapping("/favicon")
+    String uploadFavicon(@AuthenticationPrincipal SchoolUser me, @RequestParam("file") MultipartFile file, RedirectAttributes redirect) {
+        return brandUpload(redirect, "Ícono actualizado", () -> brand.uploadFavicon(read(file), me.id()));
+    }
+
+    @PostMapping("/logo/delete")
+    String removeLogo(RedirectAttributes redirect) {
+        brand.removeLogo();
+        redirect.addFlashAttribute("notice", "Logo quitado: el encabezado muestra solo el nombre");
+        return "redirect:/admin/design";
+    }
+
+    @PostMapping("/favicon/delete")
+    String removeFavicon(RedirectAttributes redirect) {
+        brand.removeFavicon();
+        redirect.addFlashAttribute("notice", "Ícono quitado");
+        return "redirect:/admin/design";
+    }
+
+    private static String brandUpload(RedirectAttributes redirect, String success, Runnable action) {
+        try {
+            action.run();
+            redirect.addFlashAttribute("notice", success);
+        } catch (FileUploadException | RuleViolation e) {
+            redirect.addFlashAttribute("problem", e.getMessage());
+        }
+        return "redirect:/admin/design";
+    }
+
+    private static MediaLibrary.Upload read(MultipartFile file) {
+        if (file == null || file.isEmpty()) {
+            throw new FileUploadException("Elige una imagen");
+        }
+        try {
+            return new MediaLibrary.Upload(file.getOriginalFilename(), file.getBytes());
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+    }
+
     private String show(Model model, DesignForm form, DesignReview review) {
         model.addAttribute("form", form);
         model.addAttribute("review", review);
         model.addAttribute("currentTheme", Theme.byId(form.getTheme()).orElse(Theme.CLASSIC));
         model.addAttribute("unpublished", designs.hasUnpublishedChanges());
+        model.addAttribute("brand", brand.current());
         return "admin/design";
     }
 }

@@ -26,7 +26,8 @@
 
         <p th:if="${articles.empty}" class="muted">No hay noticias publicadas con esos filtros.</p>
         <ul class="news-list" th:unless="${articles.empty}">
-            <li th:each="a : ${articles}" class="card news-item">
+            <li th:each="a : ${articles}" class="card news-item" th:classappend="${a.featuredImage != null} ? 'news-item--with-image'">
+                <th:block th:with="pic=${@media.picture(a.featuredImage)}"><picture th:replace="~{public/media :: picture(${pic}, '(min-width: 900px) 280px, 100vw', 'news-item__image', false)}"></picture></th:block>
                 <h2 class="card__title"><a th:href="@{/noticias/{s}(s=${a.slug})}" th:text="${a.title}">Título</a></h2>
                 <p class="card__meta">
                     <time th:datetime="${a.publishAt}" th:text="${@formats.date(a.publishAt)}">12 de octubre de 2026</time>

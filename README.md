@@ -61,5 +61,8 @@ quedan en `http://localhost:8025`.
 | `APP_SETUP_TOKEN` | Token de instalación fijo (instalaciones automatizadas) |
 | `APP_FIELD_KEY`, `APP_INDEX_KEY` | Llaves de cifrado de datos personales (`openssl rand -base64 32`) |
 | `APP_SECURE_COOKIES` | `true` en producción (HTTPS) |
-| `APP_STORAGE_DIR` | Carpeta de los PDF subidos (por defecto `./data/files`; en producción, un volumen persistente) |
+| `APP_STORAGE_TYPE` | `local` (por defecto) o `s3` para S3/MinIO |
+| `APP_STORAGE_DIR` | Carpeta de los archivos con `local` (por defecto `./data/files`; en producción, un volumen persistente) |
+| `APP_S3_ENDPOINT`, `APP_S3_BUCKET`, `APP_S3_ACCESS_KEY`, `APP_S3_SECRET_KEY` | Conexión S3; con el MinIO de `compose.yaml`: `http://localhost:9000`, `colegio`, `minio`, `minio-secreto` |
+| `APP_CLAMD_HOST`, `APP_CLAMD_PORT` | Antivirus ClamAV para archivos subidos (con `compose.yaml`: `localhost`, `3310`) |
 | `APP_ENFORCE_MFA` | `true` para exigir verificación en dos pasos a administradores y gestor de consentimientos |

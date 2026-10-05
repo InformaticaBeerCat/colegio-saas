@@ -349,6 +349,41 @@ button.button { font: inherit; font-weight: 700; cursor: pointer; }
 .faq__answer { padding: 0 1rem 1rem; }
 .sheet summary .muted { font-weight: 400; }
 
+/* --- Fotos (fase 5) --- */
+picture { display: block; }
+picture img { display: block; max-width: 100%; height: auto; }
+.site-brand { display: inline-flex; align-items: center; gap: .6rem; }
+.site-brand__logo { width: auto; height: 48px; }
+
+.hero--with-image .hero__inner { display: grid; gap: 2rem; align-items: center; }
+.hero__image { width: 100%; border-radius: var(--radius-lg); box-shadow: var(--shadow); }
+@media (min-width: 900px) {
+    .hero--with-image .hero__inner { grid-template-columns: 1fr 1fr; }
+}
+.theme-modern .hero--with-image::after { display: none; }
+
+.card__image, .news-item__image { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; border-radius: var(--radius); margin-bottom: .75rem; }
+.article__image { width: 100%; max-height: 70vh; object-fit: cover; border-radius: var(--radius-lg); margin-top: 1rem; }
+@media (min-width: 700px) {
+    .news-item--with-image { display: grid; grid-template-columns: 240px 1fr; column-gap: 1.25rem; }
+    .news-item--with-image picture { grid-row: span 3; }
+    .news-item--with-image .news-item__image { margin-bottom: 0; height: 100%; }
+}
+
+.album-cards .album-card { padding: 0; overflow: hidden; }
+.album-card__link { display: block; text-decoration: none; }
+.album-card__image { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; }
+.album-card__title { display: block; padding: .9rem 1.25rem .25rem; }
+.album-card .card__meta { padding: 0 1.25rem 1rem; }
+
+.gallery-grid { list-style: none; margin: 0; padding: 0; display: grid; gap: .75rem; grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr)); }
+.gallery-grid--compact { grid-template-columns: repeat(auto-fill, minmax(min(45%, 200px), 1fr)); }
+.gallery-item figure { margin: 0; }
+.gallery-item__image { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; border-radius: var(--radius); }
+.gallery-item figcaption { font-size: .95rem; padding-top: .35rem; display: grid; }
+.video { position: relative; aspect-ratio: 16 / 9; }
+.video iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; border-radius: var(--radius); }
+
 /* --- Pie --- */
 .site-footer { background: var(--color-secondary); color: var(--color-on-secondary); padding: 2.5rem 0 1rem; margin-top: 2rem; }
 .site-footer h2 { color: inherit; font-size: 1.15rem; }

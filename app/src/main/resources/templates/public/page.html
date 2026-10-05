@@ -13,7 +13,8 @@
 
         <!-- th:replace se procesa antes que th:case: cada caso envuelve su fragmento. -->
         <th:block th:each="rb, it : ${blocks}" th:switch="${rb.type}">
-            <th:block th:case="'hero'"><section th:replace="~{public/blocks :: hero(${rb.block}, ${it.first})}"></section></th:block>
+            <th:block th:case="'hero'"><section th:replace="~{public/blocks :: hero(${rb.block}, ${it.first}, ${rb.data})}"></section></th:block>
+            <th:block th:case="'gallery'"><section th:replace="~{public/blocks :: gallery(${rb.block}, ${rb.data})}"></section></th:block>
             <th:block th:case="'rich-text'"><section th:replace="~{public/blocks :: rich-text(${rb.block})}"></section></th:block>
             <th:block th:case="'quick-links'"><section th:replace="~{public/blocks :: quick-links(${rb.block}, ${rb.data})}"></section></th:block>
             <th:block th:case="'latest-news'"><section th:replace="~{public/blocks :: latest-news(${rb.block}, ${rb.data})}"></section></th:block>

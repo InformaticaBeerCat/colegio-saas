@@ -21,6 +21,34 @@
         </div>
     </div>
 
+    <section class="card section" aria-labelledby="marca">
+        <h2 id="marca">Logo e ícono</h2>
+        <div class="cards">
+            <div>
+                <h3>Logo</h3>
+                <img th:if="${brand.logo}" th:src="${brand.logo.src}" th:width="${brand.logo.width}" th:height="${brand.logo.height}"
+                     th:alt="${brand.logo.alt}" class="brand-preview">
+                <p th:unless="${brand.logo}" class="muted">Sin logo: el encabezado muestra el nombre del colegio.</p>
+                <form th:action="@{/admin/design/logo}" method="post" enctype="multipart/form-data">
+                    <div class="field"><label for="logo-file">Subir logo <span class="muted">(PNG con fondo transparente, idealmente)</span></label>
+                        <input id="logo-file" type="file" name="file" accept="image/png,image/jpeg,image/webp" required></div>
+                    <button type="submit" class="btn btn-secondary">Subir logo</button>
+                </form>
+                <form th:if="${brand.logo}" th:action="@{/admin/design/logo/delete}" method="post"><button type="submit" class="link">Quitar logo</button></form>
+            </div>
+            <div>
+                <h3>Ícono de la pestaña (favicon)</h3>
+                <img th:if="${brand.faviconHref}" th:src="${brand.faviconHref}" width="48" height="48" alt="Ícono actual" class="brand-preview">
+                <form th:action="@{/admin/design/favicon}" method="post" enctype="multipart/form-data">
+                    <div class="field"><label for="favicon-file">Subir ícono <span class="muted">(cuadrado, al menos 64 px)</span></label>
+                        <input id="favicon-file" type="file" name="file" accept="image/png,image/jpeg,image/webp" required></div>
+                    <button type="submit" class="btn btn-secondary">Subir ícono</button>
+                </form>
+                <form th:if="${brand.faviconHref}" th:action="@{/admin/design/favicon/delete}" method="post"><button type="submit" class="link">Quitar ícono</button></form>
+            </div>
+        </div>
+    </section>
+
     <section class="card section" aria-labelledby="temas">
         <h2 id="temas">Tema base</h2>
         <p class="muted">Cada tema define la estructura del sitio; la variante es un punto de partida de colores.

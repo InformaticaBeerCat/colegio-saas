@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head(title=${album.title})}"></head>
+<body>
+<header th:replace="~{fragments/layout :: admin-header}"></header>
+<main id="contenido" class="container">
+    <p><a th:href="@{/admin/albums}">← Álbumes</a></p>
+    <div class="page-head">
+        <div>
+            <h1 th:text="${album.title}">Aniversario</h1>
+            <p class="muted">
+                <span th:text="${#messages.msg('visibility.' + album.visibility)}">Público</span> ·
+                <span th:if="${album.status.name() == 'PUBLISHED'}" class="badge badge-ok">Publicado</span>
+                <span th:unless="${album.status.name() == 'PUBLISHED'}" class="badge">Borrador</span>
+                <span th:if="${album.pendingReviewCount() > 0}" class="badge badge-warn"
+                      th:text="|${album.pendingReviewCount()} foto(s) esperan revisión de autorización|">pendientes</span>
+            </p>
+        </div>
+        <div class="actions">
+            <a class="btn btn-secondary" th:if="${album.status.name() == 'PUBLISHED' and album.visibility.name() == 'PUBLIC'}" th:href="@{/galerias/{s}(s=${album.slug})}">Ver en el sitio</a>
+            <form th:unless="${album.status.name() == 'PUBLISHED'}" th:action="@{/admin/albums/{id}/publish(id=${album.id})}" method="post"><button type="submit" class="btn">Publicar</button></form>
+            <form th:if="${album.status.name() == 'PUBLISHED'}" th:action="@{/admin/albums/{id}/unpublish(id=${album.id})}" method="post"><button type="submit" class="btn btn-secondary">Retirar</button></form>
+        </div>
+    </div>
+    <div th:replace="~{fragments/layout :: flash}"></div>
+
+    <section class="card section" aria-labelledby="fotos">
+        <h2 id="fotos">Fotos del álbum</h2>
+        <p th:if="${#lists.isEmpty(album.assets)}" class="muted">El álbum está vacío.</p>
+        <ul class="media-grid">
+            <li th:each="a, it : ${album.assets}" class="media-card">
+                <a th:href="@{/admin/media/{id}(id=${a.id})}" class="media-card__link"><th:block th:replace="~{admin/media/fragments :: thumb(${a})}"></th:block></a>
+                <span th:replace="~{admin/media/fragments :: status(${a})}"></span>
+                <span th:if="${album.cover != null and album.cover.id == a.id}" class="badge">Portada</span>
+                <div class="actions">
+                    <form th:unless="${it.first}" th:action="@{/admin/albums/{id}/assets/{a}/move(id=${album.id},a=${a.id})}" method="post">
+                        <input type="hidden" name="direction" value="-1"><button type="submit" class="btn btn-secondary btn-small">←<span class="visually-hidden" th:text="| Mover antes la foto ${it.count}|"></span></button></form>
+                    <form th:unless="${it.last}" th:action="@{/admin/albums/{id}/assets/{a}/move(id=${album.id},a=${a.id})}" method="post">
+                        <input type="hidden" name="direction" value="1"><button type="submit" class="btn btn-secondary btn-small">→<span class="visually-hidden" th:text="| Mover después la foto ${it.count}|"></span></button></form>
+                    <form th:if="${a.kind.name() == 'IMAGE'}" th:action="@{/admin/albums/{id}/assets/{a}/cover(id=${album.id},a=${a.id})}" method="post">
+                        <button type="submit" class="btn btn-secondary btn-small">Portada<span class="visually-hidden" th:text="| foto ${it.count}|"></span></button></form>
+                    <form th:action="@{/admin/albums/{id}/assets/{a}/remove(id=${album.id},a=${a.id})}" method="post">
+                        <button type="submit" class="btn btn-danger btn-small">Quitar<span class="visually-hidden" th:text="| foto ${it.count}|"></span></button></form>
+                </div>
+            </li>
+        </ul>
+    </section>
+
+    <div class="cards section">
+        <form class="card" th:action="@{/admin/albums/{id}/upload(id=${album.id})}" method="post" enctype="multipart/form-data">
+            <h2>Subir fotos al álbum</h2>
+            <div class="field"><label for="files">Fotos</label><input id="files" type="file" name="files" accept="image/jpeg,image/png,image/webp" multiple required></div>
+            <button type="submit" class="btn">Subir</button>
+        </form>
+        <form class="card" th:action="@{/admin/albums/{id}(id=${album.id})}" method="post">
+            <h2>Datos</h2>
+            <div class="field"><label for="title">Título</label><input id="title" type="text" name="title" required maxlength="200" th:value="${album.title}"></div>
+            <div class="field"><label for="takenOn">Fecha</label><input id="takenOn" type="date" name="takenOn" th:value="${album.takenOn}"></div>
+            <div class="field"><label for="description">Descripción</label><textarea id="description" name="description" rows="3" maxlength="1000" th:text="${album.description}"></textarea></div>
+            <div class="field"><label for="visibility">Quién lo ve</label>
+                <select id="visibility" name="visibility"><option th:each="v : ${visibilities}" th:value="${v}" th:text="${#messages.msg('visibility.' + v)}" th:selected="${v == album.visibility}">Público</option></select>
+                <span class="hint">Los álbumes de comunidad y de curso no aparecen en el sitio público.</span></div>
+            <div class="field"><label for="courseId">Curso <span class="muted">(si es de un curso)</span></label>
+                <select id="courseId" name="courseId"><option value="">—</option>
+                    <option th:each="c : ${courses}" th:value="${c.id}" th:text="${c.displayName()}" th:selected="${album.course != null and album.course.id == c.id}">1° A</option></select></div>
+            <button type="submit" class="btn btn-secondary">Guardar datos</button>
+        </form>
+    </div>
+
+    <form class="card section" th:action="@{/admin/albums/{id}/assets(id=${album.id})}" method="post" th:unless="${#lists.isEmpty(available)}">
+        <h2>Agregar desde la biblioteca</h2>
+        <ul class="media-grid">
+            <li th:each="a : ${available}" class="media-card">
+                <label class="media-card__pick">
+                    <input type="checkbox" name="assetIds" th:value="${a.id}">
+                    <th:block th:replace="~{admin/media/fragments :: thumb(${a})}"></th:block>
+                    <span class="visually-hidden" th:text="${a.altText != null ? a.altText : a.file?.originalName}">foto</span>
+                </label>
+                <span th:replace="~{admin/media/fragments :: status(${a})}"></span>
+            </li>
+        </ul>
+        <button type="submit" class="btn btn-secondary">Agregar las marcadas</button>
+    </form>
+
+    <form th:unless="${album.status.name() == 'PUBLISHED'}" th:action="@{/admin/albums/{id}/delete(id=${album.id})}" method="post">
+        <button type="submit" class="btn btn-danger">Eliminar álbum</button>
+    </form>
+</main>
+</body>
+</html>

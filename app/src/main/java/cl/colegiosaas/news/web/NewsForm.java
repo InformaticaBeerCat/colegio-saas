@@ -30,6 +30,7 @@ public class NewsForm {
     private String metaTitle;
     @Size(max = 300)
     private String metaDescription;
+    private Long featuredImageId;
 
     static NewsForm of(NewsArticle article) {
         NewsForm form = new NewsForm();
@@ -42,10 +43,12 @@ public class NewsForm {
         form.section = article.getSection();
         form.metaTitle = article.getSeo() == null ? null : article.getSeo().metaTitle();
         form.metaDescription = article.getSeo() == null ? null : article.getSeo().metaDescription();
+        form.featuredImageId = article.getFeaturedImage() == null ? null : article.getFeaturedImage().getId();
         return form;
     }
 
     NewsDraft toDraft() {
-        return new NewsDraft(title, slug, summary, body, categoryId, gradeLevelIds, section, metaTitle, metaDescription);
+        return new NewsDraft(title, slug, summary, body, categoryId, gradeLevelIds, section, metaTitle, metaDescription,
+                featuredImageId);
     }
 }

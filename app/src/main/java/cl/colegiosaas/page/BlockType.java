@@ -16,8 +16,7 @@ public enum BlockType {
     STATS("stats", Block.Stats.class, true),
     TESTIMONIALS("testimonials", Block.Testimonials.class, true),
     CALL_TO_ACTION("call-to-action", Block.CallToAction.class, true),
-    /** Necesita servir las fotos del álbum: se habilita con la biblioteca de medios (fase 5). */
-    GALLERY("gallery", Block.Gallery.class, false),
+    GALLERY("gallery", Block.Gallery.class, true),
     TIMELINE("timeline", Block.Timeline.class, true),
     LOCATION("location", Block.Location.class, true),
     FAQ("faq", Block.Faq.class, true),

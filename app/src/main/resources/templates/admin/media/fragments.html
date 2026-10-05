@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<body>
+<!-- Miniatura para el panel: muestra también lo pendiente (ruta /admin/media/files, sin caché). -->
+<th:block th:fragment="thumb(asset)">
+    <th:block th:if="${asset.kind.name() == 'IMAGE'}" th:with="img=${@media.preview(asset, false)}">
+        <picture th:if="${img}">
+            <source type="image/webp" th:srcset="${img.webpSrcset}" sizes="240px">
+            <img th:src="${img.src}" th:srcset="${img.fallbackSrcset}" sizes="240px" th:width="${img.width}" th:height="${img.height}"
+                 th:alt="${img.alt}" loading="lazy" decoding="async" class="thumb">
+        </picture>
+    </th:block>
+    <span th:if="${asset.kind.name() == 'EMBEDDED_VIDEO'}" class="thumb thumb--video">▶ Video</span>
+</th:block>
+
+<span th:fragment="status(asset)" class="badge"
+      th:classappend="${asset.withdrawn} ? 'badge-problem' : (${asset.reviewStatus.name() == 'APPROVED' or asset.reviewStatus.name() == 'NOT_REQUIRED'} ? 'badge-ok' : (${asset.reviewStatus.name() == 'REJECTED'} ? 'badge-problem' : 'badge-warn'))"
+      th:text="${asset.withdrawn} ? 'Retirada' : ${#messages.msg('review.' + asset.reviewStatus)}">Pendiente</span>
+</body>
+</html>

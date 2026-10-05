@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head(title='Revisión de fotos')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: admin-header}"></header>
+<main id="contenido" class="container">
+    <div class="page-head">
+        <h1>Revisión de fotos</h1>
+        <a class="btn btn-secondary" th:href="@{/admin/students}">Estudiantes y autorizaciones</a>
+    </div>
+    <div th:replace="~{fragments/layout :: flash}"></div>
+    <p class="muted">Ninguna foto se publica sin tu revisión. Marca qué estudiantes aparecen: el sistema revisa sus
+        autorizaciones de imagen para el sitio web.</p>
+    <p th:if="${#lists.isEmpty(queue)}" class="alert alert-ok">No hay fotos pendientes.</p>
+    <ul class="media-grid">
+        <li th:each="a : ${queue}" class="media-card">
+            <a th:href="@{/admin/review/{id}(id=${a.id})}" class="media-card__link">
+                <th:block th:replace="~{admin/media/fragments :: thumb(${a})}"></th:block>
+                <span class="media-card__name" th:text="|Subida por ${a.uploadedBy != null ? a.uploadedBy.name : '—'}|">Subida por Ana</span>
+            </a>
+        </li>
+    </ul>
+</main>
+</body>
+</html>

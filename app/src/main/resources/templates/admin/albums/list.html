@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head(title='Álbumes')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: admin-header}"></header>
+<main id="contenido" class="container">
+    <div class="page-head">
+        <h1>Álbumes</h1>
+        <a class="btn btn-secondary" th:href="@{/admin/media}">Biblioteca de medios</a>
+    </div>
+    <div th:replace="~{fragments/layout :: flash}"></div>
+    <section class="card section" aria-labelledby="nuevo">
+        <h2 id="nuevo">Nuevo álbum</h2>
+        <form th:action="@{/admin/albums}" method="post">
+            <div class="color-grid">
+                <div class="field"><label for="title">Título</label><input id="title" type="text" name="title" required maxlength="200"></div>
+                <div class="field"><label for="takenOn">Fecha de la actividad</label><input id="takenOn" type="date" name="takenOn"></div>
+            </div>
+            <button type="submit" class="btn">Crear álbum</button>
+        </form>
+    </section>
+    <div class="table-wrap">
+        <table class="data">
+            <caption class="visually-hidden">Álbumes</caption>
+            <thead><tr><th scope="col">Álbum</th><th scope="col">Visibilidad</th><th scope="col">Fotos</th><th scope="col">Estado</th></tr></thead>
+            <tbody>
+            <tr th:each="a : ${albums}">
+                <td><a th:href="@{/admin/albums/{id}(id=${a.id})}" th:text="${a.title}">Aniversario</a></td>
+                <td th:text="${#messages.msg('visibility.' + a.visibility)}">Público</td>
+                <td><span th:text="${a.assets.size()}">10</span>
+                    <span th:if="${a.pendingReviewCount() > 0}" class="badge badge-warn" th:text="|${a.pendingReviewCount()} pendiente(s)|">2 pendientes</span></td>
+                <td><span th:if="${a.status.name() == 'PUBLISHED'}" class="badge badge-ok">Publicado</span>
+                    <span th:unless="${a.status.name() == 'PUBLISHED'}" class="badge">Borrador</span></td>
+            </tr>
+            <tr th:if="${#lists.isEmpty(albums)}"><td colspan="4" class="muted">Todavía no hay álbumes.</td></tr>
+            </tbody>
+        </table>
+    </div>
+</main>
+</body>
+</html>

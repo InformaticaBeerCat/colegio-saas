@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="es-CL" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{public/layout :: head(${pageTitle}, ${metaDescription}, ${noindex})}"></head>
+<body th:class="|theme-${site.themeId}|">
+<div th:replace="~{public/layout :: top}"></div>
+<main id="contenido" tabindex="-1">
+    <header class="page-header">
+        <div class="wrap">
+            <p class="breadcrumb"><a th:href="@{/galerias}">Galerías</a></p>
+            <h1 th:text="${album.title}">Aniversario</h1>
+            <p class="card__meta" th:if="${album.takenOn}" th:text="${@formats.date(album.takenOn)}">12 de octubre de 2026</p>
+            <p class="lead" th:if="${album.description}" th:text="${album.description}">Descripción</p>
+        </div>
+    </header>
+    <div class="wrap block">
+        <ul class="gallery-grid">
+            <li th:each="a : ${assets}" class="gallery-item">
+                <figure th:if="${a.kind.name() == 'IMAGE'}" th:with="img=${@media.picture(a)}">
+                    <a th:href="${img.src}" class="gallery-item__link">
+                        <picture th:replace="~{public/media :: picture(${img}, '(min-width: 900px) 360px, (min-width: 600px) 50vw, 100vw', 'gallery-item__image', false)}"></picture>
+                        <span class="visually-hidden">Ver la foto en tamaño completo</span>
+                    </a>
+                    <figcaption th:if="${a.caption != null or a.credits != null}">
+                        <span th:text="${a.caption}">Pie</span>
+                        <small th:if="${a.credits}" class="muted" th:text="${a.credits}">Créditos</small>
+                    </figcaption>
+                </figure>
+                <div th:replace="~{public/media :: video(${a})}"></div>
+            </li>
+        </ul>
+    </div>
+</main>
+<footer th:replace="~{public/layout :: footer}"></footer>
+</body>
+</html>

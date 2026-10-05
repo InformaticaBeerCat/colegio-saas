@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="es-CL" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{public/layout :: head(${pageTitle}, ${metaDescription}, ${noindex})}"></head>
+<body th:class="|theme-${site.themeId}|">
+<div th:replace="~{public/layout :: top}"></div>
+<main id="contenido" tabindex="-1">
+    <header class="page-header"><div class="wrap"><h1>Galerías</h1></div></header>
+    <div class="wrap block">
+        <p th:if="${#lists.isEmpty(albums)}" class="muted">Todavía no hay galerías publicadas.</p>
+        <ul class="cards album-cards">
+            <li th:each="a : ${albums}" class="card album-card" th:with="cover=${a.coverOrFirstVisible().orElse(null)}">
+                <a th:href="@{/galerias/{s}(s=${a.slug})}" class="album-card__link">
+                    <th:block th:with="pic=${@media.picture(cover)}"><picture th:replace="~{public/media :: picture(${pic}, '(min-width: 900px) 360px, 100vw', 'album-card__image', false)}"></picture></th:block>
+                    <span class="card__title album-card__title" th:text="${a.title}">Aniversario</span>
+                </a>
+                <p class="card__meta">
+                    <span th:if="${a.takenOn}" th:text="${@formats.date(a.takenOn)}">12 de octubre de 2026</span>
+                    <span th:text="| · ${a.visibleAssets().size()} fotos|">· 24 fotos</span>
+                </p>
+            </li>
+        </ul>
+    </div>
+</main>
+<footer th:replace="~{public/layout :: footer}"></footer>
+</body>
+</html>

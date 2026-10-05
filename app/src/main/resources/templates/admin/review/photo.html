@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head(title='Revisar foto')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: admin-header}"></header>
+<main id="contenido" class="container">
+    <p><a th:href="@{/admin/review}">← Revisión de fotos</a></p>
+    <div class="page-head">
+        <h1>Revisar foto</h1>
+        <div class="actions">
+            <span th:replace="~{admin/media/fragments :: status(${asset})}"></span>
+            <a class="btn btn-secondary" th:href="@{/admin/media/{id}(id=${asset.id})}">Editar o difuminar</a>
+        </div>
+    </div>
+    <div th:replace="~{fragments/layout :: flash}"></div>
+
+    <div class="media-edit">
+        <section class="card" aria-labelledby="foto">
+            <h2 id="foto">Foto</h2>
+            <th:block th:if="${asset.kind.name() == 'IMAGE'}" th:with="img=${@media.preview(asset, false)}">
+                <img th:src="${img.src}" th:width="${img.width}" th:height="${img.height}" th:alt="${img.alt}" class="media-preview">
+                <p class="hint" th:if="${asset.blurredFile}" th:text="|Versión difuminada (${asset.blurRegions.size()} zona(s)).|">Difuminada</p>
+            </th:block>
+            <p th:unless="${asset.kind.name() == 'IMAGE'}"><a th:href="${asset.embedUrl}" rel="noopener" th:text="${asset.embedUrl}">video</a></p>
+        </section>
+
+        <section class="card" aria-labelledby="aparecen">
+            <h2 id="aparecen">Quién aparece</h2>
+            <ul class="block-list" th:unless="${#lists.isEmpty(appearances)}">
+                <li th:each="p : ${appearances}" class="block-row">
+                    <span><strong th:text="${p.name}">Ana Pérez</strong> <span class="muted" th:text="${p.course}">1° A</span></span>
+                    <span th:if="${p.authorized}" class="badge badge-ok">Autorizado para el sitio</span>
+                    <span th:unless="${p.authorized}" class="badge badge-problem">Sin autorización</span>
+                    <form th:action="@{/admin/review/{id}/untag(id=${asset.id})}" method="post">
+                        <input type="hidden" name="studentId" th:value="${p.studentId}">
+                        <button type="submit" class="btn btn-secondary btn-small">Quitar<span class="visually-hidden" th:text="| a ${p.name}|"></span></button>
+                    </form>
+                </li>
+            </ul>
+            <p th:if="${#lists.isEmpty(appearances)}" class="muted">Nadie etiquetado. Si la foto no muestra personas, márcala como "sin personas".</p>
+
+            <form th:action="@{/admin/review/{id}(id=${asset.id})}" method="get" class="actions">
+                <label for="curso">Curso</label>
+                <select id="curso" name="curso" class="inline-select">
+                    <option value="">Elige…</option>
+                    <option th:each="c : ${courses}" th:value="${c.id}" th:text="${c.displayName()}" th:selected="${c.id == curso}">1° A</option>
+                </select>
+                <button type="submit" class="btn btn-secondary">Ver estudiantes</button>
+            </form>
+            <form th:if="${curso}" th:action="@{/admin/review/{id}/tag(id=${asset.id})}" method="post">
+                <fieldset>
+                    <legend>Marca a quienes aparecen</legend>
+                    <div class="checks checks-grid">
+                        <label th:each="s : ${candidates}"><input type="checkbox" name="studentIds" th:value="${s.id}">
+                            <span th:text="${s.name}">Ana</span>
+                            <span th:unless="${s.website}" class="badge badge-problem">sin autorización</span></label>
+                    </div>
+                    <p th:if="${#lists.isEmpty(candidates)}" class="muted">El curso no tiene estudiantes registrados.</p>
+                </fieldset>
+                <button type="submit" class="btn btn-secondary">Etiquetar</button>
+            </form>
+        </section>
+    </div>
+
+    <section class="card section" aria-labelledby="decision" th:if="${asset.reviewStatus.name() == 'PENDING_REVIEW'}">
+        <h2 id="decision">Decisión</h2>
+        <div class="cards">
+            <form th:action="@{/admin/review/{id}/approve(id=${asset.id})}" method="post">
+                <div class="field"><label for="altText">Texto alternativo</label>
+                    <input id="altText" type="text" name="altText" maxlength="300" th:value="${asset.altText}" required></div>
+                <div class="alert alert-warn" th:if="${missingConsents}">
+                    Hay estudiantes sin autorización para el sitio web. Solo puedes aprobar si quedaron difuminados.
+                    <div class="checks"><label><input type="checkbox" name="confirmedBlurred" value="true">
+                        Confirmo que los estudiantes sin autorización quedaron difuminados</label></div>
+                </div>
+                <button type="submit" class="btn">Aprobar para el sitio</button>
+            </form>
+            <form th:action="@{/admin/review/{id}/exempt(id=${asset.id})}" method="post" th:if="${#lists.isEmpty(appearances)}">
+                <div class="field"><label for="altText2">Texto alternativo</label>
+                    <input id="altText2" type="text" name="altText" maxlength="300" th:value="${asset.altText}"></div>
+                <button type="submit" class="btn btn-secondary">Sin personas (fachada, paisaje, objeto)</button>
+            </form>
+            <form th:action="@{/admin/review/{id}/reject(id=${asset.id})}" method="post">
+                <div class="field"><label for="note">Motivo del rechazo</label><input id="note" type="text" name="note" maxlength="500"></div>
+                <button type="submit" class="btn btn-danger">Rechazar</button>
+            </form>
+        </div>
+    </section>
+</main>
+</body>
+</html>

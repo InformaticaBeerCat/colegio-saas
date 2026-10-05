@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/layout :: head(title='Medio')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: admin-header}"></header>
+<main id="contenido" class="container" th:with="isImage=${asset.kind.name() == 'IMAGE'}">
+    <p><a th:href="@{/admin/media}">← Biblioteca</a></p>
+    <div class="page-head">
+        <h1 th:text="${asset.file != null ? asset.file.originalName : 'Video'}">foto.jpg</h1>
+        <div class="actions">
+            <span th:replace="~{admin/media/fragments :: status(${asset})}"></span>
+            <a class="btn btn-secondary" sec:authorize="hasAuthority('MEDIA_REVIEW')" th:unless="${asset.withdrawn}"
+               th:href="@{/admin/review/{id}(id=${asset.id})}">Revisar autorización</a>
+        </div>
+    </div>
+    <div th:replace="~{fragments/layout :: flash}"></div>
+    <div class="alert alert-warn" role="status" th:if="${asset.reviewNote}">
+        <strong>Nota de revisión:</strong> <span th:text="${asset.reviewNote}">Nota</span>
+    </div>
+    <div class="alert alert-problem" role="status" th:if="${asset.withdrawn}">
+        Retirada de todo el sitio el <span th:text="${@formats.dateTime(asset.withdrawnAt)}">—</span>.
+        <span th:if="${asset.withdrawalReason}" th:text="|Motivo: ${asset.withdrawalReason}|"></span>
+    </div>
+
+    <div class="media-edit">
+        <section class="card" aria-labelledby="vista">
+            <h2 id="vista">Vista</h2>
+            <th:block th:if="${isImage}" th:with="img=${@media.preview(asset, false)}">
+                <img th:if="${img}" th:src="${img.src}" th:width="${img.width}" th:height="${img.height}" th:alt="${img.alt}" class="media-preview">
+                <p class="hint" th:if="${asset.blurredFile}">Se muestra la versión difuminada: es la única que ve el público.</p>
+            </th:block>
+            <p th:unless="${isImage}"><a th:href="${asset.embedUrl}" rel="noopener" th:text="${asset.embedUrl}">video</a></p>
+            <p class="hint" th:if="${asset.file}">
+                <span th:text="|${asset.file.width} × ${asset.file.height} px · ${@formats.size(asset.file.sizeBytes)}|">1600 × 1200</span>
+                · <span th:text="|${asset.file.variants.size()} versiones optimizadas|">6 versiones</span>
+                · sin datos EXIF
+            </p>
+        </section>
+
+        <form class="card" th:action="@{/admin/media/{id}(id=${asset.id})}" method="post" aria-labelledby="datos">
+            <h2 id="datos">Datos</h2>
+            <div class="field"><label for="altText">Texto alternativo <span class="muted">(obligatorio para publicar)</span></label>
+                <input id="altText" type="text" name="altText" maxlength="300" th:value="${asset.altText}" aria-describedby="alt-hint">
+                <span id="alt-hint" class="hint">Describe lo que muestra la foto para quien no la ve: "Estudiantes de básica en la feria científica".
+                    Sin nombres completos de estudiantes.</span></div>
+            <div class="field"><label for="caption">Pie de foto</label><input id="caption" type="text" name="caption" maxlength="500" th:value="${asset.caption}"></div>
+            <div class="color-grid">
+                <div class="field"><label for="credits">Créditos</label><input id="credits" type="text" name="credits" maxlength="255" th:value="${asset.credits}" placeholder="Foto: Equipo de comunicaciones"></div>
+                <div class="field"><label for="takenOn">Fecha</label><input id="takenOn" type="date" name="takenOn" th:value="${asset.takenOn}"></div>
+                <div class="field"><label for="folderId">Carpeta</label>
+                    <select id="folderId" name="folderId"><option value="">Sin carpeta</option>
+                        <option th:each="f : ${folders}" th:value="${f.id}" th:text="${f.name}" th:selected="${asset.folder != null and asset.folder.id == f.id}">Aniversario</option></select></div>
+                <div class="field"><label for="tags">Etiquetas</label><input id="tags" type="text" name="tags" th:value="${tags}"></div>
+            </div>
+            <button type="submit" class="btn">Guardar</button>
+        </form>
+    </div>
+
+    <section class="card section" aria-labelledby="difuminar" th:if="${isImage and !asset.withdrawn}">
+        <h2 id="difuminar">Difuminar rostros</h2>
+        <p class="hint">Arrastra sobre la foto para marcar cada zona. El difuminado es irreversible en la versión pública;
+            la original solo la ve el equipo del panel.</p>
+        <div class="blur-editor" data-blur-editor th:with="orig=${@media.preview(asset, true)}">
+            <img th:src="${orig.src}" th:width="${orig.width}" th:height="${orig.height}" alt="Foto original para marcar zonas" class="blur-editor__image">
+        </div>
+        <form th:action="@{/admin/media/{id}/blur(id=${asset.id})}" method="post">
+            <div class="field"><label for="regions">Zonas (x, y, ancho, alto en %; separadas por punto y coma)</label>
+                <input id="regions" type="text" name="regions" th:value="${regions}" data-blur-regions placeholder="10,20,15,15; 60,25,12,14"></div>
+            <div class="actions">
+                <button type="submit" class="btn">Aplicar difuminado</button>
+                <button type="button" class="btn btn-secondary" data-blur-clear hidden>Borrar zonas</button>
+            </div>
+        </form>
+    </section>
+
+    <div class="cards section">
+        <form class="card" th:unless="${asset.withdrawn}" th:action="@{/admin/media/{id}/withdraw(id=${asset.id})}" method="post">
+            <h2>Retirar de todo el sitio</h2>
+            <p class="hint">Deja de verse de inmediato en álbumes, noticias y páginas (MED-09).</p>
+            <div class="field"><label for="reason">Motivo</label><input id="reason" type="text" name="reason" maxlength="300"></div>
+            <button type="submit" class="btn btn-danger">Retirar</button>
+        </form>
+        <form class="card" sec:authorize="hasAuthority('MEDIA_UPLOAD')" th:action="@{/admin/media/{id}/delete(id=${asset.id})}" method="post">
+            <h2>Eliminar</h2>
+            <p class="hint">Solo si no se usa en ninguna parte.</p>
+            <button type="submit" class="btn btn-danger">Eliminar de la biblioteca</button>
+        </form>
+    </div>
+    <script th:src="@{/js/blur-editor.js}" defer></script>
+</main>
+</body>
+</html>

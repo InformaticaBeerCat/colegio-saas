@@ -12,11 +12,11 @@ import java.util.Optional;
 
 public interface NewsArticleRepository extends JpaRepository<NewsArticle, Long> {
 
-    @EntityGraph(attributePaths = {"category", "gradeLevels"})
+    @EntityGraph(attributePaths = {"category", "gradeLevels", "featuredImage", "featuredImage.file", "featuredImage.blurredFile"})
     Optional<NewsArticle> findBySlug(String slug);
 
     /** Para el editor: autor, revisor, categoría y niveles en una sola consulta (no hay sesión abierta en la vista). */
-    @EntityGraph(attributePaths = {"author", "reviewer", "category", "gradeLevels"})
+    @EntityGraph(attributePaths = {"author", "reviewer", "category", "gradeLevels", "featuredImage"})
     Optional<NewsArticle> findWithDetailsById(Long id);
 
     /** Misma regla que {@link NewsArticle#isVisibleAt}, resuelta en la base. */
@@ -32,7 +32,7 @@ public interface NewsArticleRepository extends JpaRepository<NewsArticle, Long> 
      * Listado público con filtros opcionales por categoría y nivel (NOT-01). Una noticia sin niveles es
      * para todo el colegio: aparece en cualquier filtro de nivel.
      */
-    @EntityGraph(attributePaths = "category")
+    @EntityGraph(attributePaths = {"category", "featuredImage", "featuredImage.file", "featuredImage.blurredFile"})
     @Query(value = """
             select n from NewsArticle n
             where (n.status = cl.colegiosaas.news.NewsStatus.PUBLISHED

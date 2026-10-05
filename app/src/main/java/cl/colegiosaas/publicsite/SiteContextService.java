@@ -6,6 +6,7 @@ import cl.colegiosaas.page.Page;
 import cl.colegiosaas.page.PageKind;
 import cl.colegiosaas.platform.School;
 import cl.colegiosaas.platform.SchoolRepository;
+import cl.colegiosaas.site.BrandService;
 import cl.colegiosaas.site.FooterService;
 import cl.colegiosaas.site.SiteAlertRepository;
 import cl.colegiosaas.site.SiteDesign;
@@ -33,15 +34,17 @@ public class SiteContextService {
     private final MenuService menus;
     private final FooterService footer;
     private final SiteAlertRepository alerts;
+    private final BrandService brands;
     private final Clock clock;
 
     SiteContextService(SchoolRepository schools, SiteDesignService designs, MenuService menus, FooterService footer,
-                       SiteAlertRepository alerts, Clock clock) {
+                       SiteAlertRepository alerts, BrandService brands, Clock clock) {
         this.schools = schools;
         this.designs = designs;
         this.menus = menus;
         this.footer = footer;
         this.alerts = alerts;
+        this.brands = brands;
         this.clock = clock;
     }
 
@@ -69,9 +72,12 @@ public class SiteContextService {
     private SiteContext build(SiteDesign design, String stylesheetPath, boolean preview, Long currentPageId) {
         String schoolName = schools.findSingleton().map(School::getName).orElse("Colegio");
         String version = ThemeStylesheet.of(design).version();
+        BrandService.Brand brand = brands.current();
         Function<Page, String> link = page -> linkTo(page, preview);
         return new SiteContext(
                 schoolName,
+                brand.logo(),
+                brand.faviconHref(),
                 Theme.of(design).id(),
                 stylesheetPath + "?v=" + version,
                 preview ? PREVIEW_ROOT : "/",
