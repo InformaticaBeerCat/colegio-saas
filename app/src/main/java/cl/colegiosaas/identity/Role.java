@@ -1,10 +1,9 @@
 package cl.colegiosaas.identity;
 
-/**
- * Roles dentro de un colegio (sección 2 de requerimientos). El Super Admin no está aquí:
- * es un {@code PlatformOperator}. Los permisos finos por rol se definen en la fase 2.
- */
+/** Roles de la instalación (sección 2 de requerimientos). Los permisos finos por rol se definen en la fase 2. */
 public enum Role {
+    /** Proveedor: instala, actualiza, da soporte y edita CSS personalizado (CFG-09). */
+    SUPER_ADMIN(true),
     SCHOOL_ADMIN(true),
     EDITOR(false),
     /** Gestor de agenda: admisión, inspectoría, profesores jefe. */

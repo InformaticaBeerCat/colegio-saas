@@ -1,6 +1,6 @@
 package cl.colegiosaas.identity;
 
-import cl.colegiosaas.shared.persistence.TenantEntity;
+import cl.colegiosaas.shared.persistence.BaseEntity;
 import jakarta.persistence.CollectionTable;
 import jakarta.persistence.Column;
 import jakarta.persistence.ElementCollection;
@@ -25,7 +25,7 @@ import java.util.Locale;
 import java.util.Set;
 
 /**
- * Persona con acceso al panel o a la zona comunidad de UN colegio.
+ * Persona con acceso al panel o a la zona comunidad.
  * Se llama UserAccount para no chocar con {@code User} de Spring Security ni con la palabra reservada "user".
  */
 @Entity
@@ -33,7 +33,7 @@ import java.util.Set;
 @Getter
 @Setter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class UserAccount extends TenantEntity {
+public class UserAccount extends BaseEntity {
 
     @Email
     @NotBlank

@@ -3,6 +3,9 @@
 Sitio web público configurable para colegios chilenos: identidad de marca por colegio, módulos por plan,
 y cumplimiento de publicación (Reglamento Interno, SAE) y de datos personales (Ley 21.719).
 
+Como Nextcloud, **cada colegio corre su propia instalación**: el mismo código se despliega una vez por colegio
+y se personaliza desde el panel, sin tocar el código.
+
 - [Plan de desarrollo](docs/PLAN.md): decisiones de arquitectura, convenciones y fases.
 - [Modelo de dominio](docs/domain-model.md): entidades y relaciones por iteración.
 

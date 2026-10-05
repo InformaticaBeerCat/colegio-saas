@@ -1,6 +1,6 @@
 package cl.colegiosaas.platform;
 
-import cl.colegiosaas.shared.persistence.BaseEntity;
+import cl.colegiosaas.shared.persistence.SingletonEntity;
 import jakarta.persistence.CollectionTable;
 import jakarta.persistence.Column;
 import jakarta.persistence.ElementCollection;
@@ -18,21 +18,21 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.time.Instant;
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.Locale;
 import java.util.Set;
 
 /**
- * El tenant: un establecimiento con su propio sitio. Todo lo que extiende
- * {@code TenantEntity} cuelga de un colegio. Esta tabla no se filtra por colegio.
+ * Perfil del colegio dueño de esta instalación (una instalación = un colegio, como Nextcloud).
+ * Lo crea el asistente de primer arranque (CFG-01) y luego solo se edita.
  */
 @Entity
 @Table(name = "school")
 @Getter
 @Setter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class School extends BaseEntity {
+public class School extends SingletonEntity {
 
     @NotBlank
     private String name;
@@ -41,25 +41,15 @@ public class School extends BaseEntity {
     @Pattern(regexp = "\\d{1,5}-[\\dK]")
     private String rbd;
 
+    /** Se completa en el asistente; nula mientras la instalación no está configurada. */
     @Enumerated(EnumType.STRING)
     private SchoolDependency dependency;
-
-    /** Sitio provisional: {subdomain}.dominio-del-proveedor (CFG-06). */
-    @Pattern(regexp = "[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?")
-    @Setter(AccessLevel.NONE)
-    private String subdomain;
-
-    /** Dominio propio del colegio, p. ej. "www.colegiosanjose.cl". */
-    @Setter(AccessLevel.NONE)
-    private String customDomain;
-
-    @Enumerated(EnumType.STRING)
-    private SchoolStatus status = SchoolStatus.ONBOARDING;
 
     @Enumerated(EnumType.STRING)
     @Setter(AccessLevel.NONE)
     private Plan plan;
 
+    /** Chile continental, Magallanes e Isla de Pascua tienen zonas distintas. */
     private String timeZone = "America/Santiago";
 
     private Address address;
@@ -69,6 +59,9 @@ public class School extends BaseEntity {
     @Email
     private String contactEmail;
 
+    @Setter(AccessLevel.NONE)
+    private Instant setupCompletedAt;
+
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "school_feature", joinColumns = @JoinColumn(name = "school_id"))
     @Enumerated(EnumType.STRING)
@@ -77,10 +70,8 @@ public class School extends BaseEntity {
     @Setter(AccessLevel.NONE)
     private Set<Feature> features = new HashSet<>();
 
-    public School(String name, SchoolDependency dependency, String subdomain, Plan plan) {
+    public School(String name, Plan plan) {
         this.name = name;
-        this.dependency = dependency;
-        this.subdomain = subdomain.toLowerCase(Locale.ROOT);
         changePlan(plan);
     }
 
@@ -109,7 +100,15 @@ public class School extends BaseEntity {
         return Collections.unmodifiableSet(features);
     }
 
-    public void assignCustomDomain(String domain) {
-        customDomain = domain == null ? null : domain.toLowerCase(Locale.ROOT);
+    /** Cierra el asistente de primer arranque; antes de esto el sitio público no se muestra. */
+    public void completeSetup() {
+        if (dependency == null) {
+            throw new IllegalStateException("Falta la dependencia administrativa del colegio");
+        }
+        setupCompletedAt = Instant.now();
+    }
+
+    public boolean isSetupCompleted() {
+        return setupCompletedAt != null;
     }
 }

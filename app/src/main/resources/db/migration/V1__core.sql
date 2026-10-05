@@ -1,32 +1,29 @@
--- Fase 1.1 — Núcleo: colegios (tenants), módulos contratados, operadores de plataforma,
--- usuarios con roles y registro de auditoría.
+-- Fase 1.1 — Núcleo: perfil del colegio, módulos activos, usuarios con roles y registro de auditoría.
+-- Una instalación = un colegio: no hay columna de colegio en las tablas.
 -- Dialecto MySQL 8.4+; también corre en H2 con MODE=MySQL (tests).
 -- Convención: los enums se guardan como VARCHAR (agregar un valor no exige ALTER TABLE).
 
+-- Una sola fila (id = 1), creada por el asistente de primer arranque.
 CREATE TABLE school (
-    id             BIGINT       NOT NULL AUTO_INCREMENT,
-    version        BIGINT       NOT NULL,
-    created_at     DATETIME(6)  NOT NULL,
-    updated_at     DATETIME(6)  NOT NULL,
-    name           VARCHAR(150) NOT NULL,
-    rbd            VARCHAR(10),
-    dependency     VARCHAR(30)  NOT NULL,
-    subdomain      VARCHAR(63)  NOT NULL,
-    custom_domain  VARCHAR(253),
-    status         VARCHAR(20)  NOT NULL,
-    plan           VARCHAR(20)  NOT NULL,
-    time_zone      VARCHAR(40)  NOT NULL,
-    street         VARCHAR(200),
-    commune        VARCHAR(80),
-    region         VARCHAR(80),
-    latitude       DOUBLE,
-    longitude      DOUBLE,
-    phone          VARCHAR(30),
-    contact_email  VARCHAR(254),
+    id                  BIGINT       NOT NULL,
+    version             BIGINT       NOT NULL,
+    created_at          DATETIME(6)  NOT NULL,
+    updated_at          DATETIME(6)  NOT NULL,
+    name                VARCHAR(150) NOT NULL,
+    rbd                 VARCHAR(10),
+    dependency          VARCHAR(30),
+    plan                VARCHAR(20)  NOT NULL,
+    time_zone           VARCHAR(40)  NOT NULL,
+    street              VARCHAR(200),
+    commune             VARCHAR(80),
+    region              VARCHAR(80),
+    latitude            DOUBLE,
+    longitude           DOUBLE,
+    phone               VARCHAR(30),
+    contact_email       VARCHAR(254),
+    setup_completed_at  DATETIME(6),
     CONSTRAINT pk_school PRIMARY KEY (id),
-    CONSTRAINT uk_school_rbd UNIQUE (rbd),
-    CONSTRAINT uk_school_subdomain UNIQUE (subdomain),
-    CONSTRAINT uk_school_custom_domain UNIQUE (custom_domain)
+    CONSTRAINT ck_school_single_row CHECK (id = 1)
 );
 
 CREATE TABLE school_feature (
@@ -36,26 +33,11 @@ CREATE TABLE school_feature (
     CONSTRAINT fk_school_feature_school FOREIGN KEY (school_id) REFERENCES school (id) ON DELETE CASCADE
 );
 
-CREATE TABLE platform_operator (
-    id             BIGINT       NOT NULL AUTO_INCREMENT,
-    version        BIGINT       NOT NULL,
-    created_at     DATETIME(6)  NOT NULL,
-    updated_at     DATETIME(6)  NOT NULL,
-    email          VARCHAR(254) NOT NULL,
-    name           VARCHAR(150) NOT NULL,
-    password_hash  VARCHAR(100),
-    active         BOOLEAN      NOT NULL,
-    last_login_at  DATETIME(6),
-    CONSTRAINT pk_platform_operator PRIMARY KEY (id),
-    CONSTRAINT uk_platform_operator_email UNIQUE (email)
-);
-
 CREATE TABLE user_account (
     id              BIGINT       NOT NULL AUTO_INCREMENT,
     version         BIGINT       NOT NULL,
     created_at      DATETIME(6)  NOT NULL,
     updated_at      DATETIME(6)  NOT NULL,
-    school_id       BIGINT       NOT NULL,
     email           VARCHAR(254) NOT NULL,
     name            VARCHAR(150) NOT NULL,
     password_hash   VARCHAR(100),
@@ -63,8 +45,7 @@ CREATE TABLE user_account (
     deactivated_at  DATETIME(6),
     last_login_at   DATETIME(6),
     CONSTRAINT pk_user_account PRIMARY KEY (id),
-    CONSTRAINT uk_user_account_school_email UNIQUE (school_id, email),
-    CONSTRAINT fk_user_account_school FOREIGN KEY (school_id) REFERENCES school (id)
+    CONSTRAINT uk_user_account_email UNIQUE (email)
 );
 
 CREATE TABLE user_account_role (
@@ -76,7 +57,6 @@ CREATE TABLE user_account_role (
 
 CREATE TABLE audit_log (
     id           BIGINT        NOT NULL AUTO_INCREMENT,
-    school_id    BIGINT        NOT NULL,
     occurred_at  DATETIME(6)   NOT NULL,
     actor_type   VARCHAR(30)   NOT NULL,
     actor_id     BIGINT,
@@ -86,9 +66,8 @@ CREATE TABLE audit_log (
     entity_id    VARCHAR(40),
     details      VARCHAR(2000),
     ip_address   VARCHAR(45),
-    CONSTRAINT pk_audit_log PRIMARY KEY (id),
-    CONSTRAINT fk_audit_log_school FOREIGN KEY (school_id) REFERENCES school (id)
+    CONSTRAINT pk_audit_log PRIMARY KEY (id)
 );
 
-CREATE INDEX ix_audit_log_occurred_at ON audit_log (school_id, occurred_at);
-CREATE INDEX ix_audit_log_entity ON audit_log (school_id, entity_type, entity_id);
+CREATE INDEX ix_audit_log_occurred_at ON audit_log (occurred_at);
+CREATE INDEX ix_audit_log_entity ON audit_log (entity_type, entity_id);

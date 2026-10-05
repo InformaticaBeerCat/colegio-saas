@@ -1,6 +1,5 @@
 package cl.colegiosaas.audit;
 
-import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -13,7 +12,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.Immutable;
-import org.hibernate.annotations.TenantId;
 
 import java.time.Instant;
 
@@ -32,17 +30,13 @@ public class AuditLogEntry {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @TenantId
-    @Column(nullable = false, updatable = false)
-    private Long schoolId;
-
     @CreationTimestamp
     private Instant occurredAt;
 
     @Enumerated(EnumType.STRING)
     private ActorType actorType;
 
-    /** Id del usuario u operador; nulo para el sistema o un visitante anónimo. */
+    /** Id del usuario; nulo para el sistema o un visitante anónimo. */
     private Long actorId;
 
     /** Copia del nombre al momento del hecho: el registro sobrevive aunque el usuario se borre. */

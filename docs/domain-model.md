@@ -3,7 +3,7 @@
 Diseño de entidades del MVP, agrupado por iteración de la Fase 1. Los diagramas muestran solo los campos
 que definen el modelo; todas las entidades heredan además `id`, `version`, `created_at` y `updated_at`.
 
-**Leyenda:** las tablas marcadas con 🏫 llevan `school_id` (heredan `TenantEntity`). 🔒 indica columnas cifradas.
+**Leyenda:** 🔒 indica columnas cifradas. Cada instalación atiende a un solo colegio, por eso ninguna tabla lleva columna de colegio.
 
 ---
 
@@ -12,44 +12,34 @@ que definen el modelo; todas las entidades heredan además `id`, `version`, `cre
 ```mermaid
 erDiagram
     SCHOOL ||--o{ SCHOOL_FEATURE : "módulos activos"
-    SCHOOL ||--o{ USER_ACCOUNT : ""
     USER_ACCOUNT ||--o{ USER_ACCOUNT_ROLE : ""
-    SCHOOL ||--o{ AUDIT_LOG : ""
 
     SCHOOL {
+        bigint id PK "siempre 1"
         varchar name
-        varchar rbd UK "8485-1"
+        varchar rbd "8485-1"
         varchar dependency "MUNICIPAL, SLEP, PRIVATE_SUBSIDIZED…"
-        varchar subdomain UK
-        varchar custom_domain UK
-        varchar status "ONBOARDING, ACTIVE, SUSPENDED, TERMINATED"
         varchar plan "BASE, COMMUNITY, ADMISSIONS_PRO"
         varchar time_zone
+        datetime setup_completed_at
     }
     SCHOOL_FEATURE {
         bigint school_id PK
         varchar feature PK "NEWS, SCHEDULING, PAYMENTS…"
     }
-    PLATFORM_OPERATOR {
+    USER_ACCOUNT {
         varchar email UK
         varchar name
         varchar password_hash
-        boolean active
-    }
-    USER_ACCOUNT {
-        bigint school_id "🏫"
-        varchar email "UK con school_id"
-        varchar name
         varchar status "INVITED, ACTIVE, LOCKED, DEACTIVATED"
     }
     USER_ACCOUNT_ROLE {
         bigint user_account_id PK
-        varchar role PK "SCHOOL_ADMIN, EDITOR, CONSENT_MANAGER…"
+        varchar role PK "SUPER_ADMIN, SCHOOL_ADMIN, EDITOR, CONSENT_MANAGER…"
     }
     AUDIT_LOG {
-        bigint school_id "🏫"
         datetime occurred_at
-        varchar actor_type
+        varchar actor_type "USER, SYSTEM, ANONYMOUS"
         bigint actor_id
         varchar action "CREATE, PUBLISH, VIEW_PERSONAL_DATA…"
         varchar entity_type
@@ -57,9 +47,11 @@ erDiagram
     }
 ```
 
-- `School` es el tenant. Un sostenedor con varios colegios (CFG-10) tendrá varias filas `school` + una futura tabla `school_group`.
-- `PlatformOperator` (Super Admin) vive fuera de los colegios: ningún colegio puede ver ni crear operadores.
-- `Plan` define módulos por defecto; los add-ons se activan aparte y sobreviven a un cambio de plan.
+- **Una instalación = un colegio.** `SCHOOL` es el perfil del colegio dueño de la instalación: una sola fila,
+  creada por el asistente de primer arranque. El dominio, la base de datos y la licencia son configuración del despliegue, no datos.
+- El Super Admin del proveedor es un `USER_ACCOUNT` con rol `SUPER_ADMIN`.
+- `Plan` define los módulos por defecto; los add-ons se activan aparte y sobreviven a un cambio de plan.
+  En la fase 9 la licencia firmada limita qué módulos se pueden activar.
 - `audit_log` es solo-inserción y guarda una copia del nombre del actor.
 
 ---
@@ -74,7 +66,7 @@ erDiagram
     GRADE_LEVEL ||--o{ COURSE : ""
 
     SITE_SETTINGS {
-        bigint school_id "🏫 UK (1 por colegio)"
+        bigint id PK "siempre 1 (SingletonEntity)"
         varchar theme_key "aurora, ..."
         varchar theme_variant
         json published_tokens "paleta, fuentes, radios"
@@ -84,8 +76,7 @@ erDiagram
         varchar whatsapp_number "COM-03"
     }
     PAGE {
-        bigint school_id "🏫"
-        varchar slug "UK con school_id"
+        varchar slug UK
         varchar title
         varchar kind "HOME, ABOUT, PEI, LEVELS, COEXISTENCE, CUSTOM…"
         varchar section "MAIN, PARENTS_CENTER, STUDENT_COUNCIL, ALUMNI"
@@ -97,7 +88,6 @@ erDiagram
         boolean noindex
     }
     MENU_ITEM {
-        bigint school_id "🏫"
         varchar menu "HEADER, FOOTER"
         varchar label
         bigint page_id FK "o url externa"
@@ -106,14 +96,12 @@ erDiagram
         int position
     }
     QUICK_LINK {
-        bigint school_id "🏫"
         varchar label "Napsis, Classroom, Pago mensualidad…"
         varchar url
         varchar icon
         int position
     }
     SITE_ALERT {
-        bigint school_id "🏫"
         varchar message
         varchar severity "INFO, WARNING, EMERGENCY"
         boolean active
@@ -121,14 +109,12 @@ erDiagram
         datetime ends_at
     }
     GRADE_LEVEL {
-        bigint school_id "🏫"
         varchar name "1° Básico"
         varchar stage "PRESCHOOL, PRIMARY, SECONDARY"
         varchar track "HC, TP (solo media)"
         int position
     }
     COURSE {
-        bigint school_id "🏫"
         bigint grade_level_id FK
         varchar section "A, B…"
         int academic_year
@@ -157,7 +143,6 @@ erDiagram
     COURSE ||--o{ ALBUM : "visibilidad por curso"
 
     STORED_FILE {
-        bigint school_id "🏫"
         varchar storage_key UK "ruta en S3"
         varchar original_name
         varchar content_type
@@ -169,7 +154,6 @@ erDiagram
         varchar scan_status "PENDING, CLEAN, INFECTED"
     }
     MEDIA_ASSET {
-        bigint school_id "🏫"
         bigint file_id FK
         varchar kind "IMAGE, VIDEO, EMBEDDED_VIDEO, DOCUMENT"
         varchar embed_url "YouTube/Vimeo"
@@ -182,7 +166,6 @@ erDiagram
         datetime withdrawn_at "MED-09"
     }
     ALBUM {
-        bigint school_id "🏫"
         varchar slug
         varchar title
         date taken_on
@@ -221,7 +204,6 @@ erDiagram
     DOCUMENT_VERSION ||--|| STORED_FILE : ""
 
     NEWS_ARTICLE {
-        bigint school_id "🏫"
         varchar slug
         varchar title
         varchar summary
@@ -234,7 +216,6 @@ erDiagram
         bigint reviewer_id FK
     }
     ANNOUNCEMENT {
-        bigint school_id "🏫"
         varchar title
         longtext body
         varchar audience "ALL, GRADE_LEVELS, COURSES"
@@ -243,7 +224,6 @@ erDiagram
         datetime published_at
     }
     EVENT {
-        bigint school_id "🏫"
         varchar slug
         varchar title
         varchar kind "HOLIDAY, VACATION, PARENT_MEETING, CEREMONY, OPEN_HOUSE…"
@@ -257,14 +237,12 @@ erDiagram
         datetime registration_closes_at
     }
     FAQ_ENTRY {
-        bigint school_id "🏫"
         bigint category_id FK
         varchar question
         text answer
         int position
     }
     WORKSHOP {
-        bigint school_id "🏫"
         varchar name
         varchar schedule
         varchar instructor
@@ -272,21 +250,18 @@ erDiagram
         int academic_year
     }
     INFO_SHEET {
-        bigint school_id "🏫"
         varchar kind "SUPPLY_LIST, UNIFORM, MENU"
         bigint grade_level_id FK
         int academic_year
         bigint file_id FK
     }
     INSTITUTIONAL_DOCUMENT {
-        bigint school_id "🏫"
         varchar category "INTERNAL_REGULATIONS, PROTOCOL, ANNEX, PISE…"
         varchar title
         varchar slug
         bigint parent_id FK
     }
     DOCUMENT_VERSION {
-        bigint school_id "🏫"
         bigint document_id FK
         bigint file_id FK
         int academic_year "DOC-02"
@@ -316,7 +291,6 @@ erDiagram
     STUDENT }o--o{ MEDIA_ASSET : "media_asset_student (etiquetado manual)"
 
     LEGAL_TEXT {
-        bigint school_id "🏫"
         varchar kind "PRIVACY_POLICY, COOKIE_POLICY, TERMS, PROCESSING_NOTICE, IMAGE_CONSENT_FORM"
         varchar form_key "CONTACT, SCHEDULING, EVENTS, ADMISSIONS…"
         int version_number
@@ -324,7 +298,6 @@ erDiagram
         datetime effective_from
     }
     CONSENT_RECORD {
-        bigint school_id "🏫"
         varchar subject_email "🔒"
         varchar subject_email_hash "búsqueda"
         varchar subject_name "🔒"
@@ -336,7 +309,6 @@ erDiagram
         datetime withdrawn_at
     }
     DATA_SUBJECT_REQUEST {
-        bigint school_id "🏫"
         varchar kind "ACCESS, RECTIFICATION, ERASURE, OBJECTION, PORTABILITY, BLOCKING"
         varchar requester_name "🔒"
         varchar requester_email "🔒"
@@ -345,13 +317,11 @@ erDiagram
         bigint handled_by FK
     }
     RETENTION_POLICY {
-        bigint school_id "🏫"
         varchar data_category "INQUIRIES, PROSPECTS, APPOINTMENTS…"
         int retention_days
         varchar action "DELETE, ANONYMIZE"
     }
     SECURITY_INCIDENT {
-        bigint school_id "🏫"
         datetime detected_at
         varchar severity
         text description
@@ -359,7 +329,6 @@ erDiagram
         datetime subjects_notified_at
     }
     STUDENT {
-        bigint school_id "🏫"
         bigint course_id FK
         varchar full_name "🔒"
         varchar guardian_email "🔒"
@@ -367,7 +336,6 @@ erDiagram
         boolean active
     }
     IMAGE_CONSENT {
-        bigint school_id "🏫"
         bigint student_id FK
         varchar channel "WEBSITE, SOCIAL_MEDIA, PRINT"
         datetime granted_at
@@ -405,14 +373,12 @@ erDiagram
     GRADE_LEVEL ||--o{ PROSPECT : "nivel de interés"
 
     CONTACT_AREA {
-        bigint school_id "🏫"
         varchar name "Admisión, Secretaría, Convivencia, Finanzas"
         varchar notify_email
         boolean active
     }
     INQUIRY {
-        bigint school_id "🏫"
-        varchar ticket_number "UK con school_id"
+        varchar ticket_number UK
         bigint area_id FK
         varchar name "🔒"
         varchar email "🔒"
@@ -424,7 +390,6 @@ erDiagram
         datetime first_response_at
     }
     APPOINTMENT_TYPE {
-        bigint school_id "🏫"
         varchar name "Visita guiada, Entrevista profesor jefe…"
         int duration_minutes
         int buffer_minutes
@@ -432,7 +397,6 @@ erDiagram
         varchar mode "IN_PERSON, ONLINE, BOTH"
     }
     AVAILABILITY_RULE {
-        bigint school_id "🏫"
         bigint host_id FK
         bigint appointment_type_id FK
         varchar day_of_week
@@ -440,19 +404,17 @@ erDiagram
         time end_time
     }
     AVAILABILITY_BLOCK {
-        bigint school_id "🏫"
         bigint host_id FK "nulo = todo el colegio"
         datetime starts_at
         datetime ends_at
         varchar reason
     }
     HOLIDAY {
-        date day UK "tabla de plataforma, sin school_id"
+        date day UK
         varchar name
         boolean mandatory
     }
     APPOINTMENT {
-        bigint school_id "🏫"
         bigint type_id FK
         bigint host_id FK
         datetime starts_at
@@ -464,7 +426,6 @@ erDiagram
         varchar staff_notes "no sensibles (AGE-10)"
     }
     EVENT_REGISTRATION {
-        bigint school_id "🏫"
         bigint event_id FK
         varchar name "🔒"
         varchar email "🔒"
@@ -475,26 +436,23 @@ erDiagram
         varchar manage_token_hash
     }
     ADMISSION_SETTINGS {
-        bigint school_id "🏫 UK"
+        bigint id PK "siempre 1 (SingletonEntity)"
         varchar mode "SAE, OWN"
         varchar sae_url
         int process_year
         json rules "ADM-08, reglas configurables"
     }
     ADMISSION_MILESTONE {
-        bigint school_id "🏫"
         varchar name
         date starts_on
         date ends_on
     }
     VACANCY {
-        bigint school_id "🏫"
         bigint grade_level_id FK
         int academic_year
         int seats
     }
     PROSPECT {
-        bigint school_id "🏫"
         varchar guardian_name "🔒"
         varchar email "🔒"
         varchar email_hash
@@ -510,7 +468,7 @@ erDiagram
 - Las visitas guiadas son `Appointment` de un tipo con audiencia `PROSPECTIVE_FAMILY`; las jornadas de puertas abiertas son `Event` con inscripción.
 - Los enlaces de reprogramar/cancelar llevan un token aleatorio; en la base solo se guarda su hash.
 - Evitar doble reserva: bloqueo pesimista sobre el gestor al reservar (MySQL no tiene índices únicos parciales portables).
-- `HOLIDAY` es de plataforma: se precarga por migración con los feriados chilenos de cada año.
+- `HOLIDAY` se precarga por migración con los feriados chilenos de cada año.
 
 ---
 

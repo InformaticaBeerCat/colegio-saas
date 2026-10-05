@@ -9,8 +9,9 @@ tests en verde y algo demostrable. Los IDs entre corchetes (`PUB-01`, `MED-06`�
 |---|---|---|
 | Stack | Java 21 LTS, Spring Boot 4.1, Hibernate 7, Maven (wrapper incluido) | Versiones estables actuales; Java 21 es el JDK instalado |
 | Forma | Monolito modular: un solo deployable, paquetes por funcionalidad (`platform`, `identity`, `media`…) | Un equipo chico no necesita microservicios; los límites por paquete permiten separar después |
-| Multi-tenant | Una base de datos, columna `school_id` en cada tabla del colegio, `@TenantId` de Hibernate | Sirve igual para alojado (muchos colegios), on-premise (uno) y sostenedores con varios colegios (CFG-10) |
-| Aislamiento | Sin colegio en contexto, las consultas no devuelven nada y los inserts fallan (falla cerrado) | Un olvido no puede filtrar datos de otro colegio |
+| Despliegue | **Una instalación = un colegio** (modelo Nextcloud): el mismo código se despliega una vez por colegio, en su servidor o alojado por el proveedor (un contenedor por colegio) | Datos de cada colegio físicamente separados; sin riesgo de cruce entre colegios; el colegio puede ser dueño de su servidor |
+| Personalización | Lo propio del colegio vive en la base de datos (perfil, marca, contenido) y en la configuración del despliegue (dominio, BD, almacenamiento, licencia) | Un solo código base para todos los clientes (OPS-02) |
+| Super Admin | Usuario con rol `SUPER_ADMIN` dentro de cada instalación (como el admin de Nextcloud) | El proveedor instala, actualiza y da soporte; su acceso queda en la auditoría |
 | Base de datos | MySQL 8.4+ como objetivo; H2 en modo MySQL para tests y arranque rápido | PostgreSQL queda para cuando un cliente lo pida (migraciones en `db/migration/postgresql`) |
 | Esquema | Flyway versionado; Hibernate solo valida (`ddl-auto=validate`) | Migraciones reproducibles y con rollback planificado (OPS-03) |
 | IDs | `BIGINT` autoincremental, nunca expuestos en URLs públicas | Afuera se usan slugs y tokens aleatorios |
@@ -29,8 +30,10 @@ tests en verde y algo demostrable. Los IDs entre corchetes (`PUB-01`, `MED-06`�
 - Colecciones expuestas como solo lectura; se modifican con métodos de dominio (`grantRole`, `enableFeature`).
 - Enums guardados como `VARCHAR` (agregar un valor no exige migración).
 - Tablas en singular snake_case; constraints con prefijo (`pk_`, `uk_`, `fk_`, `ix_`).
-- Toda entidad de un colegio extiende `TenantEntity`; las de plataforma, `BaseEntity`.
-- El colegio se fija con `TenantContext.use(id)` **antes** de abrir la transacción.
+- Las entidades extienden `BaseEntity`; las de una sola fila (perfil del colegio, configuración del sitio) extienden `SingletonEntity` (id = 1, con `CHECK` en la tabla).
+- Una entidad ya cargada se modifica dentro de la transacción **sin llamar `save()`**: Hibernate detecta el cambio solo (dirty checking).
+  `save()` es solo para entidades nuevas. Motivo: en Hibernate 7.4, un `save()` (merge) que deja vacía una colección pierde el `DELETE`.
+- Una migración Flyway publicada no se edita nunca; los cambios van en una versión nueva.
 
 ## Estructura del repositorio
 
@@ -41,8 +44,8 @@ colegio-saas/
 └── app/                aplicación Spring Boot (Maven)
     ├── compose.yaml    MySQL + Mailpit para desarrollo
     └── src/main/java/cl/colegiosaas/
-        ├── shared/     persistencia base y multi-tenant
-        ├── platform/   colegios, planes, módulos, operadores
+        ├── shared/     persistencia base
+        ├── platform/   perfil del colegio, planes y módulos
         ├── identity/   usuarios y roles
         └── audit/      registro de auditoría
 ```
@@ -60,20 +63,21 @@ entidades, repositorios, su migración Flyway y tests de persistencia.
 
 | Iteración | Contenido | Estado |
 |---|---|---|
-| 1.1 Núcleo | `BaseEntity`, `TenantEntity`, `TenantContext`, `School`, `Feature`/`Plan`, `PlatformOperator`, `UserAccount`/`Role`, `AuditLogEntry` | ✅ |
+| 1.1 Núcleo | `BaseEntity`, `SingletonEntity`, `School` (perfil), `Feature`/`Plan`, `UserAccount`/`Role`, `AuditLogEntry` | ✅ |
 | 1.2 Sitio y estructura | `SiteSettings` (tokens JSON), `Page` (bloques JSON), `MenuItem`, `QuickLink`, `SiteAlert`, `GradeLevel`, `Course` | ⬜ |
 | 1.3 Medios | `StoredFile`, `MediaFolder`, `MediaAsset`, `MediaTag`, `Album`, `AlbumItem` | ⬜ |
 | 1.4 Contenido y documentos | `NewsArticle`, `NewsCategory`, `Announcement`, `Event`, `FaqCategory`, `FaqEntry`, `Workshop`, `InfoSheet`, `InstitutionalDocument`, `DocumentVersion` | ⬜ |
 | 1.5 Privacidad y consentimientos | Cifrado de columnas, `LegalText`, `ConsentRecord`, `DataSubjectRequest`, `RetentionPolicy`, `SecurityIncident`, `Student`, `ImageConsent` | ⬜ |
 | 1.6 Interacción | `ContactArea`, `Inquiry`, `InquiryNote`, `AppointmentType`, `AvailabilityRule`, `AvailabilityBlock`, `Holiday`, `Appointment`, `EventRegistration`, `AdmissionSettings`, `AdmissionMilestone`, `Vacancy`, `Prospect` | ⬜ |
 
-**Listo cuando:** todas las tablas MVP existen, Hibernate valida contra MySQL real y hay un test de aislamiento por colegio para cada agregado con datos personales.
+**Listo cuando:** todas las tablas MVP existen, Hibernate valida contra MySQL real y cada agregado tiene tests de persistencia de sus reglas.
 
 ### Fase 2 — Seguridad e identidad
-- Resolución del colegio por host (dominio propio o subdominio) en un filtro web, con caché.
+- Instalador de primer arranque, como Nextcloud: crea la cuenta `SUPER_ADMIN`/`SCHOOL_ADMIN` y el perfil del colegio;
+  el sitio público no se muestra hasta completar el asistente [CFG-01].
 - Spring Security: login de panel, sesiones, CSRF, cabeceras (CSP, HSTS) [SEG-01].
 - Permisos por rol y módulo [USR-01]; respetar `Feature` contratadas [CFG-07].
-- MFA TOTP obligatorio para `SCHOOL_ADMIN`, `CONSENT_MANAGER` y operadores [USR-02].
+- MFA TOTP obligatorio para `SUPER_ADMIN`, `SCHOOL_ADMIN` y `CONSENT_MANAGER` [USR-02].
 - Invitación de usuarios, baja rápida [USR-04], rate limiting de login [SEG-06].
 - Auditoría automática de acciones del panel [USR-03].
 
@@ -116,11 +120,14 @@ entidades, repositorios, su migración Flyway y tests de persistencia.
 - Presupuesto de Core Web Vitals verificado en CI [UX-02].
 
 ### Fase 9 — Operación
-- Imagen Docker y `compose` de producción con instalación en un comando [OPS-01, OPS-09].
-- Licencias por instalación [OPS-05]; canal de actualización [OPS-04].
+- Imagen Docker y `compose` de producción: un colegio se instala con un comando y variables de entorno
+  (dominio, base de datos, almacenamiento, llave de cifrado, licencia) [OPS-01, OPS-09].
+- Licencia firmada por instalación: define plan y add-ons; los módulos activables quedan limitados por ella [OPS-05].
+- Canal de actualización con migraciones automáticas [OPS-03, OPS-04].
 - Respaldos diarios con restauración probada [SEG-05]; monitoreo y alertas [OPS-06].
 - Exportación completa del colegio [OPS-10]; escaneo de dependencias en CI [SEG-02].
 
 ### Después del MVP
 v2: zona comunidad con login, newsletter y push, agenda con sincronización de calendarios, QR en eventos, multilingüe, PWA, reportes.
-Premium: admisión propia y CRM, chatbot, pagos, detección facial asistida, multi-colegio para sostenedores.
+Premium: admisión propia y CRM, chatbot, pagos, detección facial asistida.
+Sostenedores con varios colegios (CFG-10): una instalación por colegio más exportar/importar el tema para compartir diseño.

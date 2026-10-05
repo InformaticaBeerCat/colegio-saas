@@ -32,6 +32,5 @@ public enum Feature {
     PAYMENTS,
     WHATSAPP_SMS,
     VIRTUAL_TOUR_360,
-    FACE_DETECTION,
-    MULTI_SCHOOL
+    FACE_DETECTION
 }
