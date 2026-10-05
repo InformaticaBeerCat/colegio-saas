@@ -1,0 +1,160 @@
+/* Panel de administración. Sin dependencias ni JavaScript: contraste AA, foco visible, móvil primero. */
+:root {
+    --ink: #1a1d23;
+    --muted: #5b6270;
+    --line: #d9dee6;
+    --bg: #f4f5f7;
+    --surface: #ffffff;
+    --primary: #1f3a5f;
+    --primary-hover: #16304f;
+    --on-primary: #ffffff;
+    --danger: #b42318;
+    --ok-bg: #e7f4ec;
+    --ok-ink: #14532d;
+    --problem-bg: #fdecea;
+    --problem-ink: #8a1c13;
+    --focus: #f0b429;
+    --radius: 8px;
+    --font: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
+* { box-sizing: border-box; }
+
+body {
+    margin: 0;
+    font: 16px/1.5 var(--font);
+    color: var(--ink);
+    background: var(--bg);
+}
+
+a { color: var(--primary); }
+a:hover { color: var(--primary-hover); }
+
+:focus-visible {
+    outline: 3px solid var(--focus);
+    outline-offset: 2px;
+}
+
+h1, h2, h3 { line-height: 1.25; margin: 0 0 .75rem; }
+h1 { font-size: 1.6rem; }
+h2 { font-size: 1.2rem; }
+
+.muted { color: var(--muted); }
+.eyebrow { color: var(--muted); font-size: .85rem; text-transform: uppercase; letter-spacing: .06em; margin: 0 0 .25rem; }
+
+.skip-link {
+    position: absolute;
+    left: -999px;
+    top: .5rem;
+    background: var(--surface);
+    padding: .5rem 1rem;
+    border-radius: var(--radius);
+}
+.skip-link:focus { left: 1rem; z-index: 10; }
+
+/* --- Barra superior del panel --- */
+.topbar { background: var(--primary); color: var(--on-primary); }
+.topbar__inner {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: .75rem 1rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: .5rem 1.25rem;
+    align-items: center;
+}
+.topbar a, .topbar .link { color: var(--on-primary); text-decoration: none; }
+.topbar a:hover, .topbar .link:hover { text-decoration: underline; color: var(--on-primary); }
+.brand { font-weight: 700; margin-right: auto; }
+.topbar nav { display: flex; flex-wrap: wrap; gap: 1rem; }
+
+.container { max-width: 1100px; margin: 0 auto; padding: 1.5rem 1rem 3rem; }
+
+/* --- Tarjetas y pantallas de acceso --- */
+.card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 1.5rem;
+}
+.cards { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
+
+.auth-shell { min-height: 100vh; display: grid; place-items: center; padding: 1.5rem 1rem; }
+.auth-card { width: 100%; max-width: 440px; }
+.wide-card { width: 100%; max-width: 720px; }
+
+.stack > * + * { margin-top: 1rem; }
+
+/* --- Formularios --- */
+fieldset { border: 1px solid var(--line); border-radius: var(--radius); padding: 1rem; margin: 0 0 1rem; }
+legend { font-weight: 600; padding: 0 .25rem; }
+
+.field { display: flex; flex-direction: column; gap: .3rem; margin-bottom: 1rem; }
+.field label { font-weight: 600; }
+.field .hint { color: var(--muted); font-size: .9rem; }
+.field-error { color: var(--problem-ink); font-size: .9rem; margin: 0; }
+
+input[type=text], input[type=email], input[type=password], input:not([type]), select {
+    font: inherit;
+    padding: .6rem .7rem;
+    border: 1px solid #9aa3b2;
+    border-radius: 6px;
+    background: var(--surface);
+    color: var(--ink);
+    width: 100%;
+}
+input[aria-invalid=true], select[aria-invalid=true] { border-color: var(--danger); }
+
+.checks { display: grid; gap: .4rem; }
+.checks label { font-weight: 400; display: flex; gap: .5rem; align-items: flex-start; }
+
+.btn {
+    display: inline-block;
+    font: inherit;
+    font-weight: 600;
+    padding: .6rem 1.1rem;
+    border-radius: 6px;
+    border: 1px solid var(--primary);
+    background: var(--primary);
+    color: var(--on-primary);
+    cursor: pointer;
+    text-decoration: none;
+}
+.btn:hover { background: var(--primary-hover); color: var(--on-primary); }
+.btn-secondary { background: var(--surface); color: var(--primary); }
+.btn-secondary:hover { background: var(--bg); color: var(--primary-hover); }
+.btn-danger { background: var(--danger); border-color: var(--danger); }
+.btn-danger:hover { background: #8f1b13; }
+
+.link { background: none; border: 0; padding: 0; font: inherit; cursor: pointer; text-decoration: underline; color: var(--primary); }
+form.inline { display: inline; }
+
+.actions { display: flex; flex-wrap: wrap; gap: .75rem; align-items: center; }
+.page-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 1rem; margin-bottom: 1rem; }
+
+/* --- Avisos --- */
+.alert { border-radius: 6px; padding: .75rem 1rem; margin: 0 0 1rem; }
+.alert-ok { background: var(--ok-bg); color: var(--ok-ink); }
+.alert-problem { background: var(--problem-bg); color: var(--problem-ink); }
+
+/* --- Tablas --- */
+.table-wrap { overflow-x: auto; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); }
+table.data { width: 100%; border-collapse: collapse; }
+table.data th, table.data td { text-align: left; padding: .6rem .8rem; border-bottom: 1px solid var(--line); vertical-align: top; }
+table.data th { font-size: .85rem; color: var(--muted); font-weight: 600; background: #fafbfc; }
+table.data tr:last-child td { border-bottom: 0; }
+
+.badge { display: inline-block; font-size: .8rem; padding: .1rem .5rem; border-radius: 999px; background: var(--bg); border: 1px solid var(--line); margin: 0 .25rem .25rem 0; }
+.badge-ok { background: var(--ok-bg); border-color: #b7dfc6; color: var(--ok-ink); }
+.badge-warn { background: #fff4d6; border-color: #f1d48a; color: #6b4e00; }
+
+/* --- Segundo factor --- */
+.qr { display: block; width: 220px; height: 220px; margin: .5rem 0 1rem; border: 1px solid var(--line); border-radius: var(--radius); }
+.secret { font-size: 1.05rem; letter-spacing: .05em; word-break: break-all; }
+.codes { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .5rem; padding-left: 1.5rem; font-family: ui-monospace, monospace; font-size: 1.05rem; }
+
+.pagination { display: flex; gap: 1rem; margin-top: 1rem; }
+
+@media (prefers-reduced-motion: reduce) {
+    * { transition: none !important; animation: none !important; }
+}

@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head(title='Instalación')}"></head>
+<body>
+<main id="contenido" class="auth-shell">
+    <section class="card wide-card" aria-labelledby="titulo">
+        <p class="eyebrow">Primer arranque</p>
+        <h1 id="titulo">Instalación del sitio</h1>
+        <p>Configura el colegio y crea la cuenta de administración principal. Todo se puede cambiar después,
+            salvo el correo de la cuenta.</p>
+
+        <form th:action="@{/setup}" th:object="${form}" method="post" novalidate>
+            <div class="alert alert-problem" role="alert" th:if="${#fields.hasErrors('*')}">
+                Revisa los campos marcados.
+            </div>
+
+            <fieldset>
+                <legend>Token de instalación</legend>
+                <div class="field">
+                    <label for="token">Token</label>
+                    <input type="text" th:field="*{token}" autocomplete="off" aria-describedby="token-hint"
+                           th:attr="aria-invalid=${#fields.hasErrors('token')}">
+                    <span id="token-hint" class="hint">Aparece en el log del servidor al arrancar (o en la variable APP_SETUP_TOKEN).</span>
+                    <p class="field-error" th:if="${#fields.hasErrors('token')}" th:errors="*{token}"></p>
+                </div>
+            </fieldset>
+
+            <fieldset>
+                <legend>Colegio</legend>
+                <div class="field">
+                    <label for="schoolName">Nombre del establecimiento</label>
+                    <input type="text" th:field="*{schoolName}" th:attr="aria-invalid=${#fields.hasErrors('schoolName')}">
+                    <p class="field-error" th:if="${#fields.hasErrors('schoolName')}" th:errors="*{schoolName}"></p>
+                </div>
+                <div class="field">
+                    <label for="rbd">RBD <span class="muted">(opcional por ahora; obligatorio para publicar el Reglamento Interno)</span></label>
+                    <input type="text" th:field="*{rbd}" placeholder="8485-1" th:attr="aria-invalid=${#fields.hasErrors('rbd')}">
+                    <p class="field-error" th:if="${#fields.hasErrors('rbd')}" th:errors="*{rbd}"></p>
+                </div>
+                <div class="field">
+                    <label for="dependency">Dependencia</label>
+                    <select th:field="*{dependency}" th:attr="aria-invalid=${#fields.hasErrors('dependency')}">
+                        <option value="">Elige…</option>
+                        <option th:each="d : ${dependencies}" th:value="${d}" th:text="${#messages.msg('dependency.' + d)}">Municipal</option>
+                    </select>
+                    <span class="hint">Define si la admisión es por el SAE o propia.</span>
+                    <p class="field-error" th:if="${#fields.hasErrors('dependency')}" th:errors="*{dependency}"></p>
+                </div>
+                <div class="field">
+                    <label for="plan">Plan contratado</label>
+                    <select th:field="*{plan}">
+                        <option th:each="p : ${plans}" th:value="${p}" th:text="${#messages.msg('plan.' + p)}">Base</option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label for="contactEmail">Correo de contacto del colegio <span class="muted">(opcional)</span></label>
+                    <input type="email" th:field="*{contactEmail}">
+                    <p class="field-error" th:if="${#fields.hasErrors('contactEmail')}" th:errors="*{contactEmail}"></p>
+                </div>
+            </fieldset>
+
+            <fieldset>
+                <legend>Tu cuenta (Super Admin)</legend>
+                <div class="field">
+                    <label for="adminName">Nombre</label>
+                    <input type="text" th:field="*{adminName}" autocomplete="name" th:attr="aria-invalid=${#fields.hasErrors('adminName')}">
+                    <p class="field-error" th:if="${#fields.hasErrors('adminName')}" th:errors="*{adminName}"></p>
+                </div>
+                <div class="field">
+                    <label for="adminEmail">Correo</label>
+                    <input type="email" th:field="*{adminEmail}" autocomplete="email" th:attr="aria-invalid=${#fields.hasErrors('adminEmail')}">
+                    <p class="field-error" th:if="${#fields.hasErrors('adminEmail')}" th:errors="*{adminEmail}"></p>
+                </div>
+                <div class="field">
+                    <label for="password">Contraseña</label>
+                    <input type="password" th:field="*{password}" autocomplete="new-password" aria-describedby="password-hint"
+                           th:attr="aria-invalid=${#fields.hasErrors('password')}">
+                    <span id="password-hint" class="hint">Al menos 12 caracteres. Al ingresar configurarás la verificación en dos pasos.</span>
+                    <p class="field-error" th:each="e : ${#fields.errors('password')}" th:text="${e}"></p>
+                </div>
+                <div class="field">
+                    <label for="passwordConfirmation">Repite la contraseña</label>
+                    <input type="password" th:field="*{passwordConfirmation}" autocomplete="new-password"
+                           th:attr="aria-invalid=${#fields.hasErrors('passwordConfirmation')}">
+                    <p class="field-error" th:if="${#fields.hasErrors('passwordConfirmation')}" th:errors="*{passwordConfirmation}"></p>
+                </div>
+            </fieldset>
+
+            <button type="submit" class="btn">Instalar</button>
+        </form>
+    </section>
+</main>
+</body>
+</html>

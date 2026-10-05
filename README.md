@@ -35,3 +35,26 @@ SPRING_PROFILES_ACTIVE=mysql ./mvnw spring-boot:run
 ```
 
 Para un MySQL propio, definir `DB_URL`, `DB_USER` y `DB_PASSWORD`.
+
+## Primer arranque
+
+1. Arranca la app. Mientras no esté instalada, el log muestra un aviso con un **token de instalación**:
+   ```
+    Instalación pendiente. Abre http://localhost:8080/setup e ingresa este token:
+      8JSGTR5MFNVT
+   ```
+   (Con H2 en memoria la instalación se pierde al detener la app; con MySQL queda guardada.)
+2. Abre `http://localhost:8080/setup`, ingresa el token, los datos del colegio y tu cuenta.
+3. Ingresa en `http://localhost:8080/admin/login`. Tu cuenta es `SUPER_ADMIN`, así que el primer ingreso te pide
+   configurar la verificación en dos pasos con una app autenticadora (Google Authenticator, 1Password…).
+
+Los correos (invitaciones, recuperar contraseña) se escriben en el log. Para verlos como correos reales, levanta
+Mailpit con `docker compose up -d` y arranca con `SPRING_MAIL_HOST=localhost SPRING_MAIL_PORT=1025`;
+quedan en `http://localhost:8025`.
+
+| Variable | Para qué |
+|---|---|
+| `APP_BASE_URL` | URL pública, para los enlaces de los correos |
+| `APP_SETUP_TOKEN` | Token de instalación fijo (instalaciones automatizadas) |
+| `APP_FIELD_KEY`, `APP_INDEX_KEY` | Llaves de cifrado de datos personales (`openssl rand -base64 32`) |
+| `APP_SECURE_COOKIES` | `true` en producción (HTTPS) |

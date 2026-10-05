@@ -42,6 +42,11 @@ tests en verde y algo demostrable. Los IDs entre corchetes (`PUB-01`, `MED-06`�
 - Fechas de calendario y citas en hora local del colegio (`LocalDateTime`); marcas técnicas en UTC (`Instant`).
 - Tokens de enlaces públicos: se entrega el token, se guarda solo su hash (`SecureTokens`).
 - Tests de persistencia con `@RepositoryTest` (H2 + cifrado + `TestFixtures`); `MySqlCompatibilityTest` contra MySQL real.
+- Tests web extienden `WebTestSupport` (MockMvc, transacción revertida, eventos registrados). Ojo: `.param()` agrega
+  valores, no los reemplaza.
+- El código pregunta por **permisos**, nunca por roles (`hasAuthority('USERS')`, `user.can(...)`).
+- Correos: el servicio publica `OutgoingMail` y se envía después del commit; sin SMTP se escriben en el log.
+- Textos de interfaz para enums en `messages.properties` (`role.EDITOR`, `status.ACTIVE`…), base para multilingüe.
 
 ## Estructura del repositorio
 
@@ -54,8 +59,12 @@ colegio-saas/
     └── src/main/java/cl/colegiosaas/
         ├── shared/     persistencia base, cifrado, tokens
         ├── platform/   perfil del colegio, planes y módulos
-        ├── identity/   usuarios y roles
-        ├── audit/      registro de auditoría
+        ├── identity/   usuarios, roles, permisos, invitaciones (web/ = pantallas)
+        ├── security/   login, MFA, bloqueos, sesiones, cabeceras
+        ├── setup/      instalador de primer arranque
+        ├── admin/      portada del panel
+        ├── publicsite/ sitio público (fase 3)
+        ├── audit/      registro de auditoría y su consulta
         ├── site/       diseño, accesos rápidos, alerta global
         ├── page/       páginas por bloques y menús
         ├── structure/  niveles y cursos
@@ -95,14 +104,22 @@ entidades, repositorios, su migración Flyway y tests de persistencia.
 
 > Pendiente: correr `MySqlCompatibilityTest` con Docker encendido (se salta solo sin Docker). Hasta entonces, todo está probado sobre H2 en modo MySQL.
 
-### Fase 2 — Seguridad e identidad
-- Instalador de primer arranque, como Nextcloud: crea la cuenta `SUPER_ADMIN`/`SCHOOL_ADMIN` y el perfil del colegio;
-  el sitio público no se muestra hasta completar el asistente [CFG-01].
-- Spring Security: login de panel, sesiones, CSRF, cabeceras (CSP, HSTS) [SEG-01].
-- Permisos por rol y módulo [USR-01]; respetar `Feature` contratadas [CFG-07].
-- MFA TOTP obligatorio para `SUPER_ADMIN`, `SCHOOL_ADMIN` y `CONSENT_MANAGER` [USR-02].
-- Invitación de usuarios, baja rápida [USR-04], rate limiting de login [SEG-06].
-- Auditoría automática de acciones del panel [USR-03].
+### Fase 2 — Seguridad e identidad ✅
+- Instalador de primer arranque, como Nextcloud [CFG-01]: mientras no hay instalación todo redirige a `/setup`,
+  que exige el token que aparece en el log (o `APP_SETUP_TOKEN`). Crea perfil del colegio, diseño y admisión por
+  defecto, y la cuenta `SUPER_ADMIN`. Después `/setup` responde 404.
+- Login de panel en `/admin/login` con mensajes genéricos (no revela qué correos existen), CSRF, cookie de sesión
+  `HttpOnly` + `SameSite=Lax` (+ `Secure` con `APP_SECURE_COOKIES=true`), cabeceras CSP, Referrer-Policy y
+  Permissions-Policy [SEG-01].
+- MFA TOTP obligatorio para `SUPER_ADMIN`, `SCHOOL_ADMIN` y `CONSENT_MANAGER` [USR-02]: QR (SVG sin JavaScript),
+  anti-repetición de códigos y 10 códigos de recuperación de un solo uso. Mientras falta el código, la sesión es
+  `MfaPendingAuthentication` y no abre el panel.
+- Permisos por rol (`Role.permissions()` → `Permission`) y `@PreAuthorize` por sección [USR-01]; módulos
+  contratados con `@RequiresFeature` (404 si no está activo) [CFG-07].
+- Usuarios: invitación por correo (7 días), aceptar, recuperar contraseña (1 hora), cambiar roles, reiniciar MFA y
+  baja inmediata que cierra las sesiones abiertas [USR-04].
+- Fuerza bruta: bloqueo de cuenta 15 min tras 5 fallos y límite por IP [SEG-06].
+- Auditoría de ingresos, fallos, bloqueos, invitaciones, permisos, bajas y MFA, con página de consulta [USR-03].
 
 ### Fase 3 — Marca y motor de temas
 - Asistente inicial [CFG-01]; 3 temas base con variantes [CFG-02].

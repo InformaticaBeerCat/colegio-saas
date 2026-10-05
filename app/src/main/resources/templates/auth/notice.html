@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head(title=${title})}"></head>
+<body>
+<main id="contenido" class="auth-shell">
+    <section class="card auth-card" aria-labelledby="titulo">
+        <h1 id="titulo" th:text="${title}">Aviso</h1>
+        <p th:text="${message}">Mensaje</p>
+        <p><a th:href="@{/admin/login}">Ir al ingreso</a></p>
+    </section>
+</main>
+</body>
+</html>

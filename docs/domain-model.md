@@ -54,6 +54,11 @@ erDiagram
   En la fase 9 la licencia firmada limita qué módulos se pueden activar.
 - `audit_log` es solo-inserción y guarda una copia del nombre del actor.
 
+**Agregado en la fase 2 (migración V7):** `user_account` suma `failed_login_attempts`, `locked_until`,
+`mfa_secret` 🔒, `mfa_enabled_at` y `mfa_last_used_step`; tablas nuevas `user_account_recovery_code`
+(hashes de los códigos de recuperación) y `account_token` (enlaces de invitación y de restablecer contraseña,
+guardados como hash, con vencimiento y uso único).
+
 ---
 
 ## 1.2 Sitio y estructura del colegio ✅

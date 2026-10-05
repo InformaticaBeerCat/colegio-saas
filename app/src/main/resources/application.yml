@@ -27,8 +27,26 @@ spring:
 server:
   error:
     include-stacktrace: never
+  servlet:
+    session:
+      timeout: 30m
+      cookie:
+        http-only: true
+        same-site: lax
+        # En producción (HTTPS) va en true: la cookie de sesión nunca viaja sin cifrar.
+        secure: ${APP_SECURE_COOKIES:false}
+
+# Correo: sin SPRING_MAIL_HOST los correos se escriben en el log. Con el compose de desarrollo:
+# SPRING_MAIL_HOST=localhost SPRING_MAIL_PORT=1025 (Mailpit en http://localhost:8025).
 
 app:
+  base-url: ${APP_BASE_URL:http://localhost:8080}
+  mail-from: ${APP_MAIL_FROM:no-responder@localhost}
+  security:
+    max-failed-logins: 5
+    lockout-duration: 15m
+    max-failed-logins-per-ip: 20
+    ip-window: 15m
   crypto:
     # Los valores por defecto son SOLO para desarrollo y tests. Cada instalación genera las suyas
     # (openssl rand -base64 32) y las entrega por variable de entorno; la fase 9 impide arrancar en

@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head(title='Auditoría')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: admin-header}"></header>
+<main id="contenido" class="container">
+    <h1>Registro de auditoría</h1>
+    <p class="muted">Quién hizo qué y cuándo. Los registros no se pueden editar ni borrar desde el panel.</p>
+
+    <div class="table-wrap">
+        <table class="data">
+            <caption class="skip-link">Acciones registradas, de la más reciente a la más antigua</caption>
+            <thead>
+            <tr><th scope="col">Fecha</th><th scope="col">Quién</th><th scope="col">Acción</th><th scope="col">Sobre</th><th scope="col">Detalle</th><th scope="col">IP</th></tr>
+            </thead>
+            <tbody>
+            <tr th:each="row : ${rows}">
+                <td th:text="${row.when}">05-10-2026 14:00:00</td>
+                <td th:text="${row.actor}">Ana</td>
+                <td th:text="${#messages.msg('audit.' + row.action)}">Ingresó</td>
+                <td th:text="${row.target}">UserAccount #1</td>
+                <td th:text="${row.details}"></td>
+                <td th:text="${row.ip}"></td>
+            </tr>
+            <tr th:if="${rows.empty}"><td colspan="6" class="muted">Sin registros.</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <nav class="pagination" aria-label="Páginas">
+        <a th:if="${rows.hasPrevious()}" th:href="@{/admin/audit(page=${rows.number - 1})}">← Más recientes</a>
+        <a th:if="${rows.hasNext()}" th:href="@{/admin/audit(page=${rows.number + 1})}">Más antiguos →</a>
+    </nav>
+</main>
+</body>
+</html>

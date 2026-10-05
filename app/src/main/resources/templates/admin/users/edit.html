@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head(title=${user.name})}"></head>
+<body>
+<header th:replace="~{fragments/layout :: admin-header}"></header>
+<main id="contenido" class="container">
+    <p><a th:href="@{/admin/users}">← Usuarios</a></p>
+    <h1 th:text="${user.name}">Ana</h1>
+    <p class="muted">
+        <span th:text="${user.email}">ana@colegio.cl</span> ·
+        <span th:text="${#messages.msg('status.' + user.status)}">Activo</span> ·
+        último ingreso <span th:text="${@formats.dateTime(user.lastLoginAt)}">—</span>
+    </p>
+    <div th:replace="~{fragments/layout :: flash}"></div>
+
+    <div class="cards">
+        <section class="card" aria-labelledby="roles">
+            <h2 id="roles">Roles</h2>
+            <p th:if="${isSelf}" class="muted">No puedes cambiar tus propios roles.</p>
+            <form th:unless="${isSelf}" th:action="@{/admin/users/{id}/roles(id=${user.id})}" th:object="${form}" method="post">
+                <div class="checks">
+                    <label th:each="r : ${assignableRoles}">
+                        <input type="checkbox" th:field="*{roles}" th:value="${r}">
+                        <span th:text="${#messages.msg('role.' + r)}">Editor</span>
+                    </label>
+                </div>
+                <p class="hint">Al guardar, sus sesiones abiertas se cierran para aplicar los permisos nuevos.</p>
+                <button type="submit" class="btn">Guardar roles</button>
+            </form>
+        </section>
+
+        <section class="card" aria-labelledby="acciones" th:unless="${isSelf}">
+            <h2 id="acciones">Acciones</h2>
+            <div class="stack">
+                <form th:if="${user.status.name() == 'INVITED'}" th:action="@{/admin/users/{id}/resend-invitation(id=${user.id})}" method="post">
+                    <button type="submit" class="btn btn-secondary">Reenviar invitación</button>
+                </form>
+                <form th:if="${user.mfaEnabled}" th:action="@{/admin/users/{id}/reset-mfa(id=${user.id})}" method="post">
+                    <button type="submit" class="btn btn-secondary">Reiniciar verificación en dos pasos</button>
+                    <p class="hint">Para quien perdió su teléfono: la configurará de nuevo al ingresar.</p>
+                </form>
+                <form th:if="${user.status.name() != 'DEACTIVATED'}" th:action="@{/admin/users/{id}/deactivate(id=${user.id})}" method="post">
+                    <div class="checks">
+                        <label><input type="checkbox" name="confirm" required> Confirmo que esta persona ya no debe tener acceso</label>
+                    </div>
+                    <p></p>
+                    <button type="submit" class="btn btn-danger">Dar de baja ahora</button>
+                    <p class="hint">Corta el acceso de inmediato, incluidas las sesiones abiertas. El historial se conserva.</p>
+                </form>
+                <p th:if="${user.status.name() == 'DEACTIVATED'}" class="muted">
+                    Cuenta dada de baja. Para que vuelva, invítala de nuevo con el mismo correo.
+                </p>
+            </div>
+        </section>
+    </div>
+</main>
+</body>
+</html>

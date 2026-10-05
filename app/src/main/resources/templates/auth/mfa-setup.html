@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head(title='Verificación en dos pasos')}"></head>
+<body>
+<main id="contenido" class="auth-shell">
+    <section class="card auth-card" aria-labelledby="titulo">
+        <h1 id="titulo">Activa la verificación en dos pasos</h1>
+        <p>Tu rol maneja datos sensibles, por eso pedimos un segundo factor además de la contraseña.
+            Escanea este código con una app autenticadora (Google Authenticator, Microsoft Authenticator, 1Password…).</p>
+
+        <img th:src="${qr}" class="qr" width="220" height="220"
+             alt="Código QR para agregar esta cuenta a tu app autenticadora">
+        <details>
+            <summary>¿No puedes escanear? Ingresa esta clave a mano</summary>
+            <p><code class="secret" th:text="${secret}">ABCD EFGH</code></p>
+        </details>
+
+        <div class="alert alert-problem" role="alert" th:if="${param.error}">
+            El código no es válido. Revisa que la hora del teléfono esté bien y prueba con el código nuevo.
+        </div>
+
+        <form th:action="@{/admin/mfa/setup}" method="post">
+            <div class="field">
+                <label for="code">Código de 6 dígitos que muestra la app</label>
+                <input id="code" name="code" inputmode="numeric" autocomplete="one-time-code" required autofocus>
+            </div>
+            <button type="submit" class="btn">Activar y continuar</button>
+        </form>
+        <div th:replace="~{fragments/layout :: cancel-login}"></div>
+    </section>
+</main>
+</body>
+</html>

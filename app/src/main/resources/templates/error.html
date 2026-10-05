@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head(title='Error')}"></head>
+<body>
+<main id="contenido" class="auth-shell">
+    <section class="card auth-card">
+        <h1>Algo salió mal</h1>
+        <p>Ocurrió un error inesperado. Intenta de nuevo en unos minutos.</p>
+        <p class="muted" th:if="${status}" th:text="|Código: ${status}|"></p>
+        <p><a th:href="@{/}">Ir al inicio</a></p>
+    </section>
+</main>
+</body>
+</html>

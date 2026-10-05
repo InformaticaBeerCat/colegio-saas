@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head(title='Usuarios')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: admin-header}"></header>
+<main id="contenido" class="container">
+    <div class="page-head">
+        <h1>Usuarios</h1>
+        <a class="btn" th:href="@{/admin/users/invite}">Invitar usuario</a>
+    </div>
+    <div th:replace="~{fragments/layout :: flash}"></div>
+
+    <div class="table-wrap">
+        <table class="data">
+            <thead>
+            <tr><th scope="col">Nombre</th><th scope="col">Roles</th><th scope="col">Estado</th><th scope="col">Último ingreso</th></tr>
+            </thead>
+            <tbody>
+            <tr th:each="u : ${users}">
+                <td>
+                    <a th:href="@{/admin/users/{id}(id=${u.id})}" th:text="${u.name}">Ana</a><br>
+                    <span class="muted" th:text="${u.email}">ana@colegio.cl</span>
+                </td>
+                <td><span class="badge" th:each="r : ${u.roles}" th:text="${#messages.msg('role.' + r)}">Editor</span></td>
+                <td>
+                    <span th:text="${#messages.msg('status.' + u.status)}"
+                          th:classappend="${u.status.name() == 'ACTIVE'} ? 'badge badge-ok' : 'badge badge-warn'">Activo</span>
+                    <span class="badge badge-ok" th:if="${u.mfaEnabled}">MFA</span>
+                </td>
+                <td th:text="${@formats.dateTime(u.lastLoginAt)}">—</td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</main>
+</body>
+</html>

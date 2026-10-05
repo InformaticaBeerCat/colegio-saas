@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head(title='Invitar usuario')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: admin-header}"></header>
+<main id="contenido" class="container">
+    <h1>Invitar usuario</h1>
+    <p class="muted">La persona recibe un correo para elegir su contraseña. El enlace vence en 7 días.</p>
+
+    <form th:action="@{/admin/users/invite}" th:object="${form}" method="post" class="card wide-card" novalidate>
+        <div class="alert alert-problem" role="alert" th:if="${#fields.hasGlobalErrors()}" th:each="e : ${#fields.globalErrors()}" th:text="${e}"></div>
+        <div class="field">
+            <label for="name">Nombre</label>
+            <input type="text" th:field="*{name}" th:attr="aria-invalid=${#fields.hasErrors('name')}">
+            <p class="field-error" th:if="${#fields.hasErrors('name')}" th:errors="*{name}"></p>
+        </div>
+        <div class="field">
+            <label for="email">Correo institucional</label>
+            <input type="email" th:field="*{email}" th:attr="aria-invalid=${#fields.hasErrors('email')}">
+            <p class="field-error" th:if="${#fields.hasErrors('email')}" th:errors="*{email}"></p>
+        </div>
+        <fieldset>
+            <legend>Roles</legend>
+            <div class="checks">
+                <label th:each="r : ${assignableRoles}">
+                    <input type="checkbox" th:field="*{roles}" th:value="${r}">
+                    <span><strong th:text="${#messages.msg('role.' + r)}">Editor</strong><br>
+                        <span class="muted" th:text="${#messages.msg('role.' + r + '.help')}">Qué puede hacer</span></span>
+                </label>
+            </div>
+            <p class="field-error" th:if="${#fields.hasErrors('roles')}" th:errors="*{roles}"></p>
+        </fieldset>
+        <div class="actions">
+            <button type="submit" class="btn">Enviar invitación</button>
+            <a th:href="@{/admin/users}">Cancelar</a>
+        </div>
+    </form>
+</main>
+</body>
+</html>
