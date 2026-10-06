@@ -25,4 +25,9 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Long> 
     /** Citas confirmadas a las que aún no se les envía recordatorio (AGE-04). */
     List<Appointment> findByStatusAndReminderSentAtIsNullAndStartsAtBetween(
             AppointmentStatus status, LocalDateTime from, LocalDateTime to);
+
+    List<Appointment> findByContactEmailHash(String contactEmailHash);
+
+    /** Citas que terminaron antes del corte (hora del colegio), para la retención (PRV-06). */
+    List<Appointment> findByEndsAtBefore(LocalDateTime cutoff);
 }

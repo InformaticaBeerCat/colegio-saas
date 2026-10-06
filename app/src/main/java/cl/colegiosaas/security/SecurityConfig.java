@@ -23,6 +23,8 @@ import org.springframework.security.web.context.SecurityContextRepository;
 import org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter.ReferrerPolicy;
 import org.springframework.security.web.header.writers.StaticHeadersWriter;
 import org.springframework.security.web.session.HttpSessionEventPublisher;
+import org.springframework.security.web.servlet.util.matcher.PathPatternRequestMatcher;
+import org.springframework.http.HttpMethod;
 
 import java.time.Clock;
 
@@ -60,6 +62,9 @@ class SecurityConfig {
                         .hasAuthority(MfaPendingAuthentication.AUTHORITY)
                         .requestMatchers("/admin/**").hasAuthority(Permission.PANEL_ACCESS.name())
                         .anyRequest().permitAll())
+                // El banner de cookies aparece en todas las páginas públicas: sin token CSRF, así mostrarlo no abre
+                // una sesión por visitante. Lo peor que logra un sitio ajeno es cambiar esa preferencia (PRV-03).
+                .csrf(csrf -> csrf.ignoringRequestMatchers(PathPatternRequestMatcher.pathPattern(HttpMethod.POST, "/privacidad/cookies/preferencias")))
                 .securityContext(context -> context.securityContextRepository(contextRepository))
                 .formLogin(form -> form
                         .loginPage("/admin/login")

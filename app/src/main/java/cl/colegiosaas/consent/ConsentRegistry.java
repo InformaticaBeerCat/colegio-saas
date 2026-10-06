@@ -10,6 +10,7 @@ import cl.colegiosaas.media.StoredFile;
 import cl.colegiosaas.privacy.LegalText;
 import cl.colegiosaas.privacy.LegalTextKind;
 import cl.colegiosaas.privacy.LegalTextRepository;
+import cl.colegiosaas.privacy.LegalTextService;
 import cl.colegiosaas.shared.crypto.BlindIndex;
 import cl.colegiosaas.shared.web.NotFound;
 import cl.colegiosaas.shared.web.RuleViolation;
@@ -31,14 +32,6 @@ import java.util.Optional;
 @Service
 public class ConsentRegistry {
 
-    /** Texto base del formulario; cada colegio debe revisarlo con su asesoría legal antes de usarlo. */
-    static final String BASE_FORM = """
-            <p>Autorizo al establecimiento a publicar fotografías y videos en que aparezca mi pupilo(a), tomados en
-            actividades escolares, en los canales que marco a continuación: sitio web del colegio, redes sociales del
-            colegio y material impreso. Cada canal se autoriza por separado.</p>
-            <p>El colegio no publicará junto a las imágenes el nombre completo del estudiante. Puedo revocar esta
-            autorización en cualquier momento; al hacerlo, el colegio retirará del sitio web las imágenes en que aparece.</p>""";
-
     private final StudentRepository students;
     private final ImageConsentRepository consents;
     private final StudentAppearanceRepository appearances;
@@ -46,13 +39,14 @@ public class ConsentRegistry {
     private final LegalTextRepository legalTexts;
     private final UserAccountRepository users;
     private final MediaLibrary media;
+    private final LegalTextService legalTextService;
     private final BlindIndex index;
     private final AuditTrail audit;
     private final Clock clock;
 
     ConsentRegistry(StudentRepository students, ImageConsentRepository consents, StudentAppearanceRepository appearances,
                     CourseRepository courses, LegalTextRepository legalTexts, UserAccountRepository users,
-                    MediaLibrary media, BlindIndex index, AuditTrail audit, Clock clock) {
+                    MediaLibrary media, LegalTextService legalTextService, BlindIndex index, AuditTrail audit, Clock clock) {
         this.students = students;
         this.consents = consents;
         this.appearances = appearances;
@@ -60,6 +54,7 @@ public class ConsentRegistry {
         this.legalTexts = legalTexts;
         this.users = users;
         this.media = media;
+        this.legalTextService = legalTextService;
         this.index = index;
         this.audit = audit;
         this.clock = clock;
@@ -108,19 +103,13 @@ public class ConsentRegistry {
         return legalTexts.findFirstByKindAndEffectiveFromIsNotNullOrderByVersionNumberDesc(LegalTextKind.IMAGE_CONSENT_FORM);
     }
 
-    /** Publica la primera versión del formulario desde el texto base (la fase 6 trae el editor de textos legales). */
+    /** Publica la primera versión del formulario desde la plantilla; después se ajusta en "Textos legales". */
     @Transactional
     public LegalText publishBaseForm(long userId) {
         if (currentForm().isPresent()) {
             throw new RuleViolation("Ya hay un formulario de autorización publicado");
         }
-        int next = legalTexts.findFirstByKindOrderByVersionNumberDesc(LegalTextKind.IMAGE_CONSENT_FORM)
-                .map(t -> t.getVersionNumber() + 1).orElse(1);
-        LegalText form = new LegalText(LegalTextKind.IMAGE_CONSENT_FORM, next, "Autorización de uso de imagen", BASE_FORM);
-        form.publish(user(userId));
-        legalTexts.save(form);
-        audit.record(AuditAction.PUBLISH, "LegalText", form.getId(), "Formulario de autorización de imagen v" + next);
-        return form;
+        return legalTextService.publishFromTemplate(LegalTextKind.IMAGE_CONSENT_FORM, userId);
     }
 
     @Transactional

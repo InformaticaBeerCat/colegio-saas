@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head(title='Solicitud de derechos')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: admin-header}"></header>
+<main id="contenido" class="container">
+    <p><a th:href="@{/admin/privacy/requests}">← Solicitudes</a></p>
+    <div class="page-head">
+        <div>
+            <h1 th:text="|Solicitud ${request.trackingCode}|">Solicitud D-7KQ2M9XA</h1>
+            <p>
+                <span class="badge" th:text="${#messages.msg('dsrStatus.' + request.status)}">Recibida</span>
+                <span th:if="${request.isOverdue(today)}" class="badge badge-problem">Fuera de plazo</span>
+            </p>
+        </div>
+    </div>
+    <div th:replace="~{fragments/layout :: flash}"></div>
+
+    <div class="cards section">
+        <section class="card wide-card" aria-labelledby="datos">
+            <h2 id="datos">Lo que se pide</h2>
+            <dl class="facts">
+                <dt>Derecho</dt><dd th:text="${#messages.msg('right.' + request.requestedRight)}">Acceso</dd>
+                <dt>Solicitante</dt><dd th:text="${request.requesterName ?: '—'}">María</dd>
+                <dt>Email</dt><dd th:text="${request.requesterEmail}">maria@correo.cl</dd>
+                <dt>En nombre de un menor</dt><dd th:text="${request.onBehalfOfMinor} ? 'Sí: acreditar que es su apoderado' : 'No'">No</dd>
+                <dt>Recibida</dt><dd th:text="${@formats.dateTime(request.createdAt)}">1 de marzo</dd>
+                <dt>Plazo de respuesta</dt><dd th:text="${@formats.date(request.dueOn)}">31 de marzo</dd>
+                <dt>A cargo</dt><dd th:text="${request.handledBy != null} ? ${request.handledBy.name} : 'Sin asignar'">Ana</dd>
+            </dl>
+            <p class="prewrap" th:if="${request.details}" th:text="${request.details}">Detalle</p>
+            <p th:unless="${request.details}" class="muted">Sin detalle adicional.</p>
+        </section>
+    </div>
+
+    <section class="card section" th:if="${request.resolution}" aria-labelledby="respuesta">
+        <h2 id="respuesta">Respuesta enviada</h2>
+        <p class="muted" th:text="|${@formats.dateTime(request.resolvedAt)}|">2 de marzo</p>
+        <p class="prewrap" th:text="${request.resolution}">Respuesta</p>
+    </section>
+
+    <th:block th:if="${request.status.isOpen()}">
+        <section class="card section" aria-labelledby="pasos">
+            <h2 id="pasos">Atender</h2>
+            <ol class="steps">
+                <li>Si no tienes certeza de quién escribe (o de que es apoderado del estudiante), pide acreditar identidad.</li>
+                <li>Toma la solicitud. Para acceso, portabilidad o supresión, usa
+                    <a th:href="@{/admin/privacy/people}">Datos de una persona</a> con su email.</li>
+                <li>Responde dentro del plazo: la persona recibe tu texto por correo.</li>
+            </ol>
+            <div class="actions">
+                <form th:if="${request.status.name() != 'IN_PROGRESS'}" th:action="@{/admin/privacy/requests/{id}/start(id=${request.id})}" method="post" class="inline">
+                    <button type="submit" class="btn">Tomar la solicitud</button>
+                </form>
+            </div>
+        </section>
+
+        <div class="cards section">
+            <form class="card" th:action="@{/admin/privacy/requests/{id}/identity(id=${request.id})}" method="post">
+                <h2>Pedir acreditar identidad</h2>
+                <div class="field"><label for="message">Qué necesitas</label>
+                    <textarea id="message" name="message" rows="4" maxlength="2000" required>Para proteger tus datos, necesitamos confirmar que eres tú. Por favor, responde este correo adjuntando una foto de tu cédula de identidad (puedes tapar el número de serie).</textarea></div>
+                <button type="submit" class="btn btn-secondary">Enviar</button>
+            </form>
+            <form class="card" th:action="@{/admin/privacy/requests/{id}/complete(id=${request.id})}" method="post">
+                <h2>Responder</h2>
+                <div class="field"><label for="resolution">Respuesta para la persona</label>
+                    <textarea id="resolution" name="resolution" rows="6" maxlength="2000" required></textarea></div>
+                <button type="submit" class="btn">Enviar respuesta y cerrar</button>
+            </form>
+            <form class="card" th:action="@{/admin/privacy/requests/{id}/reject(id=${request.id})}" method="post">
+                <h2>Rechazar</h2>
+                <div class="field"><label for="reason">Fundamento</label>
+                    <textarea id="reason" name="reason" rows="4" maxlength="2000" required aria-describedby="reason-hint"></textarea>
+                    <span id="reason-hint" class="hint">Por ejemplo: no se acreditó la identidad. Se le informa que puede reclamar ante la Agencia.</span></div>
+                <button type="submit" class="btn btn-danger">Rechazar</button>
+            </form>
+        </div>
+    </th:block>
+</main>
+</body>
+</html>

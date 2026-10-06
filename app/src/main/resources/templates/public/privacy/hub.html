@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="es-CL" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{public/layout :: head(${pageTitle}, ${metaDescription}, ${noindex})}"></head>
+<body th:class="|theme-${site.themeId}|">
+<div th:replace="~{public/layout :: top}"></div>
+<main id="contenido" tabindex="-1">
+    <header class="page-header"><div class="wrap">
+        <h1>Privacidad y datos personales</h1>
+        <p class="lead">Qué datos tratamos, para qué, cuánto tiempo los guardamos y cómo puedes ejercer tus derechos.</p>
+    </div></header>
+    <div class="wrap block">
+        <section class="notice section-group" aria-labelledby="derechos">
+            <h2 id="derechos">Tus derechos</h2>
+            <p>Puedes pedir acceso a tus datos, corregirlos, suprimirlos, oponerte a un uso o recibirlos en un archivo.
+                También si eres apoderado de un estudiante menor de edad.</p>
+            <a class="button" th:href="@{/privacidad/derechos}">Ejercer mis derechos</a>
+        </section>
+
+        <article th:if="${policy}" class="section-group">
+            <h2 th:text="${policy.title}">Política de privacidad</h2>
+            <p class="muted" th:text="|Versión ${policy.versionNumber}, vigente desde el ${@formats.date(policy.effectiveFrom)}.|">Versión 1</p>
+            <div class="prose" th:utext="${policy.content}">Texto</div>
+        </article>
+        <p th:unless="${policy}" class="muted section-group">El colegio está preparando su política de privacidad.</p>
+
+        <section class="section-group" th:unless="${#lists.isEmpty(others)}" aria-labelledby="otros">
+            <h2 id="otros">Otros textos y avisos</h2>
+            <ul class="history">
+                <li th:each="t : ${others}"><a th:href="@{/privacidad/{slug}(slug=${t.kind.slug()})}" th:text="${t.title}">Política de cookies</a></li>
+            </ul>
+        </section>
+    </div>
+</main>
+<footer th:replace="~{public/layout :: footer}"></footer>
+</body>
+</html>

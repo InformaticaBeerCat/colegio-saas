@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="es-CL" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{public/layout :: head(${pageTitle}, ${metaDescription}, ${noindex})}"></head>
+<body th:class="|theme-${site.themeId}|">
+<div th:replace="~{public/layout :: top}"></div>
+<main id="contenido" tabindex="-1">
+    <header class="page-header"><div class="wrap">
+        <p class="breadcrumb"><a th:href="@{/privacidad}">Privacidad</a></p>
+        <h1 th:text="${text.title}">Política de cookies</h1>
+        <p class="muted" th:text="|Versión ${text.versionNumber}, vigente desde el ${@formats.date(text.effectiveFrom)}.|">Versión 1</p>
+    </div></header>
+    <div class="wrap block">
+        <p class="notice" th:unless="${isCurrent}" role="note">
+            Estás viendo una versión anterior.
+            <a th:href="@{/privacidad/{slug}(slug=${text.kind.slug()})}">Ver la versión vigente</a>
+        </p>
+        <div class="prose" th:utext="${text.content}">Texto</div>
+
+        <th:block th:if="${isCurrent and text.kind.name() == 'COOKIE_POLICY'}">
+            <form th:replace="~{public/privacy/fragments :: cookie-preferences}"></form>
+        </th:block>
+
+        <section class="section-group" th:unless="${#lists.isEmpty(history)}" aria-labelledby="versiones">
+            <h2 id="versiones">Versiones</h2>
+            <ul class="history">
+                <li th:each="v : ${history}">
+                    <a th:href="@{/privacidad/{slug}/v{n}(slug=${v.kind.slug()}, n=${v.versionNumber})}"
+                       th:attr="aria-current=${v.id == text.id} ? 'page' : null"
+                       th:text="|Versión ${v.versionNumber}, desde el ${@formats.date(v.effectiveFrom)}|">Versión 1</a>
+                </li>
+            </ul>
+        </section>
+    </div>
+</main>
+<footer th:replace="~{public/layout :: footer}"></footer>
+</body>
+</html>

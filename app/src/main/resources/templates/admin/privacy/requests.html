@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head(title='Solicitudes de derechos')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: admin-header}"></header>
+<main id="contenido" class="container">
+    <p><a th:href="@{/admin/privacy}">← Privacidad</a></p>
+    <h1>Solicitudes de derechos</h1>
+    <div th:replace="~{fragments/layout :: flash}"></div>
+
+    <section class="section" aria-labelledby="abiertas">
+        <h2 id="abiertas">Abiertas</h2>
+        <div class="table-wrap">
+            <table class="data">
+                <caption class="visually-hidden">Solicitudes abiertas, la que vence primero arriba</caption>
+                <thead><tr><th scope="col">Código</th><th scope="col">Derecho</th><th scope="col">Estado</th><th scope="col">Vence</th><th scope="col">A cargo</th></tr></thead>
+                <tbody>
+                <tr th:each="r : ${open}">
+                    <td><a th:href="@{/admin/privacy/requests/{id}(id=${r.id})}" th:text="${r.trackingCode}">D-7KQ2M9XA</a></td>
+                    <td th:text="${#messages.msg('right.' + r.requestedRight)}">Acceso</td>
+                    <td th:text="${#messages.msg('dsrStatus.' + r.status)}">Recibida</td>
+                    <td>
+                        <span th:text="${@formats.date(r.dueOn)}">30 de marzo</span>
+                        <span th:if="${r.isOverdue(today)}" class="badge badge-problem">Fuera de plazo</span>
+                        <span th:if="${!r.isOverdue(today) and !r.dueOn.isAfter(today.plusDays(5))}" class="badge badge-warn">Vence pronto</span>
+                    </td>
+                    <td th:text="${r.handledBy != null} ? ${r.handledBy.name} : '—'">Ana</td>
+                </tr>
+                <tr th:if="${#lists.isEmpty(open)}"><td colspan="5" class="muted">No hay solicitudes abiertas.</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <section class="section" aria-labelledby="cerradas" th:unless="${#lists.isEmpty(closed)}">
+        <h2 id="cerradas">Cerradas recientemente</h2>
+        <div class="table-wrap">
+            <table class="data">
+                <caption class="visually-hidden">Solicitudes cerradas</caption>
+                <thead><tr><th scope="col">Código</th><th scope="col">Derecho</th><th scope="col">Resultado</th><th scope="col">Cerrada</th><th scope="col">En plazo</th></tr></thead>
+                <tbody>
+                <tr th:each="r : ${closed}">
+                    <td><a th:href="@{/admin/privacy/requests/{id}(id=${r.id})}" th:text="${r.trackingCode}">D-7KQ2M9XA</a></td>
+                    <td th:text="${#messages.msg('right.' + r.requestedRight)}">Acceso</td>
+                    <td th:text="${#messages.msg('dsrStatus.' + r.status)}">Respondida</td>
+                    <td th:text="${@formats.date(r.resolvedAt)}">2 de marzo</td>
+                    <td th:with="late=${r.resolvedAt != null and @schoolTime.toLocal(r.resolvedAt).toLocalDate().isAfter(r.dueOn)}">
+                        <span th:if="${late}" class="badge badge-problem">No</span>
+                        <span th:unless="${late}" class="badge badge-ok">Sí</span>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+</main>
+</body>
+</html>

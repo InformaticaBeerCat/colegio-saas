@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head(title='Datos de una persona')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: admin-header}"></header>
+<main id="contenido" class="container">
+    <p><a th:href="@{/admin/privacy}">← Privacidad</a></p>
+    <h1>Datos de una persona</h1>
+    <div th:replace="~{fragments/layout :: flash}"></div>
+    <p class="hint">Se busca por el email en todos los formularios, consentimientos y autorizaciones. La búsqueda queda en
+        el registro de auditoría.</p>
+
+    <form th:action="@{/admin/privacy/people}" method="post" class="card filters-admin">
+        <div class="field"><label for="email">Email</label>
+            <input id="email" type="email" name="email" th:value="${email}" required maxlength="254" autocomplete="off"></div>
+        <button type="submit" class="btn">Buscar</button>
+    </form>
+
+    <th:block th:if="${dossier}">
+        <h2 class="section" th:text="|${dossier.total()} registro(s) de ${dossier.email}|">3 registros</h2>
+        <section class="section" th:each="s : ${dossier.sections}" th:unless="${#lists.isEmpty(s.entries)}" th:attr="aria-label=${s.title}">
+            <h3><span th:text="${s.title}">Consultas</span> <span class="muted" th:text="|(${s.entries.size()}) · al suprimir: ${#strings.toLowerCase(s.onErase)}|">(2)</span></h3>
+            <div class="table-wrap">
+                <table class="data">
+                    <caption class="visually-hidden" th:text="${s.title}">Registros</caption>
+                    <thead><tr><th scope="col">Fecha</th><th scope="col">Datos</th></tr></thead>
+                    <tbody>
+                    <tr th:each="e : ${s.entries}">
+                        <td th:text="${e.createdAt != null} ? ${@formats.date(e.createdAt)} : '—'">1 de marzo</td>
+                        <td><dl class="facts facts--compact">
+                            <th:block th:each="f : ${e.fields}"><dt th:text="${f.key}">Campo</dt><dd class="prewrap" th:text="${f.value}">Valor</dd></th:block>
+                        </dl></td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+        <p th:if="${dossier.total() == 0}" class="muted">No hay registros con ese email.</p>
+
+        <div class="cards section" th:if="${dossier.total() > 0}">
+            <form class="card" th:action="@{/admin/privacy/people/export}" method="post">
+                <h2>Exportar</h2>
+                <p>Descarga un archivo JSON con todos estos datos, para responder una solicitud de acceso o portabilidad.</p>
+                <input type="hidden" name="email" th:value="${dossier.email}">
+                <button type="submit" class="btn btn-secondary">Descargar JSON</button>
+            </form>
+            <form class="card" th:action="@{/admin/privacy/people/erase}" method="post">
+                <h2>Suprimir</h2>
+                <p>Borra consultas, citas, inscripciones y registros de admisión; quita el email de apoderado de los estudiantes y
+                    anonimiza los consentimientos. Las solicitudes de derechos se conservan como prueba de respuesta. No se puede deshacer.</p>
+                <input type="hidden" name="email" th:value="${dossier.email}">
+                <div class="field"><label for="confirmEmail">Escribe el email otra vez para confirmar</label>
+                    <input id="confirmEmail" type="email" name="confirmEmail" required autocomplete="off"></div>
+                <button type="submit" class="btn btn-danger">Suprimir datos</button>
+            </form>
+        </div>
+    </th:block>
+</main>
+</body>
+</html>

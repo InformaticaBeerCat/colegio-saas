@@ -1,6 +1,7 @@
 package cl.colegiosaas.contact;
 
 import cl.colegiosaas.identity.UserAccount;
+import cl.colegiosaas.privacy.Anonymized;
 import cl.colegiosaas.privacy.ConsentRecord;
 import cl.colegiosaas.privacy.DataSubject;
 import cl.colegiosaas.shared.crypto.BlindIndex;
@@ -133,6 +134,21 @@ public class Inquiry extends BaseEntity {
 
     public Optional<Duration> timeToFirstResponse() {
         return Optional.ofNullable(firstResponseAt).map(at -> Duration.between(getCreatedAt(), at));
+    }
+
+    /** Conserva la fila (área, fechas, tiempos de respuesta) para estadísticas y borra lo que identifica (PRV-06). */
+    public void anonymize() {
+        name = null;
+        email = Anonymized.EMAIL;
+        emailHash = Anonymized.EMAIL_HASH;
+        phone = null;
+        subject = null;
+        message = Anonymized.TEXT;
+        notes.clear();
+    }
+
+    public boolean isAnonymized() {
+        return Anonymized.isAnonymized(emailHash);
     }
 
     public InquiryNote addNote(UserAccount author, String body) {

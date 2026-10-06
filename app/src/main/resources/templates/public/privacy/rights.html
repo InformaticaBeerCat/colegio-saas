@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="es-CL" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{public/layout :: head(${pageTitle}, ${metaDescription}, ${noindex})}"></head>
+<body th:class="|theme-${site.themeId}|">
+<div th:replace="~{public/layout :: top}"></div>
+<main id="contenido" tabindex="-1">
+    <header class="page-header"><div class="wrap">
+        <p class="breadcrumb"><a th:href="@{/privacidad}">Privacidad</a></p>
+        <h1>Ejercer mis derechos</h1>
+        <p class="lead">Escríbenos qué necesitas. Te enviaremos un código para seguir tu solicitud y te responderemos por correo.</p>
+    </div></header>
+    <div class="wrap block">
+        <p class="form-problem" role="alert" th:if="${problem}" th:text="${problem}">Falta el correo</p>
+
+        <th:block th:if="${privacyNotice == null}">
+            <p class="notice">Este formulario se habilitará pronto.
+                <span th:if="${contactEmail}">Mientras tanto, escríbenos a <a th:href="|mailto:${contactEmail}|" th:text="${contactEmail}">contacto@colegio.cl</a>
+                indicando qué derecho quieres ejercer.</span></p>
+        </th:block>
+
+        <form th:if="${privacyNotice}" th:action="@{/privacidad/derechos}" method="post" class="form-card">
+            <fieldset class="form-field">
+                <legend>¿Qué quieres pedir?</legend>
+                <label th:each="r, it : ${rights}" class="choice">
+                    <input type="radio" name="right" th:value="${r}" th:checked="${form != null and form.right == r}" required>
+                    <span th:text="${#messages.msg('right.' + r)}">Acceso</span>
+                </label>
+            </fieldset>
+            <div class="form-field">
+                <label for="name">Tu nombre</label>
+                <input id="name" type="text" name="name" required maxlength="150" autocomplete="name" th:value="${form?.name}">
+            </div>
+            <div class="form-field">
+                <label for="email">Tu correo</label>
+                <input id="email" type="email" name="email" required maxlength="254" autocomplete="email" th:value="${form?.email}"
+                       aria-describedby="email-hint">
+                <span id="email-hint" class="muted">Te responderemos aquí. Para proteger tus datos, puede que te pidamos acreditar tu identidad.</span>
+            </div>
+            <label class="choice form-field">
+                <input type="checkbox" name="onBehalfOfMinor" value="true" th:checked="${form != null and form.onBehalfOfMinor}">
+                <span>Lo pido como apoderado, en nombre de un estudiante menor de edad</span>
+            </label>
+            <div class="form-field">
+                <label for="details">Detalle <span class="muted">(opcional)</span></label>
+                <textarea id="details" name="details" rows="5" maxlength="5000" th:text="${form?.details}"
+                          aria-describedby="details-hint"></textarea>
+                <span id="details-hint" class="muted">Por ejemplo, qué dato corregir o de qué formulario se trata.</span>
+            </div>
+            <!-- Campo trampa para bots: las personas no lo ven ni lo llenan. -->
+            <div class="hp" aria-hidden="true">
+                <label for="sitio_web">No llenar</label>
+                <input id="sitio_web" type="text" name="sitio_web" tabindex="-1" autocomplete="off">
+            </div>
+
+            <details th:replace="~{public/privacy/fragments :: notice(${privacyNotice})}"></details>
+            <label class="choice form-field">
+                <input type="checkbox" name="noticeRead" value="true" required>
+                <span>Leí el aviso de privacidad de este formulario</span>
+            </label>
+            <button type="submit" class="button">Enviar solicitud</button>
+        </form>
+
+        <p class="section-group"><a th:href="@{/privacidad/derechos/estado}">Ya hice una solicitud: consultar su estado</a></p>
+    </div>
+</main>
+<footer th:replace="~{public/layout :: footer}"></footer>
+</body>
+</html>

@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head(title='Incidentes de seguridad')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: admin-header}"></header>
+<main id="contenido" class="container">
+    <p><a th:href="@{/admin/privacy}">← Privacidad</a></p>
+    <h1>Incidentes de seguridad</h1>
+    <div th:replace="~{fragments/layout :: flash}"></div>
+
+    <section class="card section" aria-labelledby="procedimiento">
+        <h2 id="procedimiento">Procedimiento ante una brecha</h2>
+        <ol class="steps">
+            <li><strong>Registrar</strong> apenas se detecte: qué pasó, cuándo y qué datos pudo afectar.</li>
+            <li><strong>Contener</strong>: cambiar claves, cerrar accesos, quitar lo expuesto. Avisar al proveedor.</li>
+            <li><strong>Notificar a la Agencia</strong> de Protección de Datos Personales sin dilación: la meta interna es
+                <span th:text="|${hours} horas|">72 horas</span> desde la detección.</li>
+            <li><strong>Avisar a las familias</strong> si hay riesgo para ellas (siempre que haya datos de menores o datos sensibles).</li>
+            <li><strong>Cerrar</strong> con las medidas tomadas para que no se repita.</li>
+        </ol>
+        <p class="hint">Plazos y criterios a validar con la asesoría legal del colegio.</p>
+    </section>
+
+    <div class="table-wrap section">
+        <table class="data">
+            <caption class="visually-hidden">Incidentes registrados</caption>
+            <thead><tr><th scope="col">Incidente</th><th scope="col">Detectado</th><th scope="col">Gravedad</th><th scope="col">Estado</th><th scope="col">Agencia</th></tr></thead>
+            <tbody>
+            <tr th:each="i : ${incidents}">
+                <td><a th:href="@{/admin/privacy/incidents/{id}(id=${i.id})}" th:text="${i.title}">Correo enviado a destinatarios equivocados</a></td>
+                <td th:text="${@formats.dateTime(i.detectedAt)}">1 de marzo</td>
+                <td th:text="${#messages.msg('severity.' + i.severity)}">Media</td>
+                <td><span class="badge" th:classappend="${i.status.name() == 'CLOSED'} ? 'badge-ok' : 'badge-problem'"
+                          th:text="${#messages.msg('incidentStatus.' + i.status)}">Abierto</span></td>
+                <td th:text="${i.authorityNotifiedAt != null} ? ${@formats.dateTime(i.authorityNotifiedAt)} : 'Sin notificar'">Sin notificar</td>
+            </tr>
+            <tr th:if="${#lists.isEmpty(incidents)}"><td colspan="5" class="muted">No hay incidentes registrados.</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <form class="card section" th:action="@{/admin/privacy/incidents}" method="post">
+        <h2>Registrar un incidente</h2>
+        <div class="color-grid">
+            <div class="field"><label for="title">Qué pasó (resumen)</label><input id="title" type="text" name="title" required maxlength="200"></div>
+            <div class="field"><label for="detectedAt">Cuándo se detectó</label>
+                <input id="detectedAt" type="datetime-local" name="detectedAt" required th:value="${#temporals.format(now, 'yyyy-MM-dd''T''HH:mm')}"></div>
+            <div class="field"><label for="severity">Gravedad</label>
+                <select id="severity" name="severity"><option th:each="s : ${severities}" th:value="${s}" th:text="${#messages.msg('severity.' + s)}">Media</option></select></div>
+            <div class="field"><label for="affectedSubjectsEstimate">Personas afectadas (estimación)</label>
+                <input id="affectedSubjectsEstimate" type="number" name="affectedSubjectsEstimate" min="0"></div>
+        </div>
+        <div class="field"><label for="affectedData">Qué datos pudo afectar</label>
+            <input id="affectedData" type="text" name="affectedData" maxlength="1000" placeholder="Emails y teléfonos de apoderados de 3° básico"></div>
+        <div class="field"><label for="description">Descripción</label><textarea id="description" name="description" rows="4"></textarea></div>
+        <button type="submit" class="btn">Registrar</button>
+    </form>
+</main>
+</body>
+</html>

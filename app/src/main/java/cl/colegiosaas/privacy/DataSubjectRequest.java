@@ -100,6 +100,18 @@ public class DataSubjectRequest extends BaseEntity {
         return status.isOpen() && today.isAfter(dueOn);
     }
 
+    /** Al vencer el plazo de conservación queda solo el registro de que se atendió en plazo (PRV-06). */
+    public void anonymize() {
+        requesterName = null;
+        requesterEmail = Anonymized.EMAIL;
+        requesterEmailHash = Anonymized.EMAIL_HASH;
+        details = null;
+    }
+
+    public boolean isAnonymized() {
+        return Anonymized.isAnonymized(requesterEmailHash);
+    }
+
     private void close(DataSubjectRequestStatus finalStatus, String text) {
         requireOpen();
         status = finalStatus;

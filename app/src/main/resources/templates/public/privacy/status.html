@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="es-CL" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{public/layout :: head(${pageTitle}, ${metaDescription}, ${noindex})}"></head>
+<body th:class="|theme-${site.themeId}|">
+<div th:replace="~{public/layout :: top}"></div>
+<main id="contenido" tabindex="-1">
+    <header class="page-header"><div class="wrap">
+        <p class="breadcrumb"><a th:href="@{/privacidad}">Privacidad</a></p>
+        <h1>Estado de mi solicitud</h1>
+    </div></header>
+    <div class="wrap block">
+        <p class="notice" role="status" th:if="${notice}" th:text="${notice}">Recibimos tu solicitud.</p>
+        <p th:if="${submitted}">Tu código es <strong th:text="${submitted}">D-7KQ2M9XA</strong>.</p>
+
+        <form th:action="@{/privacidad/derechos/estado}" method="get" class="form-card">
+            <div class="form-field">
+                <label for="codigo">Código de seguimiento</label>
+                <input id="codigo" type="text" name="codigo" required maxlength="20" placeholder="D-XXXXXXXX" th:value="${code}" autocomplete="off">
+            </div>
+            <button type="submit" class="button">Consultar</button>
+        </form>
+
+        <section th:if="${found}" class="section-group" aria-labelledby="resultado">
+            <h2 id="resultado" th:text="|Solicitud ${found.trackingCode}|">Solicitud D-7KQ2M9XA</h2>
+            <dl class="details">
+                <dt>Estado</dt><dd th:text="${#messages.msg('dsrStatus.' + found.status)}">Recibida</dd>
+                <dt>Recibida</dt><dd th:text="${@formats.date(found.createdAt)}">1 de marzo</dd>
+                <dt th:text="${found.status.isOpen()} ? 'Responderemos a más tardar' : 'Respondida'">Plazo</dt>
+                <dd th:text="${found.status.isOpen()} ? ${@formats.date(found.dueOn)} : ${@formats.date(found.resolvedAt)}">31 de marzo</dd>
+            </dl>
+            <p class="muted">La respuesta llega a tu correo; por seguridad no la mostramos aquí.</p>
+        </section>
+        <p th:if="${searched != null and found == null}" class="form-problem" role="alert">No encontramos una solicitud con ese código.</p>
+    </div>
+</main>
+<footer th:replace="~{public/layout :: footer}"></footer>
+</body>
+</html>

@@ -200,11 +200,32 @@ entidades, repositorios, su migración Flyway y tests de persistencia.
 
 > Pendiente: AVIF; descarga de álbumes (MED-11, v2); detección facial asistida (premium).
 
-### Fase 6 — Privacidad (Ley 21.719)
-- Textos legales versionados desde plantilla [DOC-06]; aviso de tratamiento en cada formulario [PRV-01].
-- Consentimientos separados y registrados con versión del texto [PRV-02, PRV-04]; banner de cookies [PRV-03].
-- Solicitudes de derechos con plazos [PRV-05]; retención con borrado automático [PRV-06]; exportar/borrar a una persona [PRV-07].
-- Procedimiento de brechas [PRV-09].
+### Fase 6 — Privacidad (Ley 21.719) ✅
+- Textos legales versionados [DOC-06] en `/admin/legal`: política de privacidad, cookies, términos, autorización de
+  imagen y un aviso por formulario. El borrador parte de una plantilla con los datos del colegio (nombre, RBD,
+  contacto y el plazo de conservación de ese formulario) o de la versión vigente; al publicarse queda inmutable y
+  las anteriores siguen en `/privacidad/<texto>/v<n>`. El HTML pasa por el sanitizador.
+- Aviso de tratamiento en cada formulario [PRV-01] (fragmento `public/privacy/fragments :: notice`, desplegable,
+  con enlace a la versión exacta). `ConsentService` guarda cada casilla aparte, también el "no", con la versión
+  del aviso, ruta, IP y navegador [PRV-02, PRV-04]; sin aviso publicado el formulario no recibe datos.
+- Banner de cookies [PRV-03] sin JavaScript ni sesión: "Solo necesarias" y "Aceptar analítica" con el mismo peso;
+  la elección vive en una cookie con la versión de la política y vuelve a preguntarse si la política cambia. La
+  fase 8 carga la analítica solo con `cookies.analyticsAllowed`. Preferencias editables en `/privacidad/cookies`.
+- Solicitudes de derechos [PRV-05]: formulario público en `/privacidad/derechos` (con campo trampa para bots),
+  código de seguimiento, plazo (`APP_PRIVACY_RESPONSE_DAYS`, 30 días corridos por defecto: validar con abogado),
+  correo al titular y a quienes tienen el permiso de privacidad, consulta de estado sin datos personales, bandeja
+  con vencidas y por vencer, acreditar identidad, responder o rechazar con fundamento.
+- Datos de una persona [PRV-07]: búsqueda por índice ciego del email (por POST, sin dejar el email en registros),
+  exportación JSON y supresión: borra consultas, citas, inscripciones y registros de admisión, quita el email de
+  apoderado de los estudiantes y anonimiza los consentimientos. Todo queda en auditoría.
+- Retención [PRV-06]: tarea diaria (04:15) y botón "Aplicar ahora"; plazos y acción editables por tipo de dato
+  (cada tipo admite solo las acciones que tienen sentido). Los consentimientos de boletín vigentes no se tocan.
+- Brechas [PRV-09]: procedimiento en el panel, registro con hora de detección, contador contra la meta de
+  notificación a la Agencia (`APP_PRIVACY_INCIDENT_HOURS`, 72 h), borradores de notificación a la Agencia y a las
+  familias, aviso por correo y alerta en el panel mientras no se cierre.
+
+> Pendiente: borrar del almacenamiento los archivos de evidencia de un estudiante eliminado por retención (requiere
+> borrado en `FileStorage`, fase 9). Los plazos y textos de plantilla deben revisarse con la asesoría legal.
 
 > La ley entra en vigencia el 1-dic-2026 (salvo postergación). Las tablas de privacidad se crean en la iteración 1.5,
 > antes de cualquier formulario público, así ningún formulario sale sin consentimiento registrado.

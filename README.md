@@ -66,3 +66,6 @@ quedan en `http://localhost:8025`.
 | `APP_S3_ENDPOINT`, `APP_S3_BUCKET`, `APP_S3_ACCESS_KEY`, `APP_S3_SECRET_KEY` | Conexión S3; con el MinIO de `compose.yaml`: `http://localhost:9000`, `colegio`, `minio`, `minio-secreto` |
 | `APP_CLAMD_HOST`, `APP_CLAMD_PORT` | Antivirus ClamAV para archivos subidos (con `compose.yaml`: `localhost`, `3310`) |
 | `APP_ENFORCE_MFA` | `true` para exigir verificación en dos pasos a administradores y gestor de consentimientos |
+| `APP_PRIVACY_RESPONSE_DAYS` | Días corridos para responder una solicitud de derechos (por defecto `30`) |
+| `APP_PRIVACY_INCIDENT_HOURS` | Meta en horas para notificar una brecha a la Agencia (por defecto `72`) |
+| `APP_RETENTION_ENABLED` | `false` para apagar el borrado automático por plazos de conservación |

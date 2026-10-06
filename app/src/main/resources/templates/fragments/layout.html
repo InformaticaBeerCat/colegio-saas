@@ -20,6 +20,7 @@
             <a sec:authorize="hasAuthority('CALENDAR')" th:href="@{/admin/calendar}">Calendario</a>
             <a sec:authorize="hasAuthority('PAGES')" th:href="@{/admin/pages}">Páginas</a>
             <a sec:authorize="hasAnyAuthority('MEDIA_UPLOAD', 'MEDIA_REVIEW')" th:href="@{/admin/media}">Medios</a>
+            <a sec:authorize="hasAuthority('PRIVACY')" th:href="@{/admin/privacy}">Privacidad</a>
             <a sec:authorize="hasAuthority('USERS')" th:href="@{/admin/users}">Usuarios</a>
             <a sec:authorize="hasAuthority('AUDIT_LOG')" th:href="@{/admin/audit}">Auditoría</a>
             <a th:href="@{/admin/profile}">Mi cuenta</a>

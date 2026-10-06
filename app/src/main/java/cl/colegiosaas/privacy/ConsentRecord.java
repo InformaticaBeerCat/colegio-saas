@@ -79,4 +79,21 @@ public class ConsentRecord extends BaseEntity {
     public boolean isActive() {
         return granted && withdrawnAt == null;
     }
+
+    /**
+     * Borra los datos que identifican a la persona y deja la evidencia de qué se aceptó y cuándo (PRV-06,
+     * PRV-07). Un consentimiento anonimizado queda retirado: ya no hay a quién escribirle.
+     */
+    public void anonymize() {
+        subjectName = null;
+        subjectEmail = Anonymized.EMAIL;
+        subjectEmailHash = Anonymized.EMAIL_HASH;
+        ipAddress = null;
+        userAgent = null;
+        withdraw();
+    }
+
+    public boolean isAnonymized() {
+        return Anonymized.isAnonymized(subjectEmailHash);
+    }
 }

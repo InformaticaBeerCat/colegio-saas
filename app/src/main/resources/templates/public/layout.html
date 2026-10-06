@@ -22,6 +22,8 @@
         <a th:href="@{/admin}">Volver al panel</a>
     </div>
 
+    <section th:replace="~{public/privacy/fragments :: cookie-banner}"></section>
+
     <section class="site-alerts" th:unless="${#lists.isEmpty(site.alerts)}" aria-label="Avisos importantes">
         <p th:each="alert : ${site.alerts}" class="site-alert" th:classappend="|site-alert--${#strings.toLowerCase(alert.severity)}|">
             <span th:text="${alert.message}">Se suspenden las clases.</span>
@@ -105,6 +107,12 @@
     <div class="wrap site-footer__bottom">
         <p th:if="${site.footer.footerText}" th:text="${site.footer.footerText}">Texto del pie</p>
         <p>© <span th:text="${#dates.year(#dates.createNow())}">2026</span> <span th:text="${site.schoolName}">Colegio</span></p>
+        <!-- PRV-01, PRV-03, PRV-05: la privacidad siempre a un clic, en todas las páginas. -->
+        <ul class="legal-links">
+            <li><a th:href="@{/privacidad}">Privacidad</a></li>
+            <li><a th:href="@{/privacidad/derechos}">Ejercer mis derechos</a></li>
+            <li th:if="${cookies != null and cookies.policyVersion != null}"><a th:href="@{/privacidad/cookies#preferencias}">Preferencias de cookies</a></li>
+        </ul>
     </div>
 </footer>
 

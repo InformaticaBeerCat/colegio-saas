@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head(title='Editar texto legal')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: admin-header}"></header>
+<main id="contenido" class="container">
+    <p><a th:href="@{/admin/legal}">← Textos legales</a></p>
+    <div class="page-head">
+        <div>
+            <h1 th:text="${#messages.msg('legalKind.' + text.kind)}">Política de privacidad</h1>
+            <p class="muted" th:text="${text.published} ? |Versión ${text.versionNumber}, publicada| : |Borrador de la versión ${text.versionNumber}|">Borrador v2</p>
+        </div>
+    </div>
+    <div th:replace="~{fragments/layout :: flash}"></div>
+
+    <div class="alert alert-warn" role="note" th:if="${current != null and !text.published}">
+        Al publicar, los formularios pasan a pedir esta versión. Los consentimientos ya otorgados siguen apuntando a la
+        <a th:href="@{/privacidad/{slug}/v{n}(slug=${text.kind.slug()}, n=${current.versionNumber})}" th:text="|versión ${current.versionNumber}|">versión 1</a>.
+    </div>
+
+    <form th:unless="${text.published}" th:action="@{/admin/legal/texts/{id}(id=${text.id})}" method="post" class="card">
+        <div class="field"><label for="title">Título</label>
+            <input id="title" type="text" name="title" th:value="${text.title}" required maxlength="200"></div>
+        <div class="field"><label for="content">Texto (HTML)</label>
+            <textarea id="content" name="content" rows="24" aria-describedby="content-hint" th:text="${text.content}"></textarea>
+            <span id="content-hint" class="hint">Se admiten títulos (h2, h3), párrafos, listas, negritas y enlaces. Completa lo que esté entre corchetes.</span></div>
+        <button type="submit" class="btn">Guardar borrador</button>
+    </form>
+
+    <section class="card section" aria-labelledby="vista">
+        <h2 id="vista">Así se verá</h2>
+        <div class="legal-preview" th:utext="${text.content}"></div>
+    </section>
+
+    <div class="actions section" th:unless="${text.published}">
+        <form th:action="@{/admin/legal/texts/{id}/publish(id=${text.id})}" method="post" class="inline">
+            <button type="submit" class="btn">Publicar versión <span th:text="${text.versionNumber}">2</span></button>
+        </form>
+        <form th:action="@{/admin/legal/texts/{id}/discard(id=${text.id})}" method="post" class="inline">
+            <button type="submit" class="btn btn-danger">Descartar borrador</button>
+        </form>
+    </div>
+</main>
+</body>
+</html>

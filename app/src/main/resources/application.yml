@@ -61,6 +61,11 @@ app:
     # Sin host, los archivos solo pasan la revisión de tipo y tamaño (se avisa en el log al arrancar).
     clamd-host: ${APP_CLAMD_HOST:}
     clamd-port: ${APP_CLAMD_PORT:3310}
+  privacy:
+    # Plazos a validar con la asesoría legal del colegio (Ley 21.719).
+    response-days: ${APP_PRIVACY_RESPONSE_DAYS:30}
+    incident-hours: ${APP_PRIVACY_INCIDENT_HOURS:72}
+    retention-enabled: ${APP_RETENTION_ENABLED:true}
   base-url: ${APP_BASE_URL:http://localhost:8080}
   mail-from: ${APP_MAIL_FROM:no-responder@localhost}
   security:

@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head(title='Textos legales')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: admin-header}"></header>
+<main id="contenido" class="container">
+    <p><a th:href="@{/admin/privacy}">← Privacidad</a></p>
+    <div class="page-head">
+        <h1>Textos legales y avisos</h1>
+        <a class="btn btn-secondary" th:href="@{/privacidad}">Ver en el sitio</a>
+    </div>
+    <div th:replace="~{fragments/layout :: flash}"></div>
+    <p class="hint">Las plantillas son un punto de partida para la Ley 21.719, no asesoría legal: revísalas con la asesoría
+        del colegio. Una versión publicada no se edita; cada cambio es una versión nueva y las anteriores quedan
+        consultables, porque cada consentimiento apunta a la versión que la persona aceptó.</p>
+
+    <div class="table-wrap section">
+        <table class="data">
+            <caption class="visually-hidden">Textos legales</caption>
+            <thead><tr><th scope="col">Texto</th><th scope="col">Versión vigente</th><th scope="col">Borrador</th><th scope="col">Acciones</th></tr></thead>
+            <tbody>
+            <tr th:each="o : ${kinds}">
+                <td th:text="${#messages.msg('legalKind.' + o.kind)}">Política de privacidad</td>
+                <td>
+                    <span th:if="${o.current == null}" class="badge badge-problem">Sin publicar</span>
+                    <th:block th:if="${o.current}">
+                        <a th:href="@{/privacidad/{slug}(slug=${o.kind.slug()})}" th:text="|v${o.current.versionNumber}|">v1</a>
+                        <span class="muted" th:text="|desde el ${@formats.date(o.current.effectiveFrom)}|">desde el 1 de marzo</span>
+                        · <a th:href="@{/admin/legal/{kind}/history(kind=${o.kind})}">historial</a>
+                    </th:block>
+                </td>
+                <td>
+                    <a th:if="${o.draft}" th:href="@{/admin/legal/texts/{id}(id=${o.draft.id})}" th:text="|v${o.draft.versionNumber} en edición|">v2 en edición</a>
+                    <span th:unless="${o.draft}" class="muted">—</span>
+                </td>
+                <td class="actions">
+                    <form th:unless="${o.draft}" th:action="@{/admin/legal/{kind}/draft(kind=${o.kind})}" method="post" class="inline">
+                        <input type="hidden" name="fromTemplate" th:value="${o.current == null}">
+                        <button type="submit" class="btn btn-small" th:text="${o.current == null} ? 'Crear desde plantilla' : 'Nueva versión'">Nueva versión</button>
+                    </form>
+                    <form th:if="${o.current != null and o.draft == null}" th:action="@{/admin/legal/{kind}/draft(kind=${o.kind})}" method="post" class="inline">
+                        <input type="hidden" name="fromTemplate" value="true">
+                        <button type="submit" class="btn btn-secondary btn-small">Volver a la plantilla</button>
+                    </form>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</main>
+</body>
+</html>

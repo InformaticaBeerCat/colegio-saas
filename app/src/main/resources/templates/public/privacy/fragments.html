@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="es-CL" xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<!--
+  Aviso de tratamiento de un formulario (PRV-01): resumen visible y el texto completo desplegable, con
+  enlace a la versión exacta. La casilla de consentimiento va aparte, sin premarcar (PRV-02).
+-->
+<details th:fragment="notice(text)" class="privacy-notice">
+    <summary>Cómo usamos tus datos en este formulario</summary>
+    <div class="prose" th:utext="${text.content}">Aviso</div>
+    <p class="muted">
+        <a th:href="@{/privacidad/{slug}/v{n}(slug=${text.kind.slug()}, n=${text.versionNumber})}"
+           th:text="|${text.title} (versión ${text.versionNumber})|">Aviso (versión 1)</a>
+    </p>
+</details>
+
+<!--
+  Banner de cookies (PRV-03): sin JavaScript y sin token CSRF, para no abrir una sesión por visitante.
+  Aceptar y rechazar tienen el mismo peso visual.
+-->
+<section th:fragment="cookie-banner" th:if="${cookies != null and cookies.bannerNeeded}" class="cookie-banner" aria-labelledby="cookies-titulo">
+    <div class="wrap cookie-banner__inner">
+        <div>
+            <h2 id="cookies-titulo" class="cookie-banner__title">Cookies</h2>
+            <p>Usamos cookies necesarias para que el sitio funcione. Con tu permiso, también cookies de analítica para
+                saber qué páginas se visitan, sin publicidad ni perfiles. <a th:href="@{/privacidad/cookies}">Política de cookies</a></p>
+        </div>
+        <form method="post" action="/privacidad/cookies/preferencias" class="cookie-banner__actions">
+            <input type="hidden" name="volver" th:value="${currentPath}">
+            <button type="submit" name="analitica" value="false" class="button">Solo necesarias</button>
+            <button type="submit" name="analitica" value="true" class="button">Aceptar analítica</button>
+        </form>
+    </div>
+</section>
+
+<!-- Cambiar la elección cuando quiera: retirar el consentimiento es tan fácil como darlo. -->
+<form th:fragment="cookie-preferences" id="preferencias" method="post" action="/privacidad/cookies/preferencias" class="form-card">
+    <h2>Tus preferencias</h2>
+    <p th:text="${cookies.bannerNeeded} ? 'Todavía no has elegido.' : (${cookies.analyticsAllowed} ? 'Aceptaste las cookies de analítica.' : 'Solo usas las cookies necesarias.')">Solo usas las cookies necesarias.</p>
+    <input type="hidden" name="volver" value="/privacidad/cookies#preferencias">
+    <div class="cookie-banner__actions">
+        <button type="submit" name="analitica" value="false" class="button">Solo necesarias</button>
+        <button type="submit" name="analitica" value="true" class="button">Aceptar analítica</button>
+    </div>
+</form>
+
+</body>
+</html>

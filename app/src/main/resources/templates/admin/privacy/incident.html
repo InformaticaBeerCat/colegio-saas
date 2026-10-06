@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head(title='Incidente de seguridad')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: admin-header}"></header>
+<main id="contenido" class="container">
+    <p><a th:href="@{/admin/privacy/incidents}">← Incidentes</a></p>
+    <div class="page-head">
+        <div>
+            <h1 th:text="${incident.title}">Correo enviado a destinatarios equivocados</h1>
+            <p>
+                <span class="badge" th:classappend="${incident.status.name() == 'CLOSED'} ? 'badge-ok' : 'badge-problem'"
+                      th:text="${#messages.msg('incidentStatus.' + incident.status)}">Abierto</span>
+                <span class="badge" th:text="|Gravedad ${#strings.toLowerCase(#messages.msg('severity.' + incident.severity))}|">Gravedad media</span>
+            </p>
+        </div>
+    </div>
+    <div th:replace="~{fragments/layout :: flash}"></div>
+
+    <div class="alert" role="status" th:classappend="${incident.authorityNotifiedAt != null} ? 'alert-ok' : (${clock.overdue} ? 'alert-problem' : 'alert-warn')">
+        <th:block th:if="${incident.authorityNotifiedAt != null}">
+            Notificado a la Agencia <span th:text="|${clock.hoursElapsed} horas después de la detección|">20 horas después</span>.
+        </th:block>
+        <th:block th:if="${incident.authorityNotifiedAt == null}">
+            <span th:text="|Han pasado ${clock.hoursElapsed} horas desde la detección.|">Han pasado 20 horas.</span>
+            <span th:text="${clock.overdue} ? |Se superó la meta de ${hours} horas: notifica cuanto antes y deja constancia del motivo de la demora.| : |Meta para notificar a la Agencia: ${@formats.dateTime(clock.deadline)}.|">Meta: 4 de marzo</span>
+        </th:block>
+    </div>
+
+    <section class="card section" aria-labelledby="pasos">
+        <h2 id="pasos">Pasos</h2>
+        <ul class="block-list">
+            <li class="block-row">
+                <strong>Detectado</strong>
+                <span th:text="${@formats.dateTime(incident.detectedAt)} + (${incident.reportedBy != null} ? ' · registró ' + ${incident.reportedBy.name} : '')">1 de marzo</span>
+            </li>
+            <li class="block-row">
+                <strong>Contenido</strong>
+                <span th:if="${incident.containedAt}" th:text="${@formats.dateTime(incident.containedAt)}">1 de marzo</span>
+                <form th:if="${incident.containedAt == null and incident.status.name() != 'CLOSED'}" th:action="@{/admin/privacy/incidents/{id}/contain(id=${incident.id})}" method="post" class="inline">
+                    <button type="submit" class="btn btn-small">Marcar contenido</button>
+                </form>
+            </li>
+            <li class="block-row">
+                <strong>Notificado a la Agencia</strong>
+                <span th:if="${incident.authorityNotifiedAt}" th:text="${@formats.dateTime(incident.authorityNotifiedAt)}">2 de marzo</span>
+                <form th:unless="${incident.authorityNotifiedAt}" th:action="@{/admin/privacy/incidents/{id}/authority(id=${incident.id})}" method="post" class="actions">
+                    <label class="visually-hidden" for="authorityAt">Fecha y hora de la notificación</label>
+                    <input id="authorityAt" type="datetime-local" name="at" required th:value="${#temporals.format(now, 'yyyy-MM-dd''T''HH:mm')}">
+                    <button type="submit" class="btn btn-small">Registrar</button>
+                </form>
+            </li>
+            <li class="block-row">
+                <strong>Aviso a los titulares</strong>
+                <span th:if="${incident.subjectsNotifiedAt}" th:text="${@formats.dateTime(incident.subjectsNotifiedAt)}">2 de marzo</span>
+                <form th:unless="${incident.subjectsNotifiedAt}" th:action="@{/admin/privacy/incidents/{id}/subjects(id=${incident.id})}" method="post" class="actions">
+                    <label class="visually-hidden" for="subjectsAt">Fecha y hora del aviso</label>
+                    <input id="subjectsAt" type="datetime-local" name="at" required th:value="${#temporals.format(now, 'yyyy-MM-dd''T''HH:mm')}">
+                    <button type="submit" class="btn btn-small">Registrar</button>
+                </form>
+            </li>
+            <li class="block-row">
+                <strong>Cerrado</strong>
+                <span th:if="${incident.closedAt}" th:text="${@formats.dateTime(incident.closedAt)}">5 de marzo</span>
+                <form th:unless="${incident.closedAt}" th:action="@{/admin/privacy/incidents/{id}/close(id=${incident.id})}" method="post" class="inline">
+                    <button type="submit" class="btn btn-small btn-secondary">Cerrar incidente</button>
+                </form>
+            </li>
+        </ul>
+    </section>
+
+    <form class="card section" th:action="@{/admin/privacy/incidents/{id}(id=${incident.id})}" method="post">
+        <h2>Detalle</h2>
+        <div class="color-grid">
+            <div class="field"><label for="title">Qué pasó (resumen)</label><input id="title" type="text" name="title" th:value="${incident.title}" required maxlength="200"></div>
+            <div class="field"><label for="detectedAt">Cuándo se detectó</label>
+                <input id="detectedAt" type="datetime-local" name="detectedAt" required th:value="${#temporals.format(detectedLocal, 'yyyy-MM-dd''T''HH:mm')}" disabled
+                       aria-describedby="detected-hint">
+                <span id="detected-hint" class="hint">No se modifica: el plazo corre desde aquí.</span></div>
+            <div class="field"><label for="severity">Gravedad</label>
+                <select id="severity" name="severity"><option th:each="s : ${severities}" th:value="${s}" th:selected="${s == incident.severity}" th:text="${#messages.msg('severity.' + s)}">Media</option></select></div>
+            <div class="field"><label for="affectedSubjectsEstimate">Personas afectadas (estimación)</label>
+                <input id="affectedSubjectsEstimate" type="number" name="affectedSubjectsEstimate" min="0" th:value="${incident.affectedSubjectsEstimate}"></div>
+        </div>
+        <input type="hidden" name="detectedAt" th:value="${#temporals.format(detectedLocal, 'yyyy-MM-dd''T''HH:mm')}">
+        <div class="field"><label for="affectedData">Qué datos pudo afectar</label>
+            <input id="affectedData" type="text" name="affectedData" maxlength="1000" th:value="${incident.affectedData}"></div>
+        <div class="field"><label for="description">Descripción</label><textarea id="description" name="description" rows="4" th:text="${incident.description}"></textarea></div>
+        <div class="field"><label for="actionsTaken">Medidas tomadas</label><textarea id="actionsTaken" name="actionsTaken" rows="4" th:text="${incident.actionsTaken}"></textarea></div>
+        <button type="submit" class="btn">Guardar</button>
+    </form>
+
+    <div class="cards section">
+        <section class="card" aria-labelledby="borrador-agencia">
+            <h2 id="borrador-agencia">Borrador para la Agencia</h2>
+            <label class="visually-hidden" for="authorityNotice">Texto de la notificación</label>
+            <textarea id="authorityNotice" rows="14" readonly th:text="${authorityNotice}"></textarea>
+            <p class="hint">Cópialo en el canal que disponga la Agencia y completa lo que esté entre corchetes.</p>
+        </section>
+        <section class="card" aria-labelledby="borrador-familias">
+            <h2 id="borrador-familias">Borrador para las familias</h2>
+            <label class="visually-hidden" for="subjectsNotice">Texto del aviso</label>
+            <textarea id="subjectsNotice" rows="14" readonly th:text="${subjectsNotice}"></textarea>
+        </section>
+    </div>
+</main>
+</body>
+</html>

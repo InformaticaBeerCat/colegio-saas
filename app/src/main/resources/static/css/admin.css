@@ -251,3 +251,16 @@ picture { display: block; }
 .blur-editor__image { display: block; max-width: 100%; height: auto; pointer-events: none; }
 .blur-editor__box { position: absolute; border: 3px solid #ffd400; background: rgba(0, 0, 0, .35); box-shadow: 0 0 0 1px #000; }
 .blur-editor__box.is-drawing { border-style: dashed; }
+
+/* Privacidad (fase 6) */
+.facts { display: grid; grid-template-columns: max-content 1fr; gap: .35rem 1rem; margin: 0 0 1rem; }
+.facts dt { font-weight: 600; }
+.facts dd { margin: 0; }
+.facts--compact { font-size: .9rem; margin: 0; }
+.prewrap { white-space: pre-wrap; }
+.steps { padding-left: 1.3rem; }
+.steps li { margin-bottom: .35rem; }
+.legal-preview { max-width: 72ch; }
+.legal-preview h2 { font-size: 1.2rem; }
+.legal-preview h3 { font-size: 1.05rem; }
+textarea[readonly] { background: var(--bg); font-size: .9rem; }

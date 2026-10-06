@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head(title='Privacidad')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: admin-header}"></header>
+<main id="contenido" class="container">
+    <div class="page-head">
+        <h1>Privacidad y datos personales</h1>
+        <a class="btn btn-secondary" th:href="@{/privacidad}">Ver en el sitio</a>
+    </div>
+    <div th:replace="~{fragments/layout :: flash}"></div>
+
+    <div class="alert alert-problem" role="alert" th:unless="${#lists.isEmpty(missing)}">
+        <strong>Faltan textos obligatorios:</strong>
+        <span th:each="k, it : ${missing}" th:text="${#messages.msg('legalKind.' + k)} + (${it.last} ? '.' : ',')">Política de privacidad</span>
+        <a th:href="@{/admin/legal}">Publicarlos desde la plantilla</a>
+    </div>
+    <div class="alert alert-problem" role="alert" th:if="${overdueRequests > 0}">
+        <a th:href="@{/admin/privacy/requests}" th:text="|${overdueRequests} solicitud(es) de derechos fuera de plazo|">Solicitudes vencidas</a>
+    </div>
+    <div class="alert alert-problem" role="alert" th:if="${openIncidents > 0}">
+        <a th:href="@{/admin/privacy/incidents}" th:text="|${openIncidents} incidente(s) de seguridad sin cerrar|">Incidentes abiertos</a>
+    </div>
+
+    <div class="cards">
+        <section class="card" aria-labelledby="textos">
+            <h2 id="textos">Textos legales</h2>
+            <p>Política de privacidad, cookies y el aviso de cada formulario, con su historial de versiones.</p>
+            <a th:href="@{/admin/legal}">Administrar textos</a>
+        </section>
+        <section class="card" aria-labelledby="solicitudes">
+            <h2 id="solicitudes">Solicitudes de derechos</h2>
+            <p th:text="${openRequests == 0} ? 'No hay solicitudes abiertas.' : |${openRequests} abierta(s).|">2 abiertas.</p>
+            <a th:href="@{/admin/privacy/requests}">Ir a la bandeja</a>
+        </section>
+        <section class="card" aria-labelledby="personas">
+            <h2 id="personas">Datos de una persona</h2>
+            <p>Busca por email todo lo que el colegio guarda de alguien, para exportarlo o suprimirlo.</p>
+            <a th:href="@{/admin/privacy/people}">Buscar</a>
+        </section>
+        <section class="card" aria-labelledby="retencion">
+            <h2 id="retencion">Plazos de conservación</h2>
+            <p>Cuánto tiempo se guarda cada tipo de dato antes de borrarlo o anonimizarlo automáticamente.</p>
+            <a th:href="@{/admin/privacy/retention}">Revisar plazos</a>
+        </section>
+        <section class="card" aria-labelledby="brechas">
+            <h2 id="brechas">Incidentes de seguridad</h2>
+            <p>Registro de brechas, notificación a la Agencia y a las familias afectadas.</p>
+            <a th:href="@{/admin/privacy/incidents}">Ver registro</a>
+        </section>
+    </div>
+</main>
+</body>
+</html>

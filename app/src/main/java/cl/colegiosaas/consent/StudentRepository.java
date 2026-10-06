@@ -1,5 +1,6 @@
 package cl.colegiosaas.consent;
 
+import java.time.Instant;
 import cl.colegiosaas.structure.Course;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -22,4 +23,7 @@ public interface StudentRepository extends JpaRepository<Student, Long> {
 
     @EntityGraph(attributePaths = {"course", "course.gradeLevel"})
     Optional<Student> findWithCourseById(Long id);
+
+    /** Estudiantes que dejaron el colegio hace más que el plazo de conservación (PRV-06). */
+    List<Student> findByActiveFalseAndUpdatedAtBefore(Instant cutoff);
 }

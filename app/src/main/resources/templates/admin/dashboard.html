@@ -18,6 +18,19 @@
         <strong th:text="|${documentsDue.size()} documento(s) con más de 12 meses sin actualizar:|">Documentos por revisar:</strong>
         <a th:each="d, it : ${documentsDue}" th:href="@{/admin/documents/{id}(id=${d.id})}" th:text="${d.title} + (${it.last} ? '' : ',')">Reglamento Interno</a>
     </div>
+    <!-- Privacidad: textos obligatorios sin publicar, solicitudes fuera de plazo y brechas abiertas. -->
+    <div class="alert alert-problem" role="alert" th:if="${privacyMissing > 0}">
+        <a th:href="@{/admin/privacy}">Falta publicar la política de privacidad o el aviso del formulario de derechos</a>
+    </div>
+    <div class="alert alert-problem" role="alert" th:if="${requestsOverdue > 0}">
+        <a th:href="@{/admin/privacy/requests}" th:text="|${requestsOverdue} solicitud(es) de derechos fuera de plazo|">Solicitudes vencidas</a>
+    </div>
+    <div class="alert alert-warn" role="status" th:if="${requestsOpen > 0 and requestsOverdue == 0}">
+        <a th:href="@{/admin/privacy/requests}" th:text="|${requestsOpen} solicitud(es) de derechos por atender|">Solicitudes abiertas</a>
+    </div>
+    <div class="alert alert-problem" role="alert" th:if="${incidentsOpen > 0}">
+        <a th:href="@{/admin/privacy/incidents}" th:text="|${incidentsOpen} incidente(s) de seguridad sin cerrar|">Incidentes abiertos</a>
+    </div>
     <div class="alert alert-warn" role="status" th:if="${photosInReview > 0}">
         <a th:href="@{/admin/review}" th:text="|${photosInReview} foto(s) esperan revisión de autorización de imagen|">Fotos por revisar</a>
     </div>
@@ -76,9 +89,11 @@
             <p><a th:href="@{/admin/profile}">Mi cuenta y contraseña</a></p>
         </section>
 
-        <section class="card" aria-labelledby="admin" sec:authorize="hasAnyAuthority('USERS', 'AUDIT_LOG', 'SCHOOL_SETTINGS')">
+        <section class="card" aria-labelledby="admin" sec:authorize="hasAnyAuthority('USERS', 'AUDIT_LOG', 'SCHOOL_SETTINGS', 'PRIVACY')">
             <h2 id="admin">Administración</h2>
             <ul>
+                <li sec:authorize="hasAuthority('PRIVACY')"><a th:href="@{/admin/privacy}">Privacidad y datos personales</a></li>
+                <li sec:authorize="hasAuthority('PRIVACY')"><a th:href="@{/admin/legal}">Textos legales</a></li>
                 <li sec:authorize="hasAuthority('USERS')"><a th:href="@{/admin/users}">Usuarios y permisos</a></li>
                 <li sec:authorize="hasAuthority('SCHOOL_SETTINGS')"><a th:href="@{/admin/structure}">Niveles y cursos</a></li>
                 <li sec:authorize="hasAuthority('AUDIT_LOG')"><a th:href="@{/admin/audit}">Registro de auditoría</a></li>
@@ -87,7 +102,7 @@
 
         <section class="card" aria-labelledby="proximo">
             <h2 id="proximo">En construcción</h2>
-            <p class="muted">Privacidad, formularios y agenda se habilitan en las próximas fases.</p>
+            <p class="muted">Formularios de contacto, eventos, agenda y admisión se habilitan en la próxima fase.</p>
         </section>
     </div>
 </main>

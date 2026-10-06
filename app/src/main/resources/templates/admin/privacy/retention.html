@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head(title='Plazos de conservación')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: admin-header}"></header>
+<main id="contenido" class="container">
+    <p><a th:href="@{/admin/privacy}">← Privacidad</a></p>
+    <div class="page-head">
+        <h1>Plazos de conservación</h1>
+        <form th:action="@{/admin/privacy/retention/run}" method="post" class="inline">
+            <button type="submit" class="btn btn-secondary">Aplicar ahora</button>
+        </form>
+    </div>
+    <div th:replace="~{fragments/layout :: flash}"></div>
+    <p class="hint">Cada noche se borra o anonimiza lo que superó su plazo. Anonimizar conserva la fila para estadísticas
+        (cuántas consultas, en cuánto tiempo se respondieron) sin datos de la persona. Los valores iniciales son una
+        propuesta: valídalos con la asesoría legal del colegio.</p>
+
+    <div class="table-wrap section">
+        <table class="data">
+            <caption class="visually-hidden">Políticas de retención</caption>
+            <thead><tr><th scope="col">Tipo de dato</th><th scope="col">Plazo</th><th scope="col">Al vencer</th><th scope="col"><span class="visually-hidden">Guardar</span></th></tr></thead>
+            <tbody>
+            <tr th:each="p : ${policies}">
+                <td>
+                    <strong th:text="${#messages.msg('retention.' + p.dataCategory)}">Consultas</strong><br>
+                    <span class="muted" th:text="${#messages.msg('retentionFrom.' + p.dataCategory)}">desde que se recibió</span>
+                </td>
+                <td>
+                    <label class="visually-hidden" th:for="|days-${p.id}|">Días</label>
+                    <input th:id="|days-${p.id}|" type="number" name="days" min="1" max="36500" th:value="${p.retentionDays}"
+                           th:attr="form=|policy-${p.id}|" class="inline-select"> días
+                    <span class="muted" th:if="${p.retentionDays >= 365}" th:text="${p.retentionDays / 365 == 1} ? '(≈ 1 año)' : |(≈ ${p.retentionDays / 365} años)|">(2 años)</span>
+                </td>
+                <td>
+                    <label class="visually-hidden" th:for="|action-${p.id}|">Acción</label>
+                    <select th:id="|action-${p.id}|" name="action" th:attr="form=|policy-${p.id}|" class="inline-select">
+                        <option th:each="a : ${p.dataCategory.allowedActions()}" th:value="${a}" th:selected="${a == p.action}"
+                                th:text="${#messages.msg('retentionAction.' + a)}">Borrar</option>
+                    </select>
+                </td>
+                <td>
+                    <form th:id="|policy-${p.id}|" th:action="@{/admin/privacy/retention/{id}(id=${p.id})}" method="post" class="inline">
+                        <button type="submit" class="btn btn-small">Guardar</button>
+                    </form>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</main>
+</body>
+</html>

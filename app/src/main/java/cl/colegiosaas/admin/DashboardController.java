@@ -6,6 +6,10 @@ import cl.colegiosaas.identity.AccountService;
 import cl.colegiosaas.identity.Permission;
 import cl.colegiosaas.media.FileScanner;
 import cl.colegiosaas.news.NewsService;
+import cl.colegiosaas.privacy.DataSubjectRequestService;
+import cl.colegiosaas.privacy.IncidentService;
+import cl.colegiosaas.privacy.LegalTextKind;
+import cl.colegiosaas.privacy.LegalTextService;
 import cl.colegiosaas.security.SchoolUser;
 import cl.colegiosaas.setup.StarterContent;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -25,15 +29,22 @@ class DashboardController {
     private final NewsService news;
     private final ImageReview review;
     private final FileScanner scanner;
+    private final LegalTextService legalTexts;
+    private final DataSubjectRequestService requests;
+    private final IncidentService incidents;
 
     DashboardController(AccountService accounts, StarterContent starter, DocumentService documents, NewsService news,
-                        ImageReview review, FileScanner scanner) {
+                        ImageReview review, FileScanner scanner, LegalTextService legalTexts,
+                        DataSubjectRequestService requests, IncidentService incidents) {
         this.accounts = accounts;
         this.starter = starter;
         this.documents = documents;
         this.news = news;
         this.review = review;
         this.scanner = scanner;
+        this.legalTexts = legalTexts;
+        this.requests = requests;
+        this.incidents = incidents;
     }
 
     @GetMapping("/admin")
@@ -46,6 +57,12 @@ class DashboardController {
         model.addAttribute("newsInReview", me.can(Permission.NEWS_PUBLISH) ? news.pendingReviewCount() : 0L);
         model.addAttribute("photosInReview", me.can(Permission.MEDIA_REVIEW) ? review.queue().size() : 0);
         model.addAttribute("antivirus", scanner.isActive());
+        boolean privacy = me.can(Permission.PRIVACY);
+        model.addAttribute("privacyMissing", privacy ? List.of(LegalTextKind.PRIVACY_POLICY, LegalTextKind.NOTICE_DATA_REQUESTS)
+                .stream().filter(k -> legalTexts.current(k).isEmpty()).count() : 0L);
+        model.addAttribute("requestsOpen", privacy ? requests.open().size() : 0);
+        model.addAttribute("requestsOverdue", privacy ? requests.overdueCount() : 0L);
+        model.addAttribute("incidentsOpen", privacy ? incidents.openCount() : 0L);
         return "admin/dashboard";
     }
 }

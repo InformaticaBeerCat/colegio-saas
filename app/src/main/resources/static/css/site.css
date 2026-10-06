@@ -395,6 +395,53 @@ picture img { display: block; max-width: 100%; height: auto; }
 .footer-menu ul { padding-left: 1rem; margin-top: .35rem; }
 .site-footer__bottom { border-top: 1px solid currentColor; margin-top: 2rem; padding-top: 1rem; font-size: .95rem; }
 .site-footer__bottom p { margin-bottom: .25rem; }
+.legal-links { list-style: none; margin: .5rem 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: .25rem 1.25rem; }
+.legal-links a { color: inherit; }
+
+/* --- Privacidad (fase 6) --- */
+/* Banner de cookies fijo abajo hasta que la persona elige; ambos botones pesan lo mismo (PRV-03). */
+.cookie-banner {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 50;
+    max-height: 70vh;
+    overflow-y: auto;
+    background: var(--color-surface);
+    color: var(--color-text);
+    border-top: 2px solid var(--color-border);
+    box-shadow: 0 -4px 16px rgba(0, 0, 0, .08);
+}
+.cookie-banner__inner { display: flex; flex-wrap: wrap; gap: .75rem 1.5rem; align-items: center; justify-content: space-between; padding-top: 1rem; padding-bottom: 1rem; }
+.cookie-banner__inner p { margin: 0; max-width: 70ch; font-size: .95rem; }
+.cookie-banner__title { font-size: 1.1rem; margin-bottom: .25rem; }
+.cookie-banner__actions { display: flex; flex-wrap: wrap; gap: .5rem; }
+
+.form-card { max-width: 40rem; display: grid; gap: 1.25rem; margin-bottom: 2rem; }
+.form-field { display: flex; flex-direction: column; gap: .35rem; margin: 0; border: 0; padding: 0; }
+.form-field > label, .form-field legend { font-weight: 700; }
+.form-field legend { margin-bottom: .35rem; padding: 0; }
+.form-card input[type=text], .form-card input[type=email], .form-card textarea {
+    font: inherit;
+    min-height: 44px;
+    padding: .55rem .7rem;
+    color: var(--color-text);
+    background: var(--color-bg);
+    border: 2px solid var(--color-control);
+    border-radius: var(--radius);
+    width: 100%;
+}
+.choice { display: flex; gap: .6rem; align-items: flex-start; font-weight: 400; padding: .2rem 0; }
+.choice input { width: 1.25rem; height: 1.25rem; margin-top: .2rem; flex-shrink: 0; accent-color: var(--color-primary); }
+.form-problem { padding: .75rem 1rem; border-left: 4px solid #b42318; background: #fef3f2; color: #7a1a12; border-radius: var(--radius); }
+/* Campo trampa para bots: fuera de la vista, no solo oculto con display (algunos bots lo detectan). */
+.hp { position: absolute; left: -10000px; width: 1px; height: 1px; overflow: hidden; }
+
+.privacy-notice { border: 1px solid var(--color-border); border-radius: var(--radius); padding: .75rem 1rem; background: var(--color-surface); }
+.privacy-notice summary { font-weight: 700; cursor: pointer; }
+.privacy-notice[open] summary { margin-bottom: .75rem; }
+.privacy-notice .prose { font-size: .95rem; }
 
 /* ===================== Temas ===================== */
 
@@ -457,3 +504,5 @@ picture img { display: block; max-width: 100%; height: auto; }
     .site-nav, .skip-link, .preview-bar { display: none; }
     .hero { background: none; color: #000000; }
 }
+.form-field.choice { flex-direction: row; }
+.form-field > label.choice { font-weight: 400; }

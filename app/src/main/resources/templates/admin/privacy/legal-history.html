@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head(title='Historial')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: admin-header}"></header>
+<main id="contenido" class="container">
+    <p><a th:href="@{/admin/legal}">← Textos legales</a></p>
+    <h1 th:text="|Historial: ${#messages.msg('legalKind.' + kind)}|">Historial</h1>
+    <div class="table-wrap section">
+        <table class="data">
+            <caption class="visually-hidden">Versiones publicadas</caption>
+            <thead><tr><th scope="col">Versión</th><th scope="col">Vigente desde</th><th scope="col">Publicó</th></tr></thead>
+            <tbody>
+            <tr th:each="v : ${versions}">
+                <td><a th:href="@{/privacidad/{slug}/v{n}(slug=${kind.slug()}, n=${v.versionNumber})}" th:text="|v${v.versionNumber}: ${v.title}|">v1</a></td>
+                <td th:text="${@formats.dateTime(v.effectiveFrom)}">1 de marzo</td>
+                <td th:text="${v.publishedBy != null} ? ${v.publishedBy.name} : '—'">Ana</td>
+            </tr>
+            <tr th:if="${#lists.isEmpty(versions)}"><td colspan="3" class="muted">Todavía no hay versiones publicadas.</td></tr>
+            </tbody>
+        </table>
+    </div>
+</main>
+</body>
+</html>
