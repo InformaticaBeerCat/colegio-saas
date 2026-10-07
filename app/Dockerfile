@@ -1,5 +1,5 @@
 # Imagen de producción (OPS-01). Se construye en CI y se publica por versión; un colegio solo la descarga.
-FROM eclipse-temurin:21-jdk AS build
+FROM eclipse-temurin:25-jdk AS build
 WORKDIR /src
 COPY .mvn .mvn
 COPY mvnw pom.xml ./
@@ -7,7 +7,7 @@ RUN ./mvnw -B -q dependency:go-offline
 COPY src src
 RUN ./mvnw -B -q package -DskipTests && cp target/colegio-saas-*.jar /src/app.jar
 
-FROM eclipse-temurin:21-jre
+FROM eclipse-temurin:25-jre
 # curl para el chequeo de salud; un usuario sin privilegios para la aplicación.
 RUN apt-get update \
     && apt-get install -y --no-install-recommends curl \
