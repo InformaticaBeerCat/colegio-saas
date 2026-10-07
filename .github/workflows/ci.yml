@@ -33,7 +33,7 @@ jobs:
       - uses: actions/checkout@v4
       - name: Dependencias nuevas con vulnerabilidades conocidas (solo en pull requests)
         if: github.event_name == 'pull_request'
-        uses: actions/dependency-review-action@v4
+        uses: actions/dependency-review-action@v5
         with:
           fail-on-severity: high
       - name: Construir la imagen
