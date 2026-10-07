@@ -27,7 +27,7 @@ jobs:
         run: |
           ./mvnw -B -q versions:set -DnewVersion=${{ steps.version.outputs.version }} -DgenerateBackupPoms=false
           ./mvnw -B verify
-      - uses: docker/login-action@v3
+      - uses: docker/login-action@v4
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
