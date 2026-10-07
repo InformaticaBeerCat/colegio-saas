@@ -17,17 +17,22 @@ public class EventPage {
     private final RegistrationService registrations;
     private final LegalTextService legalTexts;
     private final Features features;
+    private final StructuredData structuredData;
 
-    EventPage(PublicPages pages, RegistrationService registrations, LegalTextService legalTexts, Features features) {
+    EventPage(PublicPages pages, RegistrationService registrations, LegalTextService legalTexts, Features features,
+              StructuredData structuredData) {
         this.pages = pages;
         this.registrations = registrations;
         this.legalTexts = legalTexts;
         this.features = features;
+        this.structuredData = structuredData;
     }
 
     public String render(Model model, Event event) {
         pages.prepare(model, event.getTitle(), event.getDescription());
         model.addAttribute("event", event);
+        SiteContext site = (SiteContext) model.getAttribute("site");
+        model.addAttribute("seo", pages.seo(model).withJsonLd(structuredData.event(event, site)));
         if (features.on(Feature.EVENTS)) {
             registrations.offer(event).ifPresent(offer -> model.addAttribute("offer", offer));
             model.addAttribute("privacyNotice", legalTexts.current(LegalTextKind.NOTICE_EVENTS).orElse(null));

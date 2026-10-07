@@ -1,5 +1,6 @@
 package cl.colegiosaas.privacy.web;
 
+import cl.colegiosaas.analytics.AnalyticsProperties;
 import cl.colegiosaas.privacy.LegalText;
 import cl.colegiosaas.privacy.LegalTextKind;
 import cl.colegiosaas.privacy.LegalTextService;
@@ -17,7 +18,8 @@ import java.util.Arrays;
 import java.util.Optional;
 
 /**
- * Preferencia de cookies del visitante (PRV-03). Se guarda en el navegador, no en el servidor: una cookie
+ * Preferencia de cookies del visitante (PRV-03). El banner aparece solo si el colegio usa una herramienta de
+ * analítica externa (REP-01): el conteo propio de visitas no usa cookies. Se guarda en el navegador: una cookie
  * necesaria con la versión de la política que vio y si aceptó la analítica. Si el colegio publica una
  * versión nueva de la política, el banner vuelve a aparecer.
  */
@@ -28,9 +30,23 @@ public class CookiePreferences {
     private static final Duration LIFETIME = Duration.ofDays(180);
 
     private final LegalTextService legalTexts;
+    private final AnalyticsProperties analytics;
 
-    CookiePreferences(LegalTextService legalTexts) {
+    CookiePreferences(LegalTextService legalTexts, AnalyticsProperties analytics) {
         this.legalTexts = legalTexts;
+        this.analytics = analytics;
+    }
+
+    /**
+     * Script de analítica externa para esta visita (REP-01, PRV-03): solo si el colegio configuró uno y la persona
+     * lo aceptó en el banner sobre la política vigente. Nulo en cualquier otro caso.
+     */
+    public String analyticsScript() {
+        if (!analytics.hasExternalScript()) {
+            return null;
+        }
+        Choice choice = current();
+        return choice != null && choice.analyticsAllowed() ? analytics.scriptUrl().strip() : null;
     }
 
     /**
@@ -82,7 +98,8 @@ public class CookiePreferences {
                 .filter(c -> COOKIE.equals(c.getName())).map(Cookie::getValue).findFirst();
         String prefix = version.get() + ".";
         if (stored.isEmpty() || !stored.get().startsWith(prefix)) {
-            return new Choice(version.get(), true, false);
+            // Sin herramienta externa no hay cookies opcionales: no hay nada que consentir ni banner que mostrar.
+            return new Choice(version.get(), analytics.hasExternalScript(), false);
         }
         return new Choice(version.get(), false, stored.get().equals(prefix + "1"));
     }

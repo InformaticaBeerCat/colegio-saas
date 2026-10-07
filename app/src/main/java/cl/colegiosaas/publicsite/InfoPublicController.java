@@ -21,11 +21,13 @@ class InfoPublicController {
     private final GeneralInfoService info;
     private final SchoolTime time;
     private final PublicPages pages;
+    private final StructuredData structuredData;
 
-    InfoPublicController(GeneralInfoService info, SchoolTime time, PublicPages pages) {
+    InfoPublicController(GeneralInfoService info, SchoolTime time, PublicPages pages, StructuredData structuredData) {
         this.info = info;
         this.time = time;
         this.pages = pages;
+        this.structuredData = structuredData;
     }
 
     @GetMapping("/preguntas-frecuentes")
@@ -34,6 +36,10 @@ class InfoPublicController {
                 .collect(Collectors.groupingBy(e -> e.getCategory().getName(), LinkedHashMap::new, Collectors.toList()));
         pages.prepare(model, "Preguntas frecuentes", "Respuestas a las dudas más comunes de las familias");
         model.addAttribute("faq", byCategory);
+        List<FaqEntry> all = byCategory.values().stream().flatMap(List::stream).toList();
+        if (!all.isEmpty()) {
+            model.addAttribute("seo", pages.seo(model).withJsonLd(structuredData.faq(all)));
+        }
         return "public/info/faq";
     }
 

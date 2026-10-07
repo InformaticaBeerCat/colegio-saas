@@ -20,11 +20,16 @@ class PublicPageController {
     private final PageService pages;
     private final SiteContextService sites;
     private final BlockRenderer renderer;
+    private final PublicPages publicPages;
+    private final StructuredData structuredData;
 
-    PublicPageController(PageService pages, SiteContextService sites, BlockRenderer renderer) {
+    PublicPageController(PageService pages, SiteContextService sites, BlockRenderer renderer, PublicPages publicPages,
+                         StructuredData structuredData) {
         this.pages = pages;
         this.sites = sites;
         this.renderer = renderer;
+        this.publicPages = publicPages;
+        this.structuredData = structuredData;
     }
 
     @GetMapping("/")
@@ -34,7 +39,10 @@ class PublicPageController {
             model.addAttribute("site", sites.publicSite(null));
             return "public/coming-soon";
         }
-        return PageViews.render(home, home.getPublishedBlocks(), sites.publicSite(home.getId()), renderer, model);
+        SiteContext site = sites.publicSite(home.getId());
+        // La portada describe al colegio: nombre, dirección, contacto y redes (SEO-01).
+        Seo seo = publicPages.seoFor(site).withJsonLd(structuredData.school(site));
+        return PageViews.render(home, home.getPublishedBlocks(), site, renderer, seo, model);
     }
 
     /** Un solo tramo de URL; las rutas del sistema ({@code /admin}, {@code /setup}…) tienen sus propios controladores. */
@@ -44,6 +52,7 @@ class PublicPageController {
         if (page.getKind() == PageKind.HOME) {
             return "redirect:/";
         }
-        return PageViews.render(page, page.getPublishedBlocks(), sites.publicSite(page.getId()), renderer, model);
+        SiteContext site = sites.publicSite(page.getId());
+        return PageViews.render(page, page.getPublishedBlocks(), site, renderer, publicPages.seoFor(site), model);
     }
 }

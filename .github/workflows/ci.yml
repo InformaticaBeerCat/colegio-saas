@@ -1,0 +1,60 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    name: Compilar y probar
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+      - name: Tests (incluye MySQL con Testcontainers y el presupuesto de rendimiento sin navegador)
+        working-directory: app
+        run: ./mvnw -B verify
+      - uses: actions/upload-artifact@v4
+        with:
+          name: app-jar
+          path: app/target/colegio-saas-*.jar
+          retention-days: 3
+
+  web-vitals:
+    name: Core Web Vitals (UX-02)
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/download-artifact@v4
+        with:
+          name: app-jar
+          path: app/target
+      - name: Instalar Playwright
+        working-directory: app/perf
+        run: npm install && npx playwright install --with-deps chromium
+      - name: Levantar el sitio
+        working-directory: app
+        run: |
+          APP_SETUP_TOKEN=ci nohup java -jar target/colegio-saas-*.jar > app.log 2>&1 &
+          for i in $(seq 1 60); do curl -sf -o /dev/null http://localhost:8080/setup && break; sleep 2; done
+      - name: Medir y comparar con el presupuesto
+        working-directory: app/perf
+        env:
+          APP_SETUP_TOKEN: ci
+        run: node web-vitals.mjs http://localhost:8080
+      - name: Log de la aplicación si algo falla
+        if: failure()
+        run: tail -n 200 app/app.log

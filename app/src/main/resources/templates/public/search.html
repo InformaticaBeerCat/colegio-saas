@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="es-CL" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{public/layout :: head(${pageTitle}, ${metaDescription}, ${noindex})}"></head>
+<body th:class="|theme-${site.themeId}|">
+<div th:replace="~{public/layout :: top}"></div>
+<main id="contenido" tabindex="-1">
+    <header class="page-header"><div class="wrap">
+        <h1>Buscar en el sitio</h1>
+        <form th:action="@{/buscar}" method="get" role="search" class="search-form search-form--page">
+            <label for="q-pagina" class="visually-hidden">Qué buscas</label>
+            <input id="q-pagina" type="search" name="q" th:value="${query}" maxlength="100" placeholder="Matrícula, uniforme, reglamento…">
+            <button type="submit" class="button">Buscar</button>
+        </form>
+    </div></header>
+    <div class="wrap block">
+        <p th:if="${searched}" role="status" th:text="${#lists.isEmpty(results)} ? |No encontramos resultados para “${query}”. Prueba con otras palabras.|
+            : |${results.size()} resultado(s) para “${query}”|">3 resultados</p>
+        <ol class="search-results" th:unless="${#lists.isEmpty(results)}">
+            <li th:each="r : ${results}" class="search-result">
+                <p class="search-result__section" th:text="${r.section}">Noticia</p>
+                <h2 class="search-result__title"><a th:href="@{${r.path}}" th:text="${r.title}">Proceso de matrícula 2027</a></h2>
+                <p th:if="${r.snippet}" th:text="${r.snippet}">…el proceso de matrícula comienza…</p>
+            </li>
+        </ol>
+        <p th:if="${searched and #lists.isEmpty(results)}">También puedes revisar las <a th:href="@{/preguntas-frecuentes}">preguntas frecuentes</a>
+            o <a th:href="@{/contacto}">escribirnos</a>.</p>
+    </div>
+</main>
+<footer th:replace="~{public/layout :: footer}"></footer>
+</body>
+</html>

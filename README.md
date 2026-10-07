@@ -36,6 +36,15 @@ SPRING_PROFILES_ACTIVE=mysql ./mvnw spring-boot:run
 
 Para un MySQL propio, definir `DB_URL`, `DB_USER` y `DB_PASSWORD`.
 
+Presupuesto de Core Web Vitals (lo mismo que corre en CI), con el sitio levantado y Node 22:
+
+```bash
+cd app
+APP_SETUP_TOKEN=ci java -jar target/colegio-saas-*.jar &
+cd perf && npm install && npx playwright install chromium
+APP_SETUP_TOKEN=ci node web-vitals.mjs http://localhost:8080
+```
+
 ## Primer arranque
 
 1. Arranca la app. Mientras no esté instalada, el log muestra un aviso con un **token de instalación**:
@@ -71,4 +80,6 @@ quedan en `http://localhost:8025`.
 | `APP_RETENTION_ENABLED` | `false` para apagar el borrado automático por plazos de conservación |
 | `APP_HOLIDAYS_URL` | Fuente de feriados de Chile para la agenda (por defecto la API de gob.cl; `{year}` = año) |
 | `APP_AGENDA_MIN_NOTICE`, `APP_AGENDA_HORIZON_DAYS` | Anticipación mínima para reservar (`2h`) y días que se ofrecen (`30`) |
+| `APP_ANALYTICS_ENABLED` | `false` para apagar el conteo anónimo de visitas |
+| `APP_ANALYTICS_SCRIPT_URL` | Script de analítica externa (Plausible, Matomo…); solo se carga con consentimiento |
 | `APP_FORMS_MAX_PER_IP` | Envíos de un mismo formulario público por IP cada 10 minutos (por defecto `5`) |

@@ -76,6 +76,7 @@
                 <li sec:authorize="hasAuthority('SITE_DESIGN')"><a th:href="@{/admin/design}">Diseño y colores</a></li>
                 <li sec:authorize="hasAuthority('SITE_DESIGN') and hasAuthority('SCHOOL_SETTINGS')"><a th:href="@{/admin/footer}">Pie de página y contacto</a></li>
                 <li><a th:href="@{/admin/preview}">Vista previa del borrador</a></li>
+                <li sec:authorize="hasAnyAuthority('SCHOOL_SETTINGS', 'PAGES')"><a th:href="@{/admin/analytics}">Visitas del sitio</a></li>
             </ul>
         </section>
 

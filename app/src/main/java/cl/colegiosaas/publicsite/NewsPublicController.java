@@ -1,5 +1,6 @@
 package cl.colegiosaas.publicsite;
 
+import cl.colegiosaas.media.MediaUrls;
 import cl.colegiosaas.news.NewsArticle;
 import cl.colegiosaas.news.NewsCategory;
 import cl.colegiosaas.news.NewsCategoryService;
@@ -33,12 +34,17 @@ class NewsPublicController {
     private final NewsCategoryService categories;
     private final GradeLevelRepository gradeLevels;
     private final PublicPages pages;
+    private final MediaUrls media;
+    private final StructuredData structuredData;
 
-    NewsPublicController(NewsService news, NewsCategoryService categories, GradeLevelRepository gradeLevels, PublicPages pages) {
+    NewsPublicController(NewsService news, NewsCategoryService categories, GradeLevelRepository gradeLevels, PublicPages pages,
+                         MediaUrls media, StructuredData structuredData) {
         this.news = news;
         this.categories = categories;
         this.gradeLevels = gradeLevels;
         this.pages = pages;
+        this.media = media;
+        this.structuredData = structuredData;
     }
 
     @GetMapping("/noticias")
@@ -69,6 +75,10 @@ class NewsPublicController {
         pages.prepare(model, article.getSeo() != null && article.getSeo().metaTitle() != null
                 ? article.getSeo().metaTitle() : article.getTitle(), description);
         model.addAttribute("article", article);
+        String image = article.getFeaturedImage() == null ? null : pages.absolute(media.src(article.getFeaturedImage(), 1200));
+        SiteContext site = (SiteContext) model.getAttribute("site");
+        model.addAttribute("seo", pages.seo(model).asArticle().withImage(image)
+                .withJsonLd(structuredData.article(article, site, image)));
         return "public/news/article";
     }
 

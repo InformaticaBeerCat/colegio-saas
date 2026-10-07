@@ -264,3 +264,11 @@ picture { display: block; }
 .legal-preview h2 { font-size: 1.2rem; }
 .legal-preview h3 { font-size: 1.05rem; }
 textarea[readonly] { background: var(--bg); font-size: .9rem; }
+
+/* Visitas (fase 8): barras de un solo color, grilla mínima; cada barra trae su valor al pasar el cursor. */
+.bars { margin: 1rem 0 0; }
+.bars__plot { display: block; width: 100%; height: 160px; }
+.bars__bar { fill: var(--primary); }
+.bars__bar:hover { fill: var(--primary-hover); }
+.bars__baseline { stroke: var(--line); stroke-width: 1; vector-effect: non-scaling-stroke; }
+.bars__axis { display: flex; justify-content: space-between; gap: 1rem; font-size: .85rem; color: var(--muted); margin-top: .4rem; }

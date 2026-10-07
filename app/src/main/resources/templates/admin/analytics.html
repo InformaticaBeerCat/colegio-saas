@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head(title='Visitas del sitio')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: admin-header}"></header>
+<main id="contenido" class="container">
+    <div class="page-head">
+        <h1>Visitas del sitio</h1>
+        <nav class="actions" aria-label="Período">
+            <a class="btn btn-small" th:each="d : ${ {7, 30, 90} }" th:classappend="${d != range} ? 'btn-secondary'"
+               th:href="@{/admin/analytics(dias=${d})}" th:text="|${d} días|" th:attr="aria-current=${d == range} ? 'page' : null">30 días</a>
+        </nav>
+    </div>
+    <p class="hint">Se cuentan visitas por página y día, sin cookies ni datos de las personas: no se guarda la IP ni
+        el navegador, y no se cuenta a quien pidió no ser rastreado. No requiere consentimiento.
+        <span th:if="${external}">La herramienta externa configurada solo se carga a quien aceptó la analítica en el banner de cookies.</span></p>
+    <div class="alert alert-warn" role="note" th:unless="${enabled}">El conteo de visitas está apagado en esta instalación.</div>
+
+    <section class="card section" aria-labelledby="por-dia">
+        <h2 id="por-dia"><span th:text="|${report.total} visitas|">1.240 visitas</span>
+            <span class="muted" th:text="|del ${@formats.date(report.from)} al ${@formats.date(report.to)}|">del … al …</span></h2>
+        <p th:if="${report.peak == 0}" class="muted">Todavía no hay visitas registradas en este período.</p>
+        <figure th:if="${report.peak > 0}" class="bars" th:with="n=${report.days.size()}">
+            <!-- Barras en SVG: la altura va como atributo (la política de seguridad no permite estilos en línea). -->
+            <svg class="bars__plot" th:attr="viewBox=|0 0 ${n * 10} 100|" preserveAspectRatio="none" role="img"
+                 th:aria-label="|Visitas por día; máximo ${report.peak} en un día|">
+                <line x1="0" y1="100" th:attr="x2=${n * 10}" y2="100" class="bars__baseline"></line>
+                <rect th:each="d, it : ${report.days}" th:if="${d.views > 0}" class="bars__bar" rx="1"
+                      th:attr="x=${it.index * 10 + 1}, width=8, y=${100 - (d.views * 100 / report.peak)}, height=${d.views * 100 / report.peak}">
+                    <title th:text="|${@formats.date(d.date)}: ${d.views} visitas|">1 de octubre: 40 visitas</title>
+                </rect>
+            </svg>
+            <figcaption class="bars__axis">
+                <span th:text="${@formats.date(report.from)}">7 de septiembre</span>
+                <span th:text="|Máximo: ${report.peak} en un día|">Máximo: 80</span>
+                <span th:text="${@formats.date(report.to)}">6 de octubre</span>
+            </figcaption>
+        </figure>
+        <details th:if="${report.peak > 0}">
+            <summary>Ver como tabla</summary>
+            <div class="table-wrap">
+                <table class="data">
+                    <caption class="visually-hidden">Visitas por día</caption>
+                    <thead><tr><th scope="col">Día</th><th scope="col">Visitas</th></tr></thead>
+                    <tbody><tr th:each="d : ${report.days}"><td th:text="${@formats.date(d.date)}">1 de octubre</td><td th:text="${d.views}">40</td></tr></tbody>
+                </table>
+            </div>
+        </details>
+    </section>
+
+    <div class="cards section">
+        <section class="card wide-card" aria-labelledby="paginas">
+            <h2 id="paginas">Páginas más vistas</h2>
+            <div class="table-wrap">
+                <table class="data">
+                    <caption class="visually-hidden">Páginas más vistas</caption>
+                    <thead><tr><th scope="col">Página</th><th scope="col">Visitas</th></tr></thead>
+                    <tbody>
+                    <tr th:each="p : ${report.pages}"><td><a th:href="@{${p.label}}" th:text="${p.label}">/admision</a></td><td th:text="${p.count}">120</td></tr>
+                    <tr th:if="${#lists.isEmpty(report.pages)}"><td colspan="2" class="muted">Sin datos.</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+        <section class="card" aria-labelledby="origen">
+            <h2 id="origen">De dónde llegan</h2>
+            <div class="table-wrap">
+                <table class="data">
+                    <caption class="visually-hidden">Sitios de origen</caption>
+                    <thead><tr><th scope="col">Sitio</th><th scope="col">Visitas</th></tr></thead>
+                    <tbody>
+                    <tr th:each="s : ${report.sources}"><td th:text="${s.label}">google.com</td><td th:text="${s.count}">80</td></tr>
+                    <tr th:if="${#lists.isEmpty(report.sources)}"><td colspan="2" class="muted">Sin datos: llegan directo o desde el mismo sitio.</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </div>
+</main>
+</body>
+</html>

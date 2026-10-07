@@ -35,12 +35,12 @@ class PreviewController {
             model.addAttribute("site", sites.preview(null));
             return "public/coming-soon";
         }
-        return PageViews.render(home, home.getDraftBlocks(), sites.preview(home.getId()), renderer, model);
+        return PageViews.render(home, home.getDraftBlocks(), sites.preview(home.getId()), renderer, null, model);
     }
 
     @GetMapping(SiteContextService.PREVIEW_ROOT + "/{slug:[a-z0-9]+(?:-[a-z0-9]+)*}")
     String page(@PathVariable String slug, Model model) {
         Page page = pages.findBySlug(slug).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
-        return PageViews.render(page, page.getDraftBlocks(), sites.preview(page.getId()), renderer, model);
+        return PageViews.render(page, page.getDraftBlocks(), sites.preview(page.getId()), renderer, null, model);
     }
 }

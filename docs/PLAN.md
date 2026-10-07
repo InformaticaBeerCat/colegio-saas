@@ -259,10 +259,27 @@ entidades, repositorios, su migración Flyway y tests de persistencia.
 > Pendiente: enlace de videollamada automático para citas en línea (AGE-06, v2); postulación propia (v2); embudo y
 > correos automáticos de seguimiento (Admisión Pro).
 
-### Fase 8 — SEO, búsqueda y rendimiento
-- schema.org (`School`, `Event`, `NewsArticle`, `FAQPage`), sitemap, robots, Open Graph, `noindex` en lo privado [SEO-01..03].
-- Búsqueda interna [UX-06]; analítica respetuosa de la privacidad [REP-01].
-- Presupuesto de Core Web Vitals verificado en CI [UX-02].
+### Fase 8 — SEO, búsqueda y rendimiento ✅
+- Datos estructurados schema.org en JSON-LD [SEO-01]: `School` en la portada (dirección, contacto, redes, logo),
+  `Event` en cada evento, `NewsArticle` en cada noticia y `FAQPage` en preguntas frecuentes. El texto no puede cerrar
+  el `<script>` (se escapa `</`).
+- `sitemap.xml` con todo lo público e indexable (páginas, noticias, eventos, documentos, galerías y secciones de los
+  módulos activos) y `robots.txt` que deja fuera el panel y los enlaces personales [SEO-02].
+- URL canónica, Open Graph y tarjeta de Twitter en cada página pública; `noindex` en vista previa, búsqueda y enlaces
+  personales, y cabecera `X-Robots-Tag` en el panel, citas e inscripciones (también para sus PDF) [SEO-03].
+- Búsqueda interna en `/buscar` y en el menú [UX-06]: sin índice que mantener (recorre el contenido público), sin
+  distinguir mayúsculas ni tildes, todas las palabras deben aparecer y pesa más el título; incluye las secciones fijas.
+- Analítica respetuosa de la privacidad [REP-01]: conteo propio de visitas por página y día y del sitio de origen
+  (solo el dominio), sin cookies, IP ni navegador; respeta "No rastrear" y el Control global de privacidad y no cuenta
+  bots. Panel en "Visitas del sitio". Opcional: una herramienta externa (`APP_ANALYTICS_SCRIPT_URL`) que se carga solo
+  con consentimiento; el banner de cookies aparece solo si existe (sin ella no hay cookies opcionales que consentir).
+- Rendimiento [UX-02]: HTML, CSS y JS comprimidos; CSS y JS con la huella del contenido en la URL y caché de un año.
+  `PerformanceBudgetTest` revisa en cada build el peso del HTML, CSS y JS, que ningún script bloquee el pintado ni venga
+  de afuera y que toda imagen tenga tamaño reservado. CI (`.github/workflows/ci.yml`) mide LCP, CLS, TBT y peso en un
+  teléfono emulado con 4G lento (`app/perf/web-vitals.mjs`) y falla sobre 2,5 s, 0,1, 200 ms o 500 KB.
+
+> Pendiente: caché del HTML público tras un proxy/CDN (fase 9); búsqueda con índice si un colegio supera los miles
+> de publicaciones.
 
 ### Fase 9 — Operación
 - Imagen Docker y `compose` de producción: un colegio se instala con un comando y variables de entorno

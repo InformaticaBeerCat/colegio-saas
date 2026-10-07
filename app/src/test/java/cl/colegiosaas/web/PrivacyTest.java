@@ -38,7 +38,6 @@ import cl.colegiosaas.privacy.RetentionPolicyRepository;
 import cl.colegiosaas.privacy.RetentionService;
 import cl.colegiosaas.privacy.SecurityIncident;
 import cl.colegiosaas.platform.SchoolTime;
-import cl.colegiosaas.privacy.web.CookiePreferences;
 import cl.colegiosaas.shared.crypto.BlindIndex;
 import cl.colegiosaas.shared.mail.OutgoingMail;
 import cl.colegiosaas.shared.web.RuleViolation;
@@ -49,12 +48,10 @@ import cl.colegiosaas.structure.GradeLevel;
 import cl.colegiosaas.structure.GradeLevelRepository;
 import cl.colegiosaas.support.WebTestSupport;
 import jakarta.persistence.EntityManager;
-import jakarta.servlet.http.Cookie;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.test.web.servlet.MvcResult;
 
 import java.sql.Timestamp;
 import java.time.Duration;
@@ -210,38 +207,11 @@ class PrivacyTest extends WebTestSupport {
     // --- PRV-03: banner de cookies ------------------------------------------------------------------------
 
     @Test
-    void theCookieBannerAppearsUntilTheVisitorChoosesOnTheCurrentPolicy() throws Exception {
-        mvc.perform(get("/privacidad")).andExpect(content().string(not(containsString("cookie-banner"))));
+    void withoutAnExternalAnalyticsToolThereIsNothingToConsentToAndNoBanner() throws Exception {
         legalTexts.publishFromTemplate(LegalTextKind.COOKIE_POLICY, admin.getId());
-
         mvc.perform(get("/documentos"))
-                .andExpect(content().string(containsString("class=\"cookie-banner\"")))
-                .andExpect(content().string(containsString("Solo necesarias")))
-                .andExpect(content().string(containsString("value=\"/documentos\"")));
-
-        // Sin token CSRF a propósito: el banner no abre sesión.
-        MvcResult chosen = mvc.perform(post("/privacidad/cookies/preferencias").param("analitica", "false").param("volver", "/documentos"))
-                .andExpect(redirectedUrl("/documentos"))
-                .andExpect(header().string("Set-Cookie", containsString(CookiePreferences.COOKIE + "=1.0")))
-                .andExpect(header().string("Set-Cookie", containsString("SameSite=Lax")))
-                .andReturn();
-        assertThat(chosen.getRequest().getSession(false)).isNull();
-
-        Cookie rejected = new Cookie(CookiePreferences.COOKIE, "1.0");
-        mvc.perform(get("/documentos").cookie(rejected)).andExpect(content().string(not(containsString("class=\"cookie-banner\""))));
-        mvc.perform(get("/privacidad/cookies").cookie(rejected))
-                .andExpect(content().string(containsString("Solo usas las cookies necesarias")));
-        mvc.perform(get("/privacidad/cookies").cookie(new Cookie(CookiePreferences.COOKIE, "1.1")))
-                .andExpect(content().string(containsString("Aceptaste las cookies de analítica")));
-
-        // No sirve para redirigir a otro sitio.
-        mvc.perform(post("/privacidad/cookies/preferencias").param("analitica", "true").param("volver", "//malicioso.example"))
-                .andExpect(redirectedUrl("/privacidad/cookies"));
-
-        // Una política nueva vuelve a preguntar.
-        LegalText v2 = legalTexts.openDraft(LegalTextKind.COOKIE_POLICY, false);
-        legalTexts.publish(v2.getId(), admin.getId());
-        mvc.perform(get("/documentos").cookie(rejected)).andExpect(content().string(containsString("class=\"cookie-banner\"")));
+                .andExpect(content().string(not(containsString("class=\"cookie-banner\""))))
+                .andExpect(content().string(not(containsString("analytics"))));
     }
 
     @Test

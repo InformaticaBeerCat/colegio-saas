@@ -7,10 +7,27 @@
     <title th:text="${title}">Colegio</title>
     <meta name="description" th:if="${description}" th:content="${description}">
     <meta name="robots" th:if="${noindex}" content="noindex, nofollow">
+    <!-- SEO-01, SEO-03: URL canónica, Open Graph para compartir y datos estructurados schema.org. -->
+    <th:block th:if="${seo != null and !noindex}">
+        <link rel="canonical" th:href="${seo.canonicalUrl}">
+        <meta property="og:type" th:content="${seo.type}">
+        <meta property="og:url" th:content="${seo.canonicalUrl}">
+        <meta property="og:title" th:content="${title}">
+        <meta property="og:description" th:if="${description}" th:content="${description}">
+        <meta property="og:site_name" th:content="${site.schoolName}">
+        <meta property="og:locale" content="es_CL">
+        <meta property="og:image" th:if="${seo.imageUrl}" th:content="${seo.imageUrl}">
+        <meta name="twitter:card" th:content="${seo.type == 'article' and seo.imageUrl != null} ? 'summary_large_image' : 'summary'">
+        <script type="application/ld+json" th:if="${seo.jsonLd}" th:utext="${seo.jsonLd}"></script>
+    </th:block>
     <link rel="icon" th:if="${site.faviconHref}" th:href="@{${site.faviconHref}}">
     <link rel="stylesheet" th:href="@{/css/site.css}">
     <link rel="stylesheet" th:href="@{${site.stylesheetUrl}}">
     <script th:src="@{/js/site.js}" defer></script>
+    <!-- REP-01: analítica externa solo con consentimiento en el banner de cookies. -->
+    <th:block th:with="analyticsSrc=${@cookiePreferences.analyticsScript()}">
+        <script th:if="${analyticsSrc}" th:src="${analyticsSrc}" defer></script>
+    </th:block>
 </head>
 <body>
 
@@ -40,7 +57,7 @@
                      th:width="${site.logo.width}" th:height="${site.logo.height}" alt="" class="site-brand__logo">
                 <span th:text="${site.schoolName}">Colegio</span>
             </a>
-            <nav class="site-nav" aria-label="Principal" th:unless="${#lists.isEmpty(site.headerMenu)}">
+            <nav class="site-nav" aria-label="Principal" th:unless="${#lists.isEmpty(site.headerMenu) and site.preview}">
                 <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="menu-principal" hidden>
                     Menú
                 </button>
@@ -55,6 +72,14 @@
                         <ul th:if="${item.hasChildren()}" th:id="|submenu-${item.id}|" class="submenu">
                             <li th:each="child : ${item.children}"><a th:replace="~{:: menu-link(${child})}"></a></li>
                         </ul>
+                    </li>
+                    <!-- UX-06: búsqueda interna, dentro del menú para que en el teléfono quede junto a él. -->
+                    <li class="menu__item menu__search" th:unless="${site.preview}">
+                        <form th:action="@{/buscar}" method="get" role="search" class="search-form search-form--header">
+                            <label for="q" class="visually-hidden">Buscar en el sitio</label>
+                            <input id="q" type="search" name="q" maxlength="100" placeholder="Buscar en el sitio">
+                            <button type="submit" class="search-form__button">Buscar</button>
+                        </form>
                     </li>
                 </ul>
             </nav>

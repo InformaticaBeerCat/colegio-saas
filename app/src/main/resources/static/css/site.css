@@ -461,6 +461,8 @@ picture img { display: block; max-width: 100%; height: auto; }
     .theme-classic .menu > .menu__item > .submenu-toggle { color: var(--color-on-primary); }
     .theme-classic .menu > .menu__item > a[aria-current="page"],
     .theme-classic .menu > .menu__item > a:hover { color: var(--color-on-primary); }
+    /* El buscador va sobre la barra del color principal: el botón usa el acento para distinguirse. */
+    .theme-classic .search-form__button { background: var(--color-accent); color: var(--color-on-accent); border-color: var(--color-accent); }
 }
 .theme-classic .site-header { border-bottom: 0; }
 .theme-classic .hero { border-bottom: 6px solid var(--color-accent); }
@@ -558,3 +560,28 @@ form.inline { display: inline; }
 .timeline__date { font-weight: 700; color: var(--color-primary); }
 .timeline__item--past { opacity: .7; }
 .timeline__item--past::before { background: var(--color-border); }
+
+/* --- Búsqueda (fase 8) --- */
+.search-form { display: flex; gap: .4rem; align-items: stretch; }
+.search-form input[type=search] {
+    font: inherit; min-height: 44px; padding: .4rem .7rem; min-width: 0; flex: 1;
+    color: var(--color-text); background: var(--color-bg);
+    border: 2px solid var(--color-control); border-radius: var(--radius);
+}
+.menu__search { flex-basis: 100%; padding: .25rem 0; }
+.search-form--header { width: 100%; }
+.search-form__button {
+    font: inherit; font-weight: 600; cursor: pointer; min-height: 44px; padding: .4rem .8rem;
+    color: var(--color-on-primary); background: var(--color-primary);
+    border: 2px solid var(--color-primary); border-radius: var(--radius);
+}
+@media (min-width: 900px) {
+    .menu__search { flex-basis: auto; margin-left: .5rem; }
+    .search-form--header input[type=search] { width: 11rem; flex: none; }
+}
+.search-form--page { max-width: 40rem; margin-top: 1rem; }
+.search-results { list-style: none; margin: 0; padding: 0; max-width: 72ch; }
+.search-result { padding: 1rem 0; border-bottom: 1px solid var(--color-border); }
+.search-result p { margin: 0 0 .35rem; }
+.search-result__section { font-size: .85rem; text-transform: uppercase; letter-spacing: .05em; color: var(--color-muted); }
+.search-result__title { font-size: 1.2rem; margin-bottom: .35rem; }

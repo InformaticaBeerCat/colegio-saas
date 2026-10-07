@@ -13,7 +13,7 @@ final class PageViews {
     private PageViews() {
     }
 
-    static String render(Page page, List<Block> blocks, SiteContext site, BlockRenderer renderer, Model model) {
+    static String render(Page page, List<Block> blocks, SiteContext site, BlockRenderer renderer, Seo seo, Model model) {
         model.addAttribute("site", site);
         model.addAttribute("page", page);
         model.addAttribute("blocks", renderer.render(blocks));
@@ -21,6 +21,7 @@ final class PageViews {
         model.addAttribute("metaDescription", page.getSeo() == null ? null : page.getSeo().metaDescription());
         // La vista previa nunca se indexa (SEO-03).
         model.addAttribute("noindex", site.preview() || page.isNoindex());
+        model.addAttribute("seo", seo);
         return "public/page";
     }
 

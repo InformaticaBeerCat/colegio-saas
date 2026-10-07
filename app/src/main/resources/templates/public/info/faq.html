@@ -10,7 +10,7 @@
         <section th:each="entry : ${faq}" class="section-group">
             <h2 th:text="${entry.key}">Admisión</h2>
             <div class="faq">
-                <details th:each="q : ${entry.value}" class="faq__item">
+                <details th:each="q : ${entry.value}" class="faq__item" th:id="|pregunta-${q.id}|">
                     <summary th:text="${q.question}">¿Pregunta?</summary>
                     <div class="faq__answer prose" th:utext="${q.answer}">Respuesta</div>
                 </details>
