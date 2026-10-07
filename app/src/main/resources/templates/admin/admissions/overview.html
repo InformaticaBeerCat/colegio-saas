@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head(title='Admisión')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: admin-header}"></header>
+<main id="contenido" class="container">
+    <div class="page-head">
+        <h1 th:text="|Admisión ${settings.processYear}|">Admisión 2027</h1>
+        <div class="actions">
+            <a class="btn btn-secondary" th:href="@{/admin/admissions/prospects}">Registros de interés</a>
+            <a class="btn btn-secondary" th:href="@{/admision}">Ver en el sitio</a>
+        </div>
+    </div>
+    <div th:replace="~{fragments/layout :: flash}"></div>
+
+    <form class="card section" th:action="@{/admin/admissions/settings}" method="post">
+        <h2>Proceso</h2>
+        <div class="color-grid">
+            <div class="field"><label for="mode">Modo</label>
+                <select id="mode" name="mode">
+                    <option value="SAE" th:selected="${settings.mode.name() == 'SAE'}">SAE (Mineduc)</option>
+                    <option value="OWN" th:selected="${settings.mode.name() == 'OWN'}" th:disabled="${!ownAllowed}">Propio (Admisión Pro)</option>
+                </select></div>
+            <div class="field"><label for="processYear">Año de ingreso</label><input id="processYear" type="number" name="processYear" required th:value="${settings.processYear}"></div>
+            <div class="field"><label for="saeUrl">Enlace al SAE</label><input id="saeUrl" type="url" name="saeUrl" th:value="${settings.saeUrl}"></div>
+        </div>
+        <div class="field"><label for="introText">Texto de la página (HTML)</label>
+            <textarea id="introText" name="introText" rows="6" th:text="${settings.introText}" aria-describedby="intro-hint"></textarea>
+            <span id="intro-hint" class="hint">Proyecto educativo, requisitos, aranceles si corresponde. Se admiten párrafos, listas y enlaces.</span></div>
+        <div class="checks"><label><input type="checkbox" name="showVacancies" value="true" th:checked="${settings.showVacancies}"> Mostrar vacantes por nivel</label></div>
+        <button type="submit" class="btn">Guardar</button>
+    </form>
+
+    <section id="niveles" class="section" aria-labelledby="niveles-titulo">
+        <h2 id="niveles-titulo">Niveles, edades y vacantes</h2>
+        <p class="hint">Las fechas de nacimiento por nivel cambian según la normativa vigente: se configuran aquí, no están programadas.</p>
+        <p class="hint" th:if="${#lists.isEmpty(levels)}">Primero crea los niveles en <a th:href="@{/admin/structure}">Niveles y cursos</a>.</p>
+        <div class="table-wrap" th:unless="${#lists.isEmpty(levels)}">
+            <table class="data">
+                <caption class="visually-hidden">Reglas por nivel</caption>
+                <thead><tr><th scope="col">Nivel</th><th scope="col">Recibe postulantes</th><th scope="col">Nacidos desde</th><th scope="col">Hasta</th><th scope="col">Vacantes</th><th scope="col"><span class="visually-hidden">Guardar</span></th></tr></thead>
+                <tbody>
+                <tr th:each="l : ${levels}" th:with="formId=|level-${l.level.id}|">
+                    <td th:text="${l.level.name}">Pre-kínder</td>
+                    <td><input type="checkbox" name="open" value="true" th:checked="${l.open}" th:attr="form=${formId},aria-label=|${l.level.name} recibe postulantes|"></td>
+                    <td><input type="date" name="bornFrom" th:value="${l.bornFrom}" th:attr="form=${formId},aria-label=|${l.level.name}: nacidos desde|"></td>
+                    <td><input type="date" name="bornUntil" th:value="${l.bornUntil}" th:attr="form=${formId},aria-label=|${l.level.name}: nacidos hasta|"></td>
+                    <td><input type="number" name="seats" min="0" class="inline-select" th:value="${l.seats}" th:attr="form=${formId},aria-label=|${l.level.name}: vacantes|"></td>
+                    <td><form th:id="${formId}" th:action="@{/admin/admissions/levels/{id}(id=${l.level.id})}" method="post" class="inline">
+                        <button type="submit" class="btn btn-small">Guardar</button></form></td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <section id="hitos" class="section" aria-labelledby="hitos-titulo">
+        <h2 id="hitos-titulo">Fechas del proceso</h2>
+        <ul class="block-list">
+            <li th:each="m : ${milestones}" class="block-row">
+                <span><strong th:text="${m.name}">Postulación SAE</strong>
+                    <span class="muted" th:text="${m.endsOn == null} ? ${@formats.date(m.startsOn)} : |${@formats.date(m.startsOn)} al ${@formats.date(m.endsOn)}|">fechas</span></span>
+                <form th:action="@{/admin/admissions/milestones/{id}/delete(id=${m.id})}" method="post" class="inline">
+                    <button type="submit" class="btn btn-small btn-danger">Quitar</button></form>
+            </li>
+            <li th:if="${#lists.isEmpty(milestones)}" class="muted">Sin fechas cargadas para este proceso.</li>
+        </ul>
+        <form class="card" th:action="@{/admin/admissions/milestones}" method="post">
+            <div class="color-grid">
+                <div class="field"><label for="mname">Hito</label><input id="mname" type="text" name="name" required maxlength="150" placeholder="Postulación SAE, período principal"></div>
+                <div class="field"><label for="startsOn">Desde</label><input id="startsOn" type="date" name="startsOn" required></div>
+                <div class="field"><label for="endsOn">Hasta <span class="muted">(opcional)</span></label><input id="endsOn" type="date" name="endsOn"></div>
+            </div>
+            <div class="field"><label for="mdesc">Detalle <span class="muted">(opcional)</span></label><input id="mdesc" type="text" name="description" maxlength="500"></div>
+            <div class="field"><label for="mlink">Enlace <span class="muted">(opcional)</span></label><input id="mlink" type="text" name="linkUrl" maxlength="500" placeholder="https://www.sistemadeadmisionescolar.cl/"></div>
+            <button type="submit" class="btn btn-secondary">Agregar fecha</button>
+        </form>
+    </section>
+</main>
+</body>
+</html>

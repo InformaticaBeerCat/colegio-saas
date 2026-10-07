@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="es-CL" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{public/layout :: head(${pageTitle}, ${metaDescription}, ${noindex})}"></head>
+<body th:class="|theme-${site.themeId}|">
+<div th:replace="~{public/layout :: top}"></div>
+<main id="contenido" tabindex="-1">
+    <header class="page-header"><div class="wrap">
+        <p class="breadcrumb"><a th:href="@{/citas/{t}(t=${token})}">Mi cita</a></p>
+        <h1>Cambiar la hora</h1>
+        <p class="lead" th:text="|Hoy está agendada el ${when}. Elige la nueva hora.|">Hoy está agendada…</p>
+    </div></header>
+    <div class="wrap block">
+        <p class="form-problem" role="alert" th:if="${problem}" th:text="${problem}">Error</p>
+        <p th:if="${days.isEmpty()}" class="notice">No quedan otras horas disponibles en las próximas semanas.</p>
+        <section th:each="day : ${days}" class="slot-day" th:with="dayId=|dia-${day.key}|" th:attr="aria-labelledby=${dayId}">
+            <h2 th:id="${dayId}" class="slot-day__title" th:text="${@formats.weekday(day.key)}">martes 13 de octubre</h2>
+            <ul class="slots">
+                <li th:each="s : ${day.value}">
+                    <form th:action="@{/citas/{t}/reprogramar(t=${token})}" method="post" class="inline">
+                        <input type="hidden" name="inicio" th:value="${s.start}">
+                        <button type="submit" class="slot" th:text="${#temporals.format(s.start, 'HH:mm')}">10:00</button>
+                    </form>
+                </li>
+            </ul>
+        </section>
+    </div>
+</main>
+<footer th:replace="~{public/layout :: footer}"></footer>
+</body>
+</html>

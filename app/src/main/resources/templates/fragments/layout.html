@@ -19,10 +19,10 @@
             <a sec:authorize="hasAuthority('NEWS_EDIT')" th:href="@{/admin/news}">Noticias</a>
             <a sec:authorize="hasAuthority('CALENDAR')" th:href="@{/admin/calendar}">Calendario</a>
             <a sec:authorize="hasAuthority('PAGES')" th:href="@{/admin/pages}">Páginas</a>
+            <a sec:authorize="hasAuthority('INQUIRIES')" th:if="${@features.on('CONTACT')}" th:href="@{/admin/inquiries}">Consultas</a>
+            <a sec:authorize="hasAnyAuthority('SCHEDULING_OWN', 'SCHEDULING_ALL')" th:if="${@features.on('SCHEDULING')}" th:href="@{/admin/scheduling}">Agenda</a>
             <a sec:authorize="hasAnyAuthority('MEDIA_UPLOAD', 'MEDIA_REVIEW')" th:href="@{/admin/media}">Medios</a>
-            <a sec:authorize="hasAuthority('PRIVACY')" th:href="@{/admin/privacy}">Privacidad</a>
             <a sec:authorize="hasAuthority('USERS')" th:href="@{/admin/users}">Usuarios</a>
-            <a sec:authorize="hasAuthority('AUDIT_LOG')" th:href="@{/admin/audit}">Auditoría</a>
             <a th:href="@{/admin/profile}">Mi cuenta</a>
             <a th:href="@{/}">Ver sitio</a>
         </nav>

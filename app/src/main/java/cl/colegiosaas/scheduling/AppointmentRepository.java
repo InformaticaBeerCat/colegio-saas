@@ -1,6 +1,7 @@
 package cl.colegiosaas.scheduling;
 
 import cl.colegiosaas.identity.UserAccount;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
@@ -30,4 +31,18 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Long> 
 
     /** Citas que terminaron antes del corte (hora del colegio), para la retención (PRV-06). */
     List<Appointment> findByEndsAtBefore(LocalDateTime cutoff);
+
+    @EntityGraph(attributePaths = {"appointmentType", "host"})
+    List<Appointment> findByHostAndStartsAtBetweenOrderByStartsAtAsc(UserAccount host, LocalDateTime from, LocalDateTime to);
+
+    @EntityGraph(attributePaths = {"appointmentType", "host"})
+    List<Appointment> findByStartsAtBetweenOrderByStartsAtAsc(LocalDateTime from, LocalDateTime to);
+
+    @EntityGraph(attributePaths = {"appointmentType", "host"})
+    Optional<Appointment> findWithTypeById(Long id);
+
+    @EntityGraph(attributePaths = {"appointmentType", "host"})
+    Optional<Appointment> findWithTypeByManageTokenHash(String manageTokenHash);
+
+    boolean existsByAppointmentType(AppointmentType type);
 }

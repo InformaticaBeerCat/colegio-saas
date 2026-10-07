@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head(title='Áreas de contacto')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: admin-header}"></header>
+<main id="contenido" class="container">
+    <p><a th:href="@{/admin/inquiries}">← Consultas</a></p>
+    <h1>Áreas de contacto</h1>
+    <div th:replace="~{fragments/layout :: flash}"></div>
+    <p class="hint">Cada área recibe un aviso en su correo cuando llega una consulta (sin los datos de la persona: se leen en el panel).</p>
+
+    <form class="card section" th:each="a : ${areas}" th:action="@{/admin/contact-areas}" method="post" th:attr="aria-label=${a.name}">
+        <input type="hidden" name="id" th:value="${a.id}">
+        <div class="color-grid">
+            <div class="field"><label th:for="|name-${a.id}|">Nombre</label><input th:id="|name-${a.id}|" type="text" name="name" th:value="${a.name}" required maxlength="80"></div>
+            <div class="field"><label th:for="|email-${a.id}|">Correo de aviso</label><input th:id="|email-${a.id}|" type="email" name="notifyEmail" th:value="${a.notifyEmail}" required></div>
+            <div class="field"><label th:for="|order-${a.id}|">Orden</label><input th:id="|order-${a.id}|" type="number" name="sortOrder" th:value="${a.sortOrder}"></div>
+        </div>
+        <div class="field"><label th:for="|desc-${a.id}|">Descripción <span class="muted">(opcional, se ve en el sitio)</span></label>
+            <input th:id="|desc-${a.id}|" type="text" name="description" th:value="${a.description}" maxlength="300"></div>
+        <div class="checks"><label><input type="checkbox" name="active" value="true" th:checked="${a.active}"> Activa (aparece en el formulario)</label></div>
+        <button type="submit" class="btn btn-small">Guardar</button>
+    </form>
+
+    <form class="card section" th:action="@{/admin/contact-areas}" method="post">
+        <h2>Nueva área</h2>
+        <div class="color-grid">
+            <div class="field"><label for="name">Nombre</label><input id="name" type="text" name="name" required maxlength="80" placeholder="Admisión"></div>
+            <div class="field"><label for="notifyEmail">Correo de aviso</label><input id="notifyEmail" type="email" name="notifyEmail" required></div>
+            <div class="field"><label for="sortOrder">Orden</label><input id="sortOrder" type="number" name="sortOrder" value="10"></div>
+        </div>
+        <div class="field"><label for="description">Descripción <span class="muted">(opcional)</span></label><input id="description" type="text" name="description" maxlength="300"></div>
+        <input type="hidden" name="active" value="true">
+        <button type="submit" class="btn">Crear área</button>
+    </form>
+</main>
+</body>
+</html>

@@ -1,6 +1,7 @@
 package cl.colegiosaas.admin;
 
 import cl.colegiosaas.consent.ImageReview;
+import cl.colegiosaas.contact.ContactService;
 import cl.colegiosaas.documents.DocumentService;
 import cl.colegiosaas.identity.AccountService;
 import cl.colegiosaas.identity.Permission;
@@ -32,10 +33,12 @@ class DashboardController {
     private final LegalTextService legalTexts;
     private final DataSubjectRequestService requests;
     private final IncidentService incidents;
+    private final ContactService contact;
 
     DashboardController(AccountService accounts, StarterContent starter, DocumentService documents, NewsService news,
                         ImageReview review, FileScanner scanner, LegalTextService legalTexts,
-                        DataSubjectRequestService requests, IncidentService incidents) {
+                        DataSubjectRequestService requests, IncidentService incidents,
+                        ContactService contact) {
         this.accounts = accounts;
         this.starter = starter;
         this.documents = documents;
@@ -45,6 +48,7 @@ class DashboardController {
         this.legalTexts = legalTexts;
         this.requests = requests;
         this.incidents = incidents;
+        this.contact = contact;
     }
 
     @GetMapping("/admin")
@@ -63,6 +67,7 @@ class DashboardController {
         model.addAttribute("requestsOpen", privacy ? requests.open().size() : 0);
         model.addAttribute("requestsOverdue", privacy ? requests.overdueCount() : 0L);
         model.addAttribute("incidentsOpen", privacy ? incidents.openCount() : 0L);
+        model.addAttribute("newInquiries", me.can(Permission.INQUIRIES) ? contact.newCount() : 0L);
         return "admin/dashboard";
     }
 }

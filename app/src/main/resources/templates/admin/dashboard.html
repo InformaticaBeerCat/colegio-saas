@@ -31,6 +31,9 @@
     <div class="alert alert-problem" role="alert" th:if="${incidentsOpen > 0}">
         <a th:href="@{/admin/privacy/incidents}" th:text="|${incidentsOpen} incidente(s) de seguridad sin cerrar|">Incidentes abiertos</a>
     </div>
+    <div class="alert alert-warn" role="status" th:if="${newInquiries > 0}">
+        <a th:href="@{/admin/inquiries}" th:text="|${newInquiries} consulta(s) nueva(s) sin responder|">Consultas nuevas</a>
+    </div>
     <div class="alert alert-warn" role="status" th:if="${photosInReview > 0}">
         <a th:href="@{/admin/review}" th:text="|${photosInReview} foto(s) esperan revisión de autorización de imagen|">Fotos por revisar</a>
     </div>
@@ -100,9 +103,15 @@
             </ul>
         </section>
 
-        <section class="card" aria-labelledby="proximo">
-            <h2 id="proximo">En construcción</h2>
-            <p class="muted">Formularios de contacto, eventos, agenda y admisión se habilitan en la próxima fase.</p>
+        <section class="card" aria-labelledby="interaccion"
+                 sec:authorize="hasAnyAuthority('INQUIRIES', 'EVENTS', 'SCHEDULING_OWN', 'SCHEDULING_ALL', 'ADMISSIONS')">
+            <h2 id="interaccion">Familias</h2>
+            <ul>
+                <li sec:authorize="hasAuthority('INQUIRIES')" th:if="${@features.on('CONTACT')}"><a th:href="@{/admin/inquiries}">Consultas del formulario de contacto</a></li>
+                <li sec:authorize="hasAnyAuthority('SCHEDULING_OWN', 'SCHEDULING_ALL')" th:if="${@features.on('SCHEDULING')}"><a th:href="@{/admin/scheduling}">Agenda de citas</a></li>
+                <li sec:authorize="hasAuthority('EVENTS')" th:if="${@features.on('EVENTS')}"><a th:href="@{/admin/calendar}">Eventos con inscripción (desde el calendario)</a></li>
+                <li sec:authorize="hasAuthority('ADMISSIONS')" th:if="${@features.on('SAE_ADMISSIONS')}"><a th:href="@{/admin/admissions}">Admisión y registros de interés</a></li>
+            </ul>
         </section>
     </div>
 </main>

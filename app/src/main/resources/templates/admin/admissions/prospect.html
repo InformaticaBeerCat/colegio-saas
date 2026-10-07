@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head(title='Registro de interés')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: admin-header}"></header>
+<main id="contenido" class="container">
+    <p><a th:href="@{/admin/admissions/prospects}">← Registros de interés</a></p>
+    <h1 th:text="${prospect.guardianName ?: 'Registro de interés'}">Familia Soto</h1>
+    <div th:replace="~{fragments/layout :: flash}"></div>
+    <div class="cards section">
+        <section class="card wide-card" aria-labelledby="datos">
+            <h2 id="datos">Datos</h2>
+            <dl class="facts">
+                <dt>Correo</dt><dd th:text="${prospect.email}">familia@correo.cl</dd>
+                <dt>Teléfono</dt><dd th:text="${prospect.phone ?: '—'}">—</dd>
+                <dt>Nivel</dt><dd th:text="${prospect.gradeLevel != null} ? ${prospect.gradeLevel.name} : 'Sin nivel'">Pre-kínder</dd>
+                <dt>Año de ingreso</dt><dd th:text="${prospect.entryYear}">2027</dd>
+                <dt>Etapa</dt><dd th:text="${#messages.msg('stage.' + prospect.stage)}">Interesado</dd>
+                <dt>Seguimiento por correo</dt><dd th:text="${prospect.acceptsFollowUp()} ? 'Sí, lo autorizó' : 'No'">No</dd>
+                <dt>Campaña</dt><dd th:text="${prospect.utmSource != null} ? |${prospect.utmSource} ${prospect.utmCampaign ?: ''}| : '—'">—</dd>
+                <dt>Se conserva hasta</dt><dd th:text="${@formats.date(prospect.retainUntil)}">1 de marzo</dd>
+            </dl>
+        </section>
+    </div>
+    <div class="actions section">
+        <form th:action="@{/admin/admissions/prospects/{id}/stage(id=${prospect.id})}" method="post" class="inline">
+            <label for="stage">Cambiar etapa</label>
+            <select id="stage" name="stage" class="inline-select">
+                <option th:each="s : ${stages}" th:value="${s}" th:text="${#messages.msg('stage.' + s)}" th:selected="${s == prospect.stage}">Visitó</option>
+            </select>
+            <button type="submit" class="btn btn-secondary btn-small">Guardar</button>
+        </form>
+        <form th:action="@{/admin/admissions/prospects/{id}/delete(id=${prospect.id})}" method="post" class="inline">
+            <button type="submit" class="btn btn-danger btn-small">Eliminar registro</button>
+        </form>
+    </div>
+</main>
+</body>
+</html>

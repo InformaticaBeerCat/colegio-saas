@@ -10,6 +10,7 @@ import cl.colegiosaas.platform.SchoolRepository;
 import cl.colegiosaas.platform.SchoolTime;
 import cl.colegiosaas.shared.crypto.BlindIndex;
 import cl.colegiosaas.shared.mail.OutgoingMail;
+import cl.colegiosaas.shared.text.Emails;
 import cl.colegiosaas.shared.web.AppProperties;
 import cl.colegiosaas.shared.web.NotFound;
 import cl.colegiosaas.shared.web.RuleViolation;
@@ -23,7 +24,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
 import java.util.Set;
-import java.util.regex.Pattern;
 
 /**
  * Solicitudes de ejercicio de derechos (PRV-05): se reciben desde el sitio con un código de seguimiento y un
@@ -35,7 +35,6 @@ public class DataSubjectRequestService {
     static final Set<DataSubjectRequestStatus> OPEN = EnumSet.of(DataSubjectRequestStatus.RECEIVED,
             DataSubjectRequestStatus.VERIFYING_IDENTITY, DataSubjectRequestStatus.IN_PROGRESS);
     static final Set<DataSubjectRequestStatus> CLOSED = EnumSet.complementOf(EnumSet.copyOf(OPEN));
-    private static final Pattern EMAIL = Pattern.compile("^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$");
 
     private final DataSubjectRequestRepository requests;
     private final ConsentService consents;
@@ -78,7 +77,7 @@ public class DataSubjectRequestService {
             throw new RuleViolation("Elige qué derecho quieres ejercer");
         }
         String email = form.email() == null ? "" : form.email().strip();
-        if (email.length() > 254 || !EMAIL.matcher(email).matches()) {
+        if (!Emails.isValid(email)) {
             throw new RuleViolation("Escribe un correo válido: ahí te enviaremos la respuesta");
         }
         String name = form.name() == null || form.name().isBlank() ? null : form.name().strip();

@@ -91,6 +91,18 @@ public class StarterContent {
         if (school != null && school.hasFeature(Feature.CALENDAR)) {
             menus.add(MenuLocation.HEADER, new MenuTarget("Calendario", null, "/calendario", null));
         }
+        if (school != null && school.hasFeature(Feature.SAE_ADMISSIONS)) {
+            menus.add(MenuLocation.HEADER, new MenuTarget("Admisión", null, "/admision", null));
+        }
+        if (school != null && school.hasFeature(Feature.CONTACT)) {
+            menus.add(MenuLocation.HEADER, new MenuTarget("Contacto", null, "/contacto", null));
+        }
+        if (school != null && school.hasFeature(Feature.SCHEDULING)) {
+            menus.add(MenuLocation.FOOTER, new MenuTarget("Agenda tu cita", null, "/agenda", null));
+        }
+        if (school != null && school.hasFeature(Feature.CALENDAR)) {
+            menus.add(MenuLocation.FOOTER, new MenuTarget("Reuniones de apoderados", null, "/calendario/reuniones", null));
+        }
         menus.add(MenuLocation.FOOTER, new MenuTarget("Documentos institucionales", null, "/documentos", null));
         menus.add(MenuLocation.FOOTER, new MenuTarget("Comunicados", null, "/comunicados", null));
         menus.add(MenuLocation.FOOTER, new MenuTarget("Preguntas frecuentes", null, "/preguntas-frecuentes", null));

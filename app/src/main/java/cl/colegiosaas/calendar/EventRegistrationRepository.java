@@ -1,9 +1,11 @@
 package cl.colegiosaas.calendar;
 
-import java.time.LocalDateTime;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
+import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -27,4 +29,16 @@ public interface EventRegistrationRepository extends JpaRepository<EventRegistra
 
     /** Inscripciones de eventos que terminaron antes del corte (PRV-06). */
     List<EventRegistration> findByEvent_EndsAtBefore(LocalDateTime cutoff);
+
+    @EntityGraph(attributePaths = {"event", "course", "course.gradeLevel"})
+    Optional<EventRegistration> findWithEventByManageTokenHash(String manageTokenHash);
+
+    @EntityGraph(attributePaths = {"course", "course.gradeLevel"})
+    List<EventRegistration> findWithCourseByEventOrderByCreatedAtAsc(Event event);
+
+    Optional<EventRegistration> findFirstByEventAndStatusOrderByWaitlistPositionDesc(Event event, RegistrationStatus status);
+
+    boolean existsByEventAndEmailHashAndStatusIn(Event event, String emailHash, Collection<RegistrationStatus> statuses);
+
+    long countByEventAndStatus(Event event, RegistrationStatus status);
 }

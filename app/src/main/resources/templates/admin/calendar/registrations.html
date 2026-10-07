@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head(title='Inscripción')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: admin-header}"></header>
+<main id="contenido" class="container">
+    <p><a th:href="@{/admin/calendar/{id}(id=${event.id})}">← Evento</a></p>
+    <div class="page-head">
+        <div>
+            <h1 th:text="|Inscripción: ${event.title}|">Inscripción</h1>
+            <p class="muted" th:text="${@eventDates.of(event)}">12 de octubre</p>
+        </div>
+        <a class="btn btn-secondary" th:unless="${#lists.isEmpty(roster)}" th:href="@{/admin/events/{id}/registrations/export(id=${event.id})}">Descargar planilla</a>
+    </div>
+    <div th:replace="~{fragments/layout :: flash}"></div>
+    <div class="alert alert-warn" role="note" th:unless="${event.published}">El evento no está publicado: nadie puede inscribirse todavía.</div>
+
+    <form class="card section" th:action="@{/admin/events/{id}/registrations/settings(id=${event.id})}" method="post">
+        <h2>Configuración</h2>
+        <div class="checks"><label><input type="checkbox" name="enabled" value="true" th:checked="${event.registrationEnabled}"> Recibir inscripciones en el sitio</label></div>
+        <div class="color-grid">
+            <div class="field"><label for="capacity">Aforo (personas)</label>
+                <input id="capacity" type="number" name="capacity" min="1" th:value="${event.capacity}" aria-describedby="capacity-hint">
+                <span id="capacity-hint" class="hint">Vacío = sin límite.</span></div>
+            <div class="field"><label for="closesAt">Cierre de la inscripción</label>
+                <input id="closesAt" type="datetime-local" name="closesAt" aria-describedby="closes-hint"
+                       th:value="${event.registrationClosesAt != null} ? ${#temporals.format(event.registrationClosesAt, 'yyyy-MM-dd''T''HH:mm')} : ''">
+                <span id="closes-hint" class="hint">Vacío = cierra cuando empieza el evento.</span></div>
+        </div>
+        <div class="checks"><label><input type="checkbox" name="waitlist" value="true" th:checked="${event.waitlistEnabled}"> Lista de espera cuando se llene (requiere aforo)</label></div>
+        <button type="submit" class="btn">Guardar</button>
+    </form>
+
+    <p class="section" th:if="${offer}">
+        <strong th:text="|${confirmedPeople} persona(s) confirmada(s)|">20 personas</strong>
+        <span th:if="${event.capacity}" th:text="| de ${event.capacity}|">de 40</span>
+        <span th:if="${waitlisted > 0}" th:text="| · ${waitlisted} inscripción(es) en lista de espera|">· 3 en espera</span>
+    </p>
+
+    <div class="table-wrap section">
+        <table class="data">
+            <caption class="visually-hidden">Inscritos</caption>
+            <thead><tr><th scope="col">Nombre</th><th scope="col">Contacto</th><th scope="col">Personas</th><th scope="col">Curso</th><th scope="col">Estado</th><th scope="col">Acciones</th></tr></thead>
+            <tbody>
+            <tr th:each="r : ${roster}">
+                <td><span th:text="${r.name}">Rosa</span><br><span class="muted" th:if="${r.studentName}" th:text="|Estudiante: ${r.studentName}|"></span></td>
+                <td><span th:text="${r.email}">rosa@correo.cl</span><br><span class="muted" th:text="${r.phone}"></span></td>
+                <td th:text="${r.attendees}">2</td>
+                <td th:text="${r.course != null} ? ${r.course.displayName()} : '—'">1° A</td>
+                <td><span class="badge" th:text="${#messages.msg('registrationStatus.' + r.status)} + (${r.waitlistPosition != null} ? | (${r.waitlistPosition})| : '')">Confirmada</span></td>
+                <td class="actions">
+                    <form th:if="${r.status.name() == 'CONFIRMED'}" th:action="@{/admin/events/{e}/registrations/{id}/attended(e=${event.id}, id=${r.id})}" method="post" class="inline">
+                        <button type="submit" class="btn btn-small btn-secondary">Asistió</button></form>
+                    <form th:if="${r.status.name() == 'CONFIRMED' or r.status.name() == 'WAITLISTED'}" th:action="@{/admin/events/{e}/registrations/{id}/cancel(e=${event.id}, id=${r.id})}" method="post" class="inline">
+                        <button type="submit" class="btn btn-small btn-danger">Cancelar</button></form>
+                </td>
+            </tr>
+            <tr th:if="${#lists.isEmpty(roster)}"><td colspan="6" class="muted">Todavía no hay inscritos.</td></tr>
+            </tbody>
+        </table>
+    </div>
+</main>
+</body>
+</html>

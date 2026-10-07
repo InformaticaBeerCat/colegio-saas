@@ -66,6 +66,17 @@ app:
     response-days: ${APP_PRIVACY_RESPONSE_DAYS:30}
     incident-hours: ${APP_PRIVACY_INCIDENT_HOURS:72}
     retention-enabled: ${APP_RETENTION_ENABLED:true}
+  agenda:
+    # Fuente oficial de feriados (AGE-02); {year} se reemplaza por el año.
+    holidays-url: ${APP_HOLIDAYS_URL:https://apis.digital.gob.cl/fl/feriados/{year}}
+    min-notice: ${APP_AGENDA_MIN_NOTICE:2h}
+    horizon-days: ${APP_AGENDA_HORIZON_DAYS:30}
+    reminder-lead: 24h
+  forms:
+    # Antispam de formularios públicos (COM-08).
+    min-fill-time: 3s
+    max-per-ip: ${APP_FORMS_MAX_PER_IP:5}
+    ip-window: 10m
   base-url: ${APP_BASE_URL:http://localhost:8080}
   mail-from: ${APP_MAIL_FROM:no-responder@localhost}
   security:

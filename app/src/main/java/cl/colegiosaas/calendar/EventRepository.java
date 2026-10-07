@@ -1,7 +1,9 @@
 package cl.colegiosaas.calendar;
 
+import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 
 import java.time.LocalDateTime;
@@ -35,4 +37,21 @@ public interface EventRepository extends JpaRepository<Event, Long> {
             order by e.startsAt
             """)
     List<Event> findPublishedBetween(LocalDateTime from, LocalDateTime to);
+
+    /**
+     * Bloquea la fila del evento mientras se inscribe o se libera un cupo: dos familias no pueden quedarse con
+     * el último lugar al mismo tiempo (EVE-02).
+     */
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("select e from Event e where e.id = :id")
+    Optional<Event> findForUpdate(Long id);
+
+    /** Reuniones de apoderados publicadas desde una fecha, con sus cursos (AGE-08). */
+    @EntityGraph(attributePaths = {"courses", "courses.gradeLevel"})
+    @Query("""
+            select distinct e from Event e
+            where e.publishedAt is not null and e.kind = :kind and e.endsAt >= :from
+            order by e.startsAt
+            """)
+    List<Event> findPublishedOfKindFrom(EventKind kind, LocalDateTime from);
 }

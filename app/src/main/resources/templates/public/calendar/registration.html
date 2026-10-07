@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="es-CL" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{public/layout :: head(${pageTitle}, ${metaDescription}, ${noindex})}"></head>
+<body th:class="|theme-${site.themeId}|">
+<div th:replace="~{public/layout :: top}"></div>
+<main id="contenido" tabindex="-1" th:with="event=${registration.event}">
+    <header class="page-header"><div class="wrap">
+        <p class="breadcrumb">Mi inscripción</p>
+        <h1 th:text="${event.title}">Puertas abiertas</h1>
+    </div></header>
+    <div class="wrap block">
+        <p class="notice" role="status" th:if="${notice}" th:text="${notice}">Cancelada</p>
+        <p class="form-problem" role="alert" th:if="${problem}" th:text="${problem}">Error</p>
+        <dl class="details">
+            <dt>Estado</dt><dd th:text="${#messages.msg('registrationStatus.' + registration.status)}
+                + (${registration.waitlistPosition != null} ? | (lugar ${registration.waitlistPosition})| : '')">Confirmada</dd>
+            <dt>Cuándo</dt><dd th:text="${@eventDates.of(event)}">12 de octubre</dd>
+            <th:block th:if="${event.location}"><dt>Lugar</dt><dd th:text="${event.location}">Gimnasio</dd></th:block>
+            <dt>Personas</dt><dd th:text="${registration.attendees}">2</dd>
+            <th:block th:if="${registration.course}"><dt>Curso</dt><dd th:text="${registration.course.displayName()}">1° A</dd></th:block>
+        </dl>
+        <p><a th:href="@{/calendario/{s}.ics(s=${event.slug})}">Agregar a mi calendario</a> ·
+            <a th:href="@{/calendario/{s}(s=${event.slug})}">Ver el evento</a></p>
+        <form th:if="${registration.status.name() == 'CONFIRMED' or registration.status.name() == 'WAITLISTED'}"
+              th:action="@{/inscripciones/{t}/cancelar(t=${token})}" method="post">
+            <button type="submit" class="button button--secondary">Cancelar mi inscripción</button>
+        </form>
+    </div>
+</main>
+<footer th:replace="~{public/layout :: footer}"></footer>
+</body>
+</html>

@@ -19,7 +19,8 @@
   Banner de cookies (PRV-03): sin JavaScript y sin token CSRF, para no abrir una sesión por visitante.
   Aceptar y rechazar tienen el mismo peso visual.
 -->
-<section th:fragment="cookie-banner" th:if="${cookies != null and cookies.bannerNeeded}" class="cookie-banner" aria-labelledby="cookies-titulo">
+<th:block th:fragment="cookie-banner" th:with="cookies=${@cookiePreferences.current()}">
+<section th:if="${cookies != null and cookies.bannerNeeded}" class="cookie-banner" aria-labelledby="cookies-titulo">
     <div class="wrap cookie-banner__inner">
         <div>
             <h2 id="cookies-titulo" class="cookie-banner__title">Cookies</h2>
@@ -27,15 +28,16 @@
                 saber qué páginas se visitan, sin publicidad ni perfiles. <a th:href="@{/privacidad/cookies}">Política de cookies</a></p>
         </div>
         <form method="post" action="/privacidad/cookies/preferencias" class="cookie-banner__actions">
-            <input type="hidden" name="volver" th:value="${currentPath}">
+            <input type="hidden" name="volver" th:value="${@cookiePreferences.currentPath()}">
             <button type="submit" name="analitica" value="false" class="button">Solo necesarias</button>
             <button type="submit" name="analitica" value="true" class="button">Aceptar analítica</button>
         </form>
     </div>
 </section>
+</th:block>
 
 <!-- Cambiar la elección cuando quiera: retirar el consentimiento es tan fácil como darlo. -->
-<form th:fragment="cookie-preferences" id="preferencias" method="post" action="/privacidad/cookies/preferencias" class="form-card">
+<form th:fragment="cookie-preferences" th:with="cookies=${@cookiePreferences.current()}" id="preferencias" method="post" action="/privacidad/cookies/preferencias" class="form-card">
     <h2>Tus preferencias</h2>
     <p th:text="${cookies.bannerNeeded} ? 'Todavía no has elegido.' : (${cookies.analyticsAllowed} ? 'Aceptaste las cookies de analítica.' : 'Solo usas las cookies necesarias.')">Solo usas las cookies necesarias.</p>
     <input type="hidden" name="volver" value="/privacidad/cookies#preferencias">

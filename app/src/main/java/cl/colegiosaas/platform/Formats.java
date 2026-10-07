@@ -21,6 +21,7 @@ public class Formats {
     /** "12 de octubre de 2026": fechas en el sitio público. */
     private static final DateTimeFormatter MONTH = DateTimeFormatter.ofPattern("MMMM 'de' yyyy", CHILE);
     private static final DateTimeFormatter LONG_DATE = DateTimeFormatter.ofPattern("d 'de' MMMM 'de' yyyy", CHILE);
+    private static final DateTimeFormatter WEEKDAY = DateTimeFormatter.ofPattern("EEEE d 'de' MMMM", CHILE);
 
     private final SchoolRepository schools;
 
@@ -50,6 +51,15 @@ public class Formats {
 
     public String date(LocalDate day) {
         return day == null ? "" : LONG_DATE.format(day);
+    }
+
+    /** "Martes 13 de octubre": títulos de días en la agenda, donde el día de la semana importa más que el año. */
+    public String weekday(LocalDate day) {
+        if (day == null) {
+            return "";
+        }
+        String text = WEEKDAY.format(day);
+        return Character.toUpperCase(text.charAt(0)) + text.substring(1);
     }
 
     public String dateTime(Instant instant) {

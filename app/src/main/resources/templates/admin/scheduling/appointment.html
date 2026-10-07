@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head(title='Cita')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: admin-header}"></header>
+<main id="contenido" class="container">
+    <p><a th:href="@{/admin/scheduling}">← Agenda</a></p>
+    <div class="page-head">
+        <div>
+            <h1 th:text="${appointment.appointmentType.name}">Visita guiada</h1>
+            <p><span class="badge" th:text="${#messages.msg('appointmentStatus.' + appointment.status)}">Confirmada</span>
+                <span class="muted" th:text="|${when} · con ${appointment.host.name}|">martes 13 de octubre</span></p>
+        </div>
+        <div class="actions" th:if="${appointment.status.name() == 'CONFIRMED' and past}">
+            <form th:action="@{/admin/scheduling/appointments/{id}/attended(id=${appointment.id})}" method="post" class="inline">
+                <button type="submit" class="btn">Asistió</button></form>
+            <form th:action="@{/admin/scheduling/appointments/{id}/no-show(id=${appointment.id})}" method="post" class="inline">
+                <button type="submit" class="btn btn-secondary">No asistió</button></form>
+        </div>
+    </div>
+    <div th:replace="~{fragments/layout :: flash}"></div>
+
+    <div class="cards section">
+        <section class="card" aria-labelledby="persona">
+            <h2 id="persona">Persona</h2>
+            <dl class="facts">
+                <dt>Nombre</dt><dd th:text="${appointment.contactName ?: '—'}">Rosa</dd>
+                <dt>Correo</dt><dd><a th:href="|mailto:${appointment.contactEmail}|" th:text="${appointment.contactEmail}">rosa@correo.cl</a></dd>
+                <dt>Teléfono</dt><dd th:text="${appointment.contactPhone ?: '—'}">—</dd>
+                <dt>Estudiante</dt><dd th:text="${appointment.studentName ?: '—'}">Tomás</dd>
+                <dt>Modalidad</dt><dd th:text="${#messages.msg('mode.' + appointment.mode)}">Presencial</dd>
+            </dl>
+            <p class="hint" th:if="${appointment.cancellationReason}" th:text="|Motivo de cancelación: ${appointment.cancellationReason}|"></p>
+        </section>
+        <form class="card" th:action="@{/admin/scheduling/appointments/{id}/notes(id=${appointment.id})}" method="post">
+            <h2>Notas del equipo</h2>
+            <div class="field"><label for="notes">Solo las ve el equipo. Sin datos sensibles.</label>
+                <textarea id="notes" name="notes" rows="4" maxlength="1000" th:text="${appointment.staffNotes}"></textarea></div>
+            <button type="submit" class="btn btn-secondary">Guardar notas</button>
+        </form>
+        <form class="card" th:if="${appointment.status.name() == 'CONFIRMED' and !past}" th:action="@{/admin/scheduling/appointments/{id}/cancel(id=${appointment.id})}" method="post">
+            <h2>Cancelar</h2>
+            <div class="field"><label for="reason">Motivo (se envía a la familia)</label>
+                <input id="reason" type="text" name="reason" required maxlength="500"></div>
+            <button type="submit" class="btn btn-danger">Cancelar cita</button>
+        </form>
+    </div>
+</main>
+</body>
+</html>

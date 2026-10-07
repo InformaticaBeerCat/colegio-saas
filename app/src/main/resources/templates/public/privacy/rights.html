@@ -46,11 +46,7 @@
                           aria-describedby="details-hint"></textarea>
                 <span id="details-hint" class="muted">Por ejemplo, qué dato corregir o de qué formulario se trata.</span>
             </div>
-            <!-- Campo trampa para bots: las personas no lo ven ni lo llenan. -->
-            <div class="hp" aria-hidden="true">
-                <label for="sitio_web">No llenar</label>
-                <input id="sitio_web" type="text" name="sitio_web" tabindex="-1" autocomplete="off">
-            </div>
+            <div th:replace="~{public/forms :: guard}"></div>
 
             <details th:replace="~{public/privacy/fragments :: notice(${privacyNotice})}"></details>
             <label class="choice form-field">

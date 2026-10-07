@@ -28,6 +28,60 @@
         </dl>
         <p th:if="${event.description}" class="prose pre-line" th:text="${event.description}">Descripción</p>
         <p><a class="button" th:href="@{/calendario/{s}.ics(s=${event.slug})}">Agregar a mi calendario</a></p>
+
+        <!-- Inscripción (EVE-02): cupos, lista de espera y cierre automático. -->
+        <section th:if="${offer}" id="inscripcion" class="section-group" aria-labelledby="inscripcion-titulo">
+            <h2 id="inscripcion-titulo">Inscripción</h2>
+            <p class="notice" role="status" th:if="${notice}" th:text="${notice}">Inscripción confirmada</p>
+            <p class="form-problem" role="alert" th:if="${problem}" th:text="${problem}">Falta el correo</p>
+            <p th:unless="${offer.open}" class="muted">La inscripción está cerrada.</p>
+            <th:block th:if="${offer.open}">
+                <p th:if="${offer.seatsLeft != null and !offer.full()}" th:text="|Quedan ${offer.seatsLeft} cupo(s).|">Quedan 12 cupos.</p>
+                <p th:if="${offer.full() and offer.waitlist}">Los cupos se agotaron. Puedes inscribirte en la lista de espera: si alguien cancela, te avisamos por correo.</p>
+                <p th:if="${offer.full() and !offer.waitlist}">Se agotaron los cupos.</p>
+                <p th:if="${privacyNotice == null and offer.accepting()}" class="muted">La inscripción en línea se habilitará pronto.</p>
+                <form th:if="${offer.accepting() and privacyNotice != null}" th:action="@{/calendario/{s}/inscripcion(s=${event.slug})}" method="post" class="form-card">
+                    <div class="form-field">
+                        <label for="name">Tu nombre</label>
+                        <input id="name" type="text" name="name" required maxlength="150" autocomplete="name" th:value="${form?.name}">
+                    </div>
+                    <div class="form-field">
+                        <label for="email">Tu correo</label>
+                        <input id="email" type="email" name="email" required maxlength="254" autocomplete="email" th:value="${form?.email}">
+                    </div>
+                    <div class="form-field">
+                        <label for="phone">Teléfono <span class="muted">(opcional)</span></label>
+                        <input id="phone" type="tel" name="phone" maxlength="30" autocomplete="tel" th:value="${form?.phone}">
+                    </div>
+                    <div class="form-field">
+                        <label for="attendees">¿Cuántas personas asisten?</label>
+                        <input id="attendees" type="number" name="attendees" min="1" th:max="${maxAttendees}" required
+                               th:value="${form != null ? form.attendees : 1}">
+                    </div>
+                    <th:block th:unless="${#lists.isEmpty(offer.courses)}">
+                        <div class="form-field">
+                            <label for="courseId">Curso</label>
+                            <select id="courseId" name="courseId" required>
+                                <option value="">Elige el curso</option>
+                                <option th:each="c : ${offer.courses}" th:value="${c.id}" th:text="${c.displayName()}"
+                                        th:selected="${form != null and form.courseId == c.id}">1° A</option>
+                            </select>
+                        </div>
+                        <div class="form-field">
+                            <label for="studentName">Nombre del estudiante <span class="muted">(opcional)</span></label>
+                            <input id="studentName" type="text" name="studentName" maxlength="150" th:value="${form?.studentName}">
+                        </div>
+                    </th:block>
+                    <div th:replace="~{public/forms :: guard}"></div>
+                    <details th:replace="~{public/privacy/fragments :: notice(${privacyNotice})}"></details>
+                    <label class="choice form-field">
+                        <input type="checkbox" name="consent" value="true" required>
+                        <span>Autorizo al colegio a usar estos datos para gestionar mi inscripción, según el aviso de privacidad</span>
+                    </label>
+                    <button type="submit" class="button" th:text="${offer.full()} ? 'Inscribirme en la lista de espera' : 'Inscribirme'">Inscribirme</button>
+                </form>
+            </th:block>
+        </section>
     </div>
 </main>
 <footer th:replace="~{public/layout :: footer}"></footer>

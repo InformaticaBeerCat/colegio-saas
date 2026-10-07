@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="es-CL" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{public/layout :: head(${pageTitle}, ${metaDescription}, ${noindex})}"></head>
+<body th:class="|theme-${site.themeId}|">
+<div th:replace="~{public/layout :: top}"></div>
+<main id="contenido" tabindex="-1">
+    <header class="page-header"><div class="wrap">
+        <p class="breadcrumb"><a th:href="@{/agenda/{id}(id=${type.id})}" th:text="${type.name}">Visita guiada</a></p>
+        <h1>Confirma tu cita</h1>
+        <p class="lead"><strong th:text="${when}">martes 13 de octubre a las 10:00</strong>
+            <span th:if="${hostName}" th:text="| con ${hostName}|">con Ana</span></p>
+        <p><a th:href="@{/agenda/{id}(id=${type.id})}">Elegir otra hora</a></p>
+    </div></header>
+    <div class="wrap block">
+        <p class="form-problem" role="alert" th:if="${problem}" th:text="${problem}">Esa hora ya no está disponible</p>
+        <p th:if="${privacyNotice == null}" class="notice">La reserva en línea se habilitará pronto.</p>
+        <form th:if="${privacyNotice}" th:action="@{/agenda/{id}/reservar(id=${type.id})}" method="post" class="form-card">
+            <input type="hidden" name="funcionario" th:value="${hostId}">
+            <input type="hidden" name="inicio" th:value="${start}">
+            <fieldset class="form-field" th:if="${type.inPersonAllowed and type.onlineAllowed}">
+                <legend>Modalidad</legend>
+                <label class="choice"><input type="radio" name="mode" value="IN_PERSON" th:checked="${form == null or form.mode == null or form.mode.name() == 'IN_PERSON'}"> <span>Presencial, en el colegio</span></label>
+                <label class="choice"><input type="radio" name="mode" value="ONLINE" th:checked="${form != null and form.mode != null and form.mode.name() == 'ONLINE'}"> <span>En línea</span></label>
+            </fieldset>
+            <div class="form-field">
+                <label for="name">Tu nombre</label>
+                <input id="name" type="text" name="name" required maxlength="150" autocomplete="name" th:value="${form?.name}">
+            </div>
+            <div class="form-field">
+                <label for="email">Tu correo</label>
+                <input id="email" type="email" name="email" required maxlength="254" autocomplete="email" th:value="${form?.email}">
+            </div>
+            <div class="form-field">
+                <label for="phone">Teléfono <span class="muted">(opcional)</span></label>
+                <input id="phone" type="tel" name="phone" maxlength="30" autocomplete="tel" th:value="${form?.phone}">
+            </div>
+            <div class="form-field" th:if="${type.audience.name() != 'ANYONE'}">
+                <label for="studentName">Nombre del estudiante
+                    <span class="muted" th:if="${type.audience.name() == 'PROSPECTIVE_FAMILY'}">(postulante, opcional)</span></label>
+                <input id="studentName" type="text" name="studentName" maxlength="150" th:value="${form?.studentName}"
+                       th:required="${type.audience.name() == 'GUARDIAN'}">
+            </div>
+            <div th:replace="~{public/forms :: guard}"></div>
+            <details th:replace="~{public/privacy/fragments :: notice(${privacyNotice})}"></details>
+            <label class="choice form-field">
+                <input type="checkbox" name="consent" value="true" required>
+                <span>Autorizo al colegio a usar estos datos para gestionar mi cita, según el aviso de privacidad</span>
+            </label>
+            <button type="submit" class="button">Agendar</button>
+        </form>
+    </div>
+</main>
+<footer th:replace="~{public/layout :: footer}"></footer>
+</body>
+</html>

@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="es-CL" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{public/layout :: head(${pageTitle}, ${metaDescription}, ${noindex})}"></head>
+<body th:class="|theme-${site.themeId}|">
+<div th:replace="~{public/layout :: top}"></div>
+<main id="contenido" tabindex="-1">
+    <header class="page-header"><div class="wrap"><h1>Cita agendada</h1></div></header>
+    <div class="wrap block">
+        <p class="notice" role="status" th:text="${notice ?: 'Recibimos tu reserva.'}">Tu cita quedó agendada.</p>
+        <p th:if="${when}"><strong th:text="${typeName}">Visita guiada</strong>: <span th:text="${when}">martes 13 de octubre a las 10:00</span></p>
+        <p><a th:href="@{/}">Volver al inicio</a></p>
+    </div>
+</main>
+<footer th:replace="~{public/layout :: footer}"></footer>
+</body>
+</html>

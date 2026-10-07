@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head(title='Consulta')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: admin-header}"></header>
+<main id="contenido" class="container" th:with="i=${view.inquiry}">
+    <p><a th:href="@{/admin/inquiries}">← Consultas</a></p>
+    <div class="page-head">
+        <div>
+            <h1 th:text="|${i.ticketCode}: ${i.subject ?: 'sin asunto'}|">C-7KQ2M9XA</h1>
+            <p><span class="badge" th:text="${#messages.msg('inquiryStatus.' + i.status)}">Nueva</span>
+                <span class="muted" th:text="|${i.area.name} · recibida el ${@formats.dateTime(i.createdAt)}|">Secretaría</span></p>
+        </div>
+        <div class="actions">
+            <form th:if="${i.assignedTo == null}" th:action="@{/admin/inquiries/{id}/assign(id=${i.id})}" method="post" class="inline">
+                <button type="submit" class="btn btn-secondary">Tomarla</button></form>
+            <form th:if="${i.status.name() != 'RESOLVED' and i.status.name() != 'SPAM'}" th:action="@{/admin/inquiries/{id}/resolve(id=${i.id})}" method="post" class="inline">
+                <button type="submit" class="btn btn-secondary">Marcar resuelta</button></form>
+            <form th:if="${i.status.name() == 'NEW'}" th:action="@{/admin/inquiries/{id}/spam(id=${i.id})}" method="post" class="inline">
+                <button type="submit" class="btn btn-danger">Es spam</button></form>
+            <form th:if="${i.status.name() == 'RESOLVED' or i.status.name() == 'SPAM'}" th:action="@{/admin/inquiries/{id}/reopen(id=${i.id})}" method="post" class="inline">
+                <button type="submit" class="btn btn-secondary">Reabrir</button></form>
+        </div>
+    </div>
+    <div th:replace="~{fragments/layout :: flash}"></div>
+
+    <div class="cards section">
+        <section class="card wide-card" aria-labelledby="mensaje">
+            <h2 id="mensaje">Mensaje</h2>
+            <dl class="facts">
+                <dt>Nombre</dt><dd th:text="${i.name ?: '—'}">Ana</dd>
+                <dt>Correo</dt><dd th:text="${i.email}">ana@correo.cl</dd>
+                <dt>Teléfono</dt><dd th:text="${i.phone ?: '—'}">—</dd>
+                <dt>A cargo</dt><dd th:text="${i.assignedTo != null} ? ${i.assignedTo.name} : 'Sin asignar'">Ana</dd>
+                <dt>Primera respuesta</dt><dd th:text="${i.firstResponseAt != null} ? ${@formats.dateTime(i.firstResponseAt)} : 'Pendiente'">Pendiente</dd>
+                <dt>Autorización</dt><dd th:text="${view.consentText}">Aviso v1</dd>
+            </dl>
+            <p class="prewrap" th:text="${i.message}">Mensaje</p>
+        </section>
+    </div>
+
+    <div class="cards section" th:if="${i.status.name() != 'SPAM' and !i.anonymized}">
+        <form class="card" th:action="@{/admin/inquiries/{id}/reply(id=${i.id})}" method="post">
+            <h2>Responder por correo</h2>
+            <div class="field"><label for="reply">Respuesta</label><textarea id="reply" name="text" rows="6" required maxlength="5000"></textarea></div>
+            <button type="submit" class="btn">Enviar respuesta</button>
+        </form>
+        <form class="card" th:action="@{/admin/inquiries/{id}/note(id=${i.id})}" method="post">
+            <h2>Nota interna</h2>
+            <div class="field"><label for="note">Solo la ve el equipo</label><textarea id="note" name="text" rows="4" required maxlength="5000"></textarea></div>
+            <button type="submit" class="btn btn-secondary">Agregar nota</button>
+        </form>
+        <form class="card" th:action="@{/admin/inquiries/{id}/route(id=${i.id})}" method="post">
+            <h2>Derivar</h2>
+            <div class="field"><label for="areaId">A otra área</label>
+                <select id="areaId" name="areaId"><option th:each="a : ${areas}" th:value="${a.id}" th:selected="${a.id == i.area.id}" th:text="${a.name}">Admisión</option></select></div>
+            <button type="submit" class="btn btn-secondary">Derivar</button>
+        </form>
+    </div>
+
+    <section class="card section" aria-labelledby="historial" th:unless="${#lists.isEmpty(view.notes)}">
+        <h2 id="historial">Historial</h2>
+        <ul class="block-list">
+            <li th:each="n : ${view.notes}" class="note">
+                <p class="muted" th:text="|${n.author} · ${@formats.dateTime(n.createdAt)}|">Ana · 1 de marzo</p>
+                <p class="prewrap" th:text="${n.body}">Nota</p>
+            </li>
+        </ul>
+    </section>
+</main>
+</body>
+</html>

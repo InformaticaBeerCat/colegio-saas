@@ -10,6 +10,8 @@ import cl.colegiosaas.privacy.LegalTextKind;
 import cl.colegiosaas.privacy.LegalTextService;
 import cl.colegiosaas.privacy.RequestOrigin;
 import cl.colegiosaas.publicsite.PublicPages;
+import cl.colegiosaas.shared.forms.FormGuard;
+import cl.colegiosaas.shared.forms.FormGuards;
 import cl.colegiosaas.shared.web.NotFound;
 import cl.colegiosaas.shared.web.RuleViolation;
 import jakarta.servlet.http.HttpServletRequest;
@@ -42,14 +44,16 @@ class PrivacyPublicController {
     private final CookiePreferences cookies;
     private final SchoolRepository schools;
     private final PublicPages pages;
+    private final FormGuard guard;
 
     PrivacyPublicController(LegalTextService texts, DataSubjectRequestService requests, CookiePreferences cookies,
-                            SchoolRepository schools, PublicPages pages) {
+                            SchoolRepository schools, PublicPages pages, FormGuard guard) {
         this.texts = texts;
         this.requests = requests;
         this.cookies = cookies;
         this.schools = schools;
         this.pages = pages;
+        this.guard = guard;
     }
 
     @GetMapping("/privacidad")
@@ -94,14 +98,22 @@ class PrivacyPublicController {
     String submit(@RequestParam(required = false) DataSubjectRight right, @RequestParam(required = false) String name,
                   @RequestParam(required = false) String email, @RequestParam(defaultValue = "false") boolean onBehalfOfMinor,
                   @RequestParam(required = false) String details, @RequestParam(defaultValue = "false") boolean noticeRead,
-                  @RequestParam(name = "sitio_web", required = false) String honeypot,
+                  @RequestParam(name = FormGuard.HONEYPOT, required = false) String honeypot,
+                  @RequestParam(name = FormGuard.STAMP, required = false) String stamp,
                   HttpServletRequest request, Model model, RedirectAttributes redirect) {
         DataSubjectRequestService.Submission form = new DataSubjectRequestService.Submission(right, name, email,
                 onBehalfOfMinor, details, noticeRead);
-        if (honeypot != null && !honeypot.isBlank()) {
-            // Un bot llenó el campo oculto: se responde igual que siempre, sin guardar nada.
+        FormGuard.Verdict verdict = guard.check("derechos", request.getRemoteAddr(), honeypot, stamp);
+        if (verdict == FormGuard.Verdict.BOT) {
+            // Se responde igual que siempre, sin guardar nada.
             redirect.addFlashAttribute("notice", "Recibimos tu solicitud. Te enviamos el código de seguimiento por correo.");
             return "redirect:/privacidad/derechos/estado";
+        }
+        if (verdict != FormGuard.Verdict.OK) {
+            prepareForm(model);
+            model.addAttribute("problem", FormGuards.message(verdict));
+            model.addAttribute("form", form);
+            return "public/privacy/rights";
         }
         try {
             DataSubjectRequest saved = requests.submit(form, RequestOrigin.of(request));

@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="es-CL" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{public/layout :: head(${pageTitle}, ${metaDescription}, ${noindex})}"></head>
+<body th:class="|theme-${site.themeId}|">
+<div th:replace="~{public/layout :: top}"></div>
+<main id="contenido" tabindex="-1">
+    <header class="page-header"><div class="wrap"><h1>Mensaje enviado</h1></div></header>
+    <div class="wrap block">
+        <p class="notice" role="status" th:text="${notice ?: 'Recibimos tu mensaje.'}">Recibimos tu mensaje.</p>
+        <p th:if="${ticket}">Tu número de atención es <strong th:text="${ticket}">C-7KQ2M9XA</strong>.</p>
+        <p><a th:href="@{/}">Volver al inicio</a></p>
+    </div>
+</main>
+<footer th:replace="~{public/layout :: footer}"></footer>
+</body>
+</html>

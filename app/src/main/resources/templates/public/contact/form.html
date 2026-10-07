@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="es-CL" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{public/layout :: head(${pageTitle}, ${metaDescription}, ${noindex})}"></head>
+<body th:class="|theme-${site.themeId}|">
+<div th:replace="~{public/layout :: top}"></div>
+<main id="contenido" tabindex="-1">
+    <header class="page-header"><div class="wrap">
+        <h1>Contacto</h1>
+        <p class="lead">Tu mensaje llega directo al área que elijas. Te enviaremos un número de atención y te responderemos por correo.</p>
+    </div></header>
+    <div class="wrap block contact-layout">
+        <div>
+            <p class="form-problem" role="alert" th:if="${problem}" th:text="${problem}">Falta el correo</p>
+
+            <p class="notice" th:if="${privacyNotice == null or #lists.isEmpty(areas)}">
+                El formulario se habilitará pronto.
+                <span th:if="${site.footer.contactEmail}">Mientras tanto, escríbenos a
+                    <a th:href="|mailto:${site.footer.contactEmail}|" th:text="${site.footer.contactEmail}">contacto@colegio.cl</a>.</span>
+            </p>
+
+            <form th:if="${privacyNotice != null and !#lists.isEmpty(areas)}" th:action="@{/contacto}" method="post" class="form-card">
+                <div class="form-field">
+                    <label for="areaId">¿Con quién quieres hablar?</label>
+                    <select id="areaId" name="areaId" required>
+                        <option value="" th:selected="${form == null or form.areaId == null}">Elige un área</option>
+                        <option th:each="a : ${areas}" th:value="${a.id}" th:text="${a.name}"
+                                th:selected="${form != null and form.areaId == a.id}">Secretaría</option>
+                    </select>
+                </div>
+                <div class="form-field">
+                    <label for="name">Tu nombre</label>
+                    <input id="name" type="text" name="name" required maxlength="150" autocomplete="name" th:value="${form?.name}">
+                </div>
+                <div class="form-field">
+                    <label for="email">Tu correo</label>
+                    <input id="email" type="email" name="email" required maxlength="254" autocomplete="email" th:value="${form?.email}">
+                </div>
+                <div class="form-field">
+                    <label for="phone">Teléfono <span class="muted">(opcional)</span></label>
+                    <input id="phone" type="tel" name="phone" maxlength="30" autocomplete="tel" th:value="${form?.phone}">
+                </div>
+                <div class="form-field">
+                    <label for="subject">Asunto <span class="muted">(opcional)</span></label>
+                    <input id="subject" type="text" name="subject" maxlength="150" th:value="${form?.subject}">
+                </div>
+                <div class="form-field">
+                    <label for="message">Mensaje</label>
+                    <textarea id="message" name="message" rows="6" required maxlength="5000" th:text="${form?.message}"></textarea>
+                </div>
+                <div th:replace="~{public/forms :: guard}"></div>
+                <details th:replace="~{public/privacy/fragments :: notice(${privacyNotice})}"></details>
+                <label class="choice form-field">
+                    <input type="checkbox" name="consent" value="true" required>
+                    <span>Autorizo al colegio a usar estos datos para responder mi mensaje, según el aviso de privacidad</span>
+                </label>
+                <button type="submit" class="button">Enviar mensaje</button>
+            </form>
+        </div>
+
+        <aside class="contact-aside" aria-labelledby="otros-canales"
+               th:if="${site.whatsappHref() != null or site.footer.phone != null or site.footer.contactEmail != null
+                        or !#lists.isEmpty(areas.?[description != null])}">
+            <h2 id="otros-canales">Otros canales</h2>
+            <p th:if="${site.whatsappHref()}">
+                <a class="button button--whatsapp" th:href="${site.whatsappHref()}" rel="noopener">Escríbenos por WhatsApp<span class="visually-hidden"> (otro sitio)</span></a>
+            </p>
+            <p th:if="${site.footer.phone}">Teléfono: <a th:href="|tel:${#strings.replace(site.footer.phone, ' ', '')}|" th:text="${site.footer.phone}">+56 2 2345 6789</a></p>
+            <p th:if="${site.footer.contactEmail}">Correo: <a th:href="|mailto:${site.footer.contactEmail}|" th:text="${site.footer.contactEmail}">contacto@colegio.cl</a></p>
+            <ul class="history" th:unless="${#lists.isEmpty(areas)}">
+                <li th:each="a : ${areas}" th:if="${a.description}"><strong th:text="${a.name}">Admisión</strong>: <span th:text="${a.description}">Postulaciones y visitas</span></li>
+            </ul>
+        </aside>
+    </div>
+</main>
+<footer th:replace="~{public/layout :: footer}"></footer>
+</body>
+</html>

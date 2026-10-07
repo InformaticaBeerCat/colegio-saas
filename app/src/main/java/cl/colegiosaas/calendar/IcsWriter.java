@@ -2,6 +2,7 @@ package cl.colegiosaas.calendar;
 
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
@@ -56,6 +57,43 @@ public final class IcsWriter {
             line(ics, "URL:" + baseUrl + "/calendario/" + event.getSlug());
             line(ics, "END:VEVENT");
         }
+        line(ics, "END:VCALENDAR");
+        return ics.toString();
+    }
+
+    /**
+     * Una sola cita, para adjuntar al correo de confirmación o descargar desde el enlace de la cita (AGE-04).
+     * Trae una alarma un día antes, que el teléfono muestra aunque el correo de recordatorio no llegue.
+     *
+     * @param uid identificador estable: al reprogramar, la aplicación actualiza la cita en vez de duplicarla
+     */
+    public static String single(String calendarName, String uid, String summary, String location, String description,
+                                LocalDateTime start, LocalDateTime end, ZoneId zone, Instant now) {
+        StringBuilder ics = new StringBuilder();
+        line(ics, "BEGIN:VCALENDAR");
+        line(ics, "VERSION:2.0");
+        line(ics, "PRODID:-//Colegio SaaS//Agenda//ES");
+        line(ics, "CALSCALE:GREGORIAN");
+        line(ics, "METHOD:PUBLISH");
+        line(ics, "X-WR-CALNAME:" + escape(calendarName));
+        line(ics, "BEGIN:VEVENT");
+        line(ics, "UID:" + uid);
+        line(ics, "DTSTAMP:" + UTC.format(now));
+        line(ics, "DTSTART:" + UTC.format(start.atZone(zone)));
+        line(ics, "DTEND:" + UTC.format(end.atZone(zone)));
+        line(ics, "SUMMARY:" + escape(summary));
+        if (location != null) {
+            line(ics, "LOCATION:" + escape(location));
+        }
+        if (description != null) {
+            line(ics, "DESCRIPTION:" + escape(description));
+        }
+        line(ics, "BEGIN:VALARM");
+        line(ics, "TRIGGER:-P1D");
+        line(ics, "ACTION:DISPLAY");
+        line(ics, "DESCRIPTION:" + escape(summary));
+        line(ics, "END:VALARM");
+        line(ics, "END:VEVENT");
         line(ics, "END:VCALENDAR");
         return ics.toString();
     }

@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head(title='Feriados')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: admin-header}"></header>
+<main id="contenido" class="container">
+    <p><a th:href="@{/admin/scheduling}">← Agenda</a></p>
+    <div class="page-head">
+        <h1 th:text="|Feriados ${year}|">Feriados 2026</h1>
+        <form th:action="@{/admin/scheduling/holidays/import}" method="post" class="inline">
+            <input type="hidden" name="year" th:value="${year}">
+            <button type="submit" class="btn">Cargar desde la fuente oficial</button>
+        </form>
+    </div>
+    <div th:replace="~{fragments/layout :: flash}"></div>
+    <p class="hint">Los feriados cambian por ley de un año a otro: cárgalos desde la fuente oficial cada año. Esos días no se ofrecen citas.</p>
+    <nav class="pagination" aria-label="Años">
+        <a th:href="@{/admin/scheduling/holidays(anio=${year - 1})}" th:text="|← ${year - 1}|">2025</a>
+        <a th:href="@{/admin/scheduling/holidays(anio=${year + 1})}" th:text="|${year + 1} →|">2027</a>
+    </nav>
+    <div class="table-wrap section">
+        <table class="data">
+            <caption class="visually-hidden" th:text="|Feriados ${year}|">Feriados</caption>
+            <thead><tr><th scope="col">Fecha</th><th scope="col">Feriado</th><th scope="col">Irrenunciable</th><th scope="col"><span class="visually-hidden">Eliminar</span></th></tr></thead>
+            <tbody>
+            <tr th:each="h : ${holidays}">
+                <td th:text="${@formats.weekday(h.holidayDate)}">1 de enero</td>
+                <td th:text="${h.name}">Año Nuevo</td>
+                <td th:text="${h.mandatory} ? 'Sí' : 'No'">Sí</td>
+                <td><form th:action="@{/admin/scheduling/holidays/{id}/delete(id=${h.id})}" method="post" class="inline">
+                    <input type="hidden" name="year" th:value="${year}">
+                    <button type="submit" class="btn btn-small btn-danger">Quitar</button></form></td>
+            </tr>
+            <tr th:if="${#lists.isEmpty(holidays)}"><td colspan="4" class="muted">Sin feriados cargados para este año.</td></tr>
+            </tbody>
+        </table>
+    </div>
+    <form class="card section" th:action="@{/admin/scheduling/holidays}" method="post">
+        <h2>Agregar a mano</h2>
+        <div class="color-grid">
+            <div class="field"><label for="date">Fecha</label><input id="date" type="date" name="date" required></div>
+            <div class="field"><label for="hname">Nombre</label><input id="hname" type="text" name="name" required maxlength="120"></div>
+        </div>
+        <div class="checks"><label><input type="checkbox" name="mandatory" value="true"> Irrenunciable</label></div>
+        <button type="submit" class="btn btn-secondary">Agregar</button>
+    </form>
+</main>
+</body>
+</html>

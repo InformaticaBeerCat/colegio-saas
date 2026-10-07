@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="es-CL" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{public/layout :: head(${pageTitle}, ${metaDescription}, ${noindex})}"></head>
+<body th:class="|theme-${site.themeId}|">
+<div th:replace="~{public/layout :: top}"></div>
+<main id="contenido" tabindex="-1">
+    <header class="page-header"><div class="wrap">
+        <p class="breadcrumb"><a th:href="@{/calendario}">Calendario</a></p>
+        <h1>Reuniones de apoderados</h1>
+        <p class="lead">Busca el curso de tu hijo o hija para ver sus próximas reuniones.</p>
+    </div></header>
+    <div class="wrap block">
+        <p th:if="${byCourse.isEmpty() and #lists.isEmpty(general)}" class="muted">No hay reuniones programadas.</p>
+        <section th:unless="${#lists.isEmpty(general)}" class="section-group" aria-labelledby="todos">
+            <h2 id="todos">Todos los cursos</h2>
+            <ul class="history">
+                <li th:each="e : ${general}"><a th:href="@{/calendario/{s}(s=${e.slug})}" th:text="${e.title}">Reunión general</a>
+                    — <span th:text="${@eventDates.of(e)}">12 de octubre</span></li>
+            </ul>
+        </section>
+        <section th:each="entry : ${byCourse}" class="section-group" th:with="headingId=|curso-${entry.key.id}|" th:attr="aria-labelledby=${headingId}">
+            <h2 th:id="${headingId}" th:text="${entry.key.displayName()}">1° A</h2>
+            <ul class="history">
+                <li th:each="e : ${entry.value}"><a th:href="@{/calendario/{s}(s=${e.slug})}" th:text="${e.title}">Reunión de apoderados</a>
+                    — <span th:text="${@eventDates.of(e)}">12 de octubre, 19:00 h</span>
+                    <span th:if="${e.location}" class="muted" th:text="| · ${e.location}|">· Sala 12</span></li>
+            </ul>
+        </section>
+    </div>
+</main>
+<footer th:replace="~{public/layout :: footer}"></footer>
+</body>
+</html>

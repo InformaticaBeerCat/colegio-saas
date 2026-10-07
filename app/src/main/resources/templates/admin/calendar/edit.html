@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<html lang="es" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head th:replace="~{fragments/layout :: head(title=${event == null ? 'Nuevo evento' : event.title})}"></head>
 <body>
 <header th:replace="~{fragments/layout :: admin-header}"></header>
@@ -9,6 +9,8 @@
         <h1 th:text="${event == null ? 'Nuevo evento' : event.title}">Evento</h1>
         <div class="actions" th:if="${event}">
             <a class="btn btn-secondary" th:if="${event.published}" th:href="@{/calendario/{s}(s=${event.slug})}">Ver en el sitio</a>
+            <a class="btn btn-secondary" th:if="${@features.on('EVENTS')}" sec:authorize="hasAuthority('EVENTS')"
+               th:href="@{/admin/events/{id}/registrations(id=${event.id})}">Inscripción e inscritos</a>
             <form th:unless="${event.published}" th:action="@{/admin/calendar/{id}/publish(id=${event.id})}" method="post"><button type="submit" class="btn">Publicar</button></form>
             <form th:if="${event.published}" th:action="@{/admin/calendar/{id}/unpublish(id=${event.id})}" method="post"><button type="submit" class="btn btn-secondary">Retirar</button></form>
         </div>

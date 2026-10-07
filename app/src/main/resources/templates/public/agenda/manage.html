@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="es-CL" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{public/layout :: head(${pageTitle}, ${metaDescription}, ${noindex})}"></head>
+<body th:class="|theme-${site.themeId}|">
+<div th:replace="~{public/layout :: top}"></div>
+<main id="contenido" tabindex="-1">
+    <header class="page-header"><div class="wrap">
+        <p class="breadcrumb">Mi cita</p>
+        <h1 th:text="${appointment.appointmentType.name}">Visita guiada</h1>
+    </div></header>
+    <div class="wrap block">
+        <p class="notice" role="status" th:if="${notice}" th:text="${notice}">Listo</p>
+        <p class="form-problem" role="alert" th:if="${problem}" th:text="${problem}">Error</p>
+        <dl class="details">
+            <dt>Estado</dt><dd th:text="${#messages.msg('appointmentStatus.' + appointment.status)}">Confirmada</dd>
+            <dt>Cuándo</dt><dd th:text="${when}">martes 13 de octubre a las 10:00</dd>
+            <dt>Con</dt><dd th:text="${appointment.host.name}">Ana</dd>
+            <dt>Modalidad</dt><dd th:text="${#messages.msg('mode.' + appointment.mode)}">Presencial</dd>
+        </dl>
+        <th:block th:if="${appointment.status.name() == 'CONFIRMED'}">
+            <p class="actions-row">
+                <a class="button" th:href="@{/citas/{t}/cita.ics(t=${token})}">Agregar a mi calendario</a>
+                <a class="button button--secondary" th:href="@{/citas/{t}/reprogramar(t=${token})}">Cambiar la hora</a>
+            </p>
+            <form th:action="@{/citas/{t}/cancelar(t=${token})}" method="post" class="form-card">
+                <h2>Cancelar la cita</h2>
+                <div class="form-field">
+                    <label for="reason">Motivo <span class="muted">(opcional)</span></label>
+                    <input id="reason" type="text" name="reason" maxlength="500">
+                </div>
+                <button type="submit" class="button button--secondary">Cancelar mi cita</button>
+            </form>
+        </th:block>
+        <p th:if="${appointment.status.name() == 'CANCELLED'}"><a th:href="@{/agenda/{id}(id=${appointment.appointmentType.id})}">Agendar otra hora</a></p>
+    </div>
+</main>
+<footer th:replace="~{public/layout :: footer}"></footer>
+</body>
+</html>

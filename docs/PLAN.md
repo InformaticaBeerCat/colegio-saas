@@ -230,11 +230,34 @@ entidades, repositorios, su migración Flyway y tests de persistencia.
 > La ley entra en vigencia el 1-dic-2026 (salvo postergación). Las tablas de privacidad se crean en la iteración 1.5,
 > antes de cualquier formulario público, así ningún formulario sale sin consentimiento registrado.
 
-### Fase 7 — Interacción
-- Contacto con enrutamiento por área, número de ticket y bandeja [COM-01, COM-02]; antispam [COM-08]; WhatsApp [COM-03].
-- Eventos con cupos, lista de espera y cierre automático [EVE-01, EVE-02]; reuniones de apoderados por curso [AGE-08].
-- Agenda: tipos de cita, disponibilidad, feriados, reserva, recordatorios `.ics`, reprogramar/cancelar con enlace seguro, panel del gestor [AGE-01..05, AGE-10].
-- Admisión modo SAE: página informativa, hitos, vacantes, registro de interés [ADM-01..03, ADM-07, ADM-08].
+### Fase 7 — Interacción ✅
+- Antispam común a todos los formularios públicos [COM-08], sin captcha ni servicios externos: campo trampa, sello
+  firmado con la hora en que se mostró el formulario (sin sesión) y límite de envíos por IP. A un bot se le responde
+  como si todo hubiera salido bien. También protege el formulario de derechos de la fase 6.
+- Contacto [COM-01, COM-02]: el mensaje va al área elegida (la instalación crea "Secretaría"; se administran en
+  `/admin/contact-areas`), recibe número de ticket por correo y el área un aviso sin datos personales. Bandeja con
+  carpetas y filtro por área, responder por correo (cuenta como primera respuesta), notas internas, derivar, resolver,
+  spam, y el promedio de horas hasta la primera respuesta. WhatsApp click-to-chat en la página de contacto [COM-03].
+- Eventos con inscripción [EVE-01, EVE-02]: aforo, lista de espera y cierre automático (fecha o inicio del evento).
+  El cupo se decide con la fila del evento bloqueada; una familia no se separa entre confirmados y espera. Al
+  cancelar (con el enlace secreto del correo o desde el panel) o ampliar el aforo, sube la lista en orden y se avisa.
+  Planilla CSV de inscritos y registro de asistencia.
+- Reuniones de apoderados por curso [AGE-08]: piden el curso al inscribirse y se listan por curso en
+  `/calendario/reuniones`.
+- Agenda [AGE-01..05, AGE-10]: tipos de cita con duración, pausa, público, modalidad y funcionarios; horario semanal
+  por funcionario (y por tipo), bloqueos personales o de todo el colegio y feriados (carga desde la API oficial de
+  gob.cl, `APP_HOLIDAYS_URL`, o a mano). Horas libres con anticipación mínima, reserva con la fila del funcionario
+  bloqueada, correo con `.ics` (con alarma) y enlace secreto para reprogramar o cancelar, recordatorio 24 h antes.
+  Panel del gestor: su agenda (o la de todos con el permiso general), ficha de la cita con registro de acceso,
+  asistencia, cancelación con aviso a la familia y notas.
+- Admisión SAE [ADM-01..03, ADM-07, ADM-08]: página `/admision` según el modo (SAE o propio con Admisión Pro), hitos
+  del proceso, niveles abiertos con fechas de nacimiento y vacantes configurables, visitas guiadas y jornadas de
+  puertas abiertas, y registro de interés con consentimiento propio y otro separado para el seguimiento (ADM-06),
+  plazo de conservación y datos de campaña (`utm_source`, `utm_campaign`).
+- Cada formulario pide su consentimiento sobre el aviso publicado; sin aviso, el formulario no se muestra.
+
+> Pendiente: enlace de videollamada automático para citas en línea (AGE-06, v2); postulación propia (v2); embudo y
+> correos automáticos de seguimiento (Admisión Pro).
 
 ### Fase 8 — SEO, búsqueda y rendimiento
 - schema.org (`School`, `Event`, `NewsArticle`, `FAQPage`), sitemap, robots, Open Graph, `noindex` en lo privado [SEO-01..03].

@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="es-CL" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{public/layout :: head(${pageTitle}, ${metaDescription}, ${noindex})}"></head>
+<body th:class="|theme-${site.themeId}|">
+<div th:replace="~{public/layout :: top}"></div>
+<main id="contenido" tabindex="-1">
+    <header class="page-header"><div class="wrap">
+        <p class="breadcrumb"><a th:href="@{/agenda}">Agenda</a></p>
+        <h1 th:text="${type.name}">Visita guiada</h1>
+        <p class="lead" th:if="${type.description}" th:text="${type.description}">Descripción</p>
+        <p class="muted" th:text="|Duración: ${type.durationMinutes} minutos. Elige una hora.|">Duración</p>
+    </div></header>
+    <div class="wrap block">
+        <p th:if="${days.isEmpty()}" class="notice">No quedan horas disponibles en las próximas semanas.
+            <a th:href="@{/contacto}">Escríbenos</a> y buscamos una alternativa.</p>
+        <section th:each="day : ${days}" class="slot-day" th:with="dayId=|dia-${day.key}|" th:attr="aria-labelledby=${dayId}">
+            <h2 th:id="${dayId}" class="slot-day__title" th:text="${@formats.weekday(day.key)}">martes 13 de octubre</h2>
+            <ul class="slots">
+                <li th:each="s : ${day.value}">
+                    <a class="slot" th:href="@{/agenda/{id}/reservar(id=${type.id}, funcionario=${s.hostId}, inicio=${s.start})}">
+                        <span th:text="${#temporals.format(s.start, 'HH:mm')}">10:00</span>
+                        <span class="slot__host" th:if="${type.hosts.size() > 1}" th:text="${s.hostName}">Ana</span>
+                    </a>
+                </li>
+            </ul>
+        </section>
+    </div>
+</main>
+<footer th:replace="~{public/layout :: footer}"></footer>
+</body>
+</html>

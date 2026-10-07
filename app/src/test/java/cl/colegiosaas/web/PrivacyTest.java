@@ -527,7 +527,7 @@ class PrivacyTest extends WebTestSupport {
     // --- Apoyo ----------------------------------------------------------------------------------------------
 
     private org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder rightsRequest(String right) {
-        return post("/privacidad/derechos").param("right", right).param("name", "María González")
+        return post("/privacidad/derechos").param(cl.colegiosaas.shared.forms.FormGuard.STAMP, formGuard.stamp()).param("right", right).param("name", "María González")
                 .param("email", "maria@correo.cl").param("details", "Quiero saber qué datos tienen");
     }
 

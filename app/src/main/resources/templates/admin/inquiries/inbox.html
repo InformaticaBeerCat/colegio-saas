@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/layout :: head(title='Consultas')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: admin-header}"></header>
+<main id="contenido" class="container">
+    <div class="page-head">
+        <h1>Consultas</h1>
+        <a sec:authorize="hasAuthority('SCHOOL_SETTINGS')" class="btn btn-secondary" th:href="@{/admin/contact-areas}">Áreas y correos</a>
+    </div>
+    <div th:replace="~{fragments/layout :: flash}"></div>
+    <p class="hint" th:if="${averageHours.isPresent()}"
+       th:text="|Primera respuesta en los últimos 30 días: ${#numbers.formatInteger(averageHours.getAsDouble(), 1)} horas en promedio.|">Promedio</p>
+
+    <form th:action="@{/admin/inquiries}" method="get" class="filters-admin card">
+        <div class="field"><label for="folder">Mostrar</label>
+            <select id="folder" name="folder">
+                <option th:each="f : ${folders}" th:value="${f}" th:selected="${f == folder}" th:text="${#messages.msg('folder.' + f)}">Abiertas</option>
+            </select></div>
+        <div class="field"><label for="area">Área</label>
+            <select id="area" name="area">
+                <option value="">Todas</option>
+                <option th:each="a : ${areas}" th:value="${a.id}" th:selected="${a.id == area}" th:text="${a.name}">Secretaría</option>
+            </select></div>
+        <button type="submit" class="btn btn-secondary">Filtrar</button>
+    </form>
+
+    <div class="table-wrap section">
+        <table class="data">
+            <caption class="visually-hidden">Consultas</caption>
+            <thead><tr><th scope="col">Ticket</th><th scope="col">Área</th><th scope="col">Asunto</th><th scope="col">Recibida</th><th scope="col">Estado</th><th scope="col">A cargo</th></tr></thead>
+            <tbody>
+            <tr th:each="i : ${inquiries}">
+                <td><a th:href="@{/admin/inquiries/{id}(id=${i.id})}" th:text="${i.ticketCode}">C-7KQ2M9XA</a></td>
+                <td th:text="${i.area.name}">Secretaría</td>
+                <td th:text="${i.subject ?: '(sin asunto)'}">Matrícula</td>
+                <td th:text="${@formats.dateTime(i.createdAt)}">1 de marzo</td>
+                <td><span class="badge" th:classappend="${i.status.name() == 'NEW'} ? 'badge-warn'" th:text="${#messages.msg('inquiryStatus.' + i.status)}">Nueva</span></td>
+                <td th:text="${i.assignedTo != null} ? ${i.assignedTo.name} : '—'">Ana</td>
+            </tr>
+            <tr th:if="${#lists.isEmpty(inquiries)}"><td colspan="6" class="muted">No hay consultas aquí.</td></tr>
+            </tbody>
+        </table>
+    </div>
+</main>
+</body>
+</html>

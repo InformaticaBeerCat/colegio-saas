@@ -9,6 +9,8 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 import org.springframework.stereotype.Component;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 
 import java.time.Duration;
 import java.util.Arrays;
@@ -37,6 +39,38 @@ public class CookiePreferences {
      * @param analyticsAllowed  aceptó la analítica en la versión vigente: lo único que habilita su script (fase 8)
      */
     public record Choice(Integer policyVersion, boolean bannerNeeded, boolean analyticsAllowed) {
+    }
+
+    /**
+     * Elección del visitante de la petición en curso. Las plantillas del sitio la piden con
+     * {@code @cookiePreferences.current()} solo al pintar la página (no en cada imagen o archivo) y se
+     * calcula una vez por petición.
+     */
+    public Choice current() {
+        if (!(RequestContextHolder.getRequestAttributes() instanceof ServletRequestAttributes attributes)) {
+            return null;
+        }
+        HttpServletRequest request = attributes.getRequest();
+        if (request.getRequestURI().startsWith("/admin")) {
+            return null;
+        }
+        Object cached = request.getAttribute(Choice.class.getName());
+        if (cached instanceof Choice choice) {
+            return choice;
+        }
+        Choice choice = read(request);
+        request.setAttribute(Choice.class.getName(), choice);
+        return choice;
+    }
+
+    /** Ruta actual, para volver a ella después de elegir en el banner. */
+    public String currentPath() {
+        if (!(RequestContextHolder.getRequestAttributes() instanceof ServletRequestAttributes attributes)) {
+            return "/";
+        }
+        HttpServletRequest request = attributes.getRequest();
+        String query = request.getQueryString();
+        return request.getRequestURI() + (query == null ? "" : "?" + query);
     }
 
     public Choice read(HttpServletRequest request) {

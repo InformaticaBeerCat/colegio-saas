@@ -4,6 +4,7 @@ import cl.colegiosaas.calendar.CalendarService;
 import cl.colegiosaas.calendar.Event;
 import cl.colegiosaas.calendar.EventKind;
 import cl.colegiosaas.calendar.IcsWriter;
+import cl.colegiosaas.calendar.RegistrationService;
 import cl.colegiosaas.platform.Feature;
 import cl.colegiosaas.platform.RequiresFeature;
 import cl.colegiosaas.platform.School;
@@ -11,6 +12,7 @@ import cl.colegiosaas.platform.SchoolRepository;
 import cl.colegiosaas.platform.SchoolTime;
 import cl.colegiosaas.shared.text.Slugs;
 import cl.colegiosaas.shared.web.AppProperties;
+import cl.colegiosaas.structure.Course;
 import cl.colegiosaas.structure.GradeLevel;
 import cl.colegiosaas.structure.GradeLevelRepository;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -33,6 +35,7 @@ import java.time.LocalDateTime;
 import java.time.YearMonth;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -55,9 +58,12 @@ class CalendarPublicController {
     private final AppProperties app;
     private final PublicPages pages;
     private final Clock clock;
+    private final EventPage eventPage;
+    private final RegistrationService registrations;
 
     CalendarPublicController(CalendarService calendar, GradeLevelRepository gradeLevels, SchoolRepository schools,
-                             SchoolTime time, AppProperties app, PublicPages pages, Clock clock) {
+                             SchoolTime time, AppProperties app, PublicPages pages, Clock clock, EventPage eventPage,
+                             RegistrationService registrations) {
         this.calendar = calendar;
         this.gradeLevels = gradeLevels;
         this.schools = schools;
@@ -65,6 +71,8 @@ class CalendarPublicController {
         this.app = app;
         this.pages = pages;
         this.clock = clock;
+        this.eventPage = eventPage;
+        this.registrations = registrations;
     }
 
     @GetMapping("/calendario")
@@ -89,10 +97,25 @@ class CalendarPublicController {
 
     @GetMapping("/calendario/{slug:[a-z0-9]+(?:-[a-z0-9]+)*}")
     String event(@PathVariable String slug, Model model) {
-        Event event = calendar.publishedBySlug(slug);
-        pages.prepare(model, event.getTitle(), event.getDescription());
-        model.addAttribute("event", event);
-        return "public/calendar/event";
+        return eventPage.render(model, calendar.publishedBySlug(slug));
+    }
+
+    /** Próximas reuniones de apoderados, agrupadas por curso (AGE-08). */
+    @GetMapping("/calendario/reuniones")
+    String parentMeetings(Model model) {
+        pages.prepare(model, "Reuniones de apoderados", "Próximas reuniones de apoderados por curso");
+        Map<Course, List<Event>> byCourse = new TreeMap<>(Comparator.comparing((Course c) -> c.getGradeLevel().getSortOrder())
+                .thenComparing(Course::getSection).thenComparing(Course::getId));
+        List<Event> general = new ArrayList<>();
+        for (Event meeting : registrations.upcomingParentMeetings()) {
+            if (meeting.getCourses().isEmpty()) {
+                general.add(meeting);
+            }
+            meeting.getCourses().forEach(c -> byCourse.computeIfAbsent(c, k -> new ArrayList<>()).add(meeting));
+        }
+        model.addAttribute("byCourse", byCourse);
+        model.addAttribute("general", general);
+        return "public/calendar/meetings";
     }
 
     /** Suscripción al calendario: el mes pasado y el próximo año, con los mismos filtros de la página. */

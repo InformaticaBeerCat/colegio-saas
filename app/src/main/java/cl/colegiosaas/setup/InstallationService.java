@@ -3,6 +3,8 @@ package cl.colegiosaas.setup;
 import cl.colegiosaas.admissions.AdmissionSettings;
 import cl.colegiosaas.admissions.AdmissionSettingsRepository;
 import cl.colegiosaas.audit.AuditAction;
+import cl.colegiosaas.contact.ContactArea;
+import cl.colegiosaas.contact.ContactAreaRepository;
 import cl.colegiosaas.audit.AuditTrail;
 import cl.colegiosaas.identity.PasswordPolicy;
 import cl.colegiosaas.identity.Role;
@@ -33,6 +35,7 @@ public class InstallationService {
     private final SchoolRepository schools;
     private final SiteSettingsRepository siteSettings;
     private final AdmissionSettingsRepository admissionSettings;
+    private final ContactAreaRepository contactAreas;
     private final UserAccountRepository users;
     private final PasswordEncoder passwordEncoder;
     private final AuditTrail audit;
@@ -42,11 +45,12 @@ public class InstallationService {
     private final AtomicBoolean installed = new AtomicBoolean();
 
     InstallationService(SchoolRepository schools, SiteSettingsRepository siteSettings,
-                        AdmissionSettingsRepository admissionSettings, UserAccountRepository users,
+                        AdmissionSettingsRepository admissionSettings, ContactAreaRepository contactAreas, UserAccountRepository users,
                         PasswordEncoder passwordEncoder, AuditTrail audit, Clock clock) {
         this.schools = schools;
         this.siteSettings = siteSettings;
         this.admissionSettings = admissionSettings;
+        this.contactAreas = contactAreas;
         this.users = users;
         this.passwordEncoder = passwordEncoder;
         this.audit = audit;
@@ -84,6 +88,10 @@ public class InstallationService {
         siteSettings.save(new SiteSettings(SiteDesign.defaults()));
         // El proceso de admisión que se publica es el del año siguiente.
         admissionSettings.save(AdmissionSettings.defaultFor(data.dependency(), Year.now(clock).getValue() + 1));
+
+        // Un área para que el formulario de contacto funcione desde el primer día (COM-01); se ajustan en el panel.
+        String inbox = school.getContactEmail() != null ? school.getContactEmail() : data.adminEmail().strip();
+        contactAreas.save(new ContactArea("Secretaría", inbox, 1));
 
         UserAccount admin = new UserAccount(data.adminEmail().strip(), data.adminName().strip(), Role.SUPER_ADMIN);
         admin.changePassword(passwordEncoder.encode(data.adminPassword()));

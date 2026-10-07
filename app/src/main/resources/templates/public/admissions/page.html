@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="es-CL" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{public/layout :: head(${pageTitle}, ${metaDescription}, ${noindex})}"></head>
+<body th:class="|theme-${site.themeId}|">
+<div th:replace="~{public/layout :: top}"></div>
+<main id="contenido" tabindex="-1" th:with="s=${admission.settings}">
+    <header class="page-header"><div class="wrap">
+        <h1 th:text="|Admisión ${s.processYear}|">Admisión 2027</h1>
+        <p class="lead" th:if="${s.mode.name() == 'SAE'}">La postulación a nuestro colegio se hace en el Sistema de Admisión Escolar (SAE)
+            del Ministerio de Educación. Aquí encuentras las fechas, las vacantes y cómo conocernos antes de postular.</p>
+        <p class="lead" th:if="${s.mode.name() == 'OWN'}">Nuestro colegio tiene un proceso de admisión propio. Aquí encuentras
+            las fechas, las vacantes y cómo conocernos.</p>
+        <p th:if="${s.mode.name() == 'SAE'}"><a class="button" th:href="${s.saeUrl}" rel="noopener">Postular en el SAE<span class="visually-hidden"> (otro sitio)</span></a></p>
+    </div></header>
+
+    <div class="wrap block">
+        <div class="prose" th:if="${s.introText}" th:utext="${s.introText}">Texto</div>
+
+        <section class="section-group" th:unless="${#lists.isEmpty(admission.milestones)}" aria-labelledby="fechas">
+            <h2 id="fechas">Fechas del proceso</h2>
+            <ol class="timeline">
+                <li th:each="m : ${admission.milestones}" class="timeline__item"
+                    th:classappend="${(m.endsOn != null ? m.endsOn : m.startsOn).isBefore(today)} ? 'timeline__item--past'">
+                    <p class="timeline__date" th:text="${m.endsOn == null} ? ${@formats.date(m.startsOn)} : |${@formats.date(m.startsOn)} al ${@formats.date(m.endsOn)}|">12 al 30 de agosto</p>
+                    <p class="timeline__name">
+                        <a th:if="${m.linkUrl}" th:href="@{${m.linkUrl}}" th:text="${m.name}">Postulación SAE</a>
+                        <strong th:unless="${m.linkUrl}" th:text="${m.name}">Postulación SAE</strong>
+                    </p>
+                    <p th:if="${m.description}" th:text="${m.description}">Detalle</p>
+                </li>
+            </ol>
+        </section>
+
+        <section class="section-group" th:unless="${#lists.isEmpty(admission.openLevels())}" aria-labelledby="niveles">
+            <h2 id="niveles">Niveles que reciben postulantes</h2>
+            <div class="table-wrap">
+                <table class="data-table">
+                    <caption class="visually-hidden">Niveles, edades y vacantes</caption>
+                    <thead><tr><th scope="col">Nivel</th><th scope="col">Fecha de nacimiento</th><th scope="col" th:if="${admission.showsVacancies()}">Vacantes</th></tr></thead>
+                    <tbody>
+                    <tr th:each="l : ${admission.openLevels()}">
+                        <th scope="row" th:text="${l.level.name}">Pre-kínder</th>
+                        <td th:text="${l.bornFrom == null and l.bornUntil == null} ? '—'
+                            : (${l.bornFrom != null and l.bornUntil != null} ? |Entre el ${@formats.date(l.bornFrom)} y el ${@formats.date(l.bornUntil)}|
+                            : (${l.bornFrom != null} ? |Desde el ${@formats.date(l.bornFrom)}| : |Hasta el ${@formats.date(l.bornUntil)}|))">Entre…</td>
+                        <td th:if="${admission.showsVacancies()}" th:text="${l.seats != null} ? ${l.seats} : '—'">30</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p class="muted" th:if="${admission.showsVacancies()}">Vacantes referenciales: las definitivas las informa el SAE.</p>
+        </section>
+
+        <section class="section-group" th:if="${!#lists.isEmpty(admission.visits) or !#lists.isEmpty(admission.openHouses)}" aria-labelledby="conocenos">
+            <h2 id="conocenos">Conócenos</h2>
+            <ul class="card-list">
+                <li th:each="t : ${admission.visits}" class="choice-card">
+                    <h3><a th:href="@{/agenda/{id}(id=${t.id})}" th:text="${t.name}">Visita guiada</a></h3>
+                    <p th:if="${t.description}" th:text="${t.description}">Recorre el colegio.</p>
+                    <p><a th:href="@{/agenda/{id}(id=${t.id})}">Elegir día y hora</a></p>
+                </li>
+                <li th:each="e : ${admission.openHouses}" class="choice-card">
+                    <h3><a th:href="@{/calendario/{s}(s=${e.slug})}" th:text="${e.title}">Puertas abiertas</a></h3>
+                    <p th:text="${@eventDates.of(e)}">sábado 17 de octubre, 10:00 h</p>
+                    <p><a th:href="@{/calendario/{s}(s=${e.slug})}" th:text="${e.registrationEnabled} ? 'Inscribirme' : 'Ver detalles'">Inscribirme</a></p>
+                </li>
+            </ul>
+        </section>
+
+        <section id="interes" class="section-group" aria-labelledby="interes-titulo">
+            <h2 id="interes-titulo">Déjanos tus datos</h2>
+            <p>Te enviaremos la información del proceso y, si lo autorizas, los avisos de fechas importantes.</p>
+            <p class="notice" role="status" th:if="${notice}" th:text="${notice}">Gracias</p>
+            <p class="form-problem" role="alert" th:if="${problem}" th:text="${problem}">Falta el correo</p>
+            <p th:if="${privacyNotice == null}" class="muted">El registro en línea se habilitará pronto.</p>
+            <form th:if="${privacyNotice}" th:action="@{/admision/interes}" method="post" class="form-card">
+                <div class="form-field">
+                    <label for="name">Tu nombre</label>
+                    <input id="name" type="text" name="name" required maxlength="150" autocomplete="name" th:value="${form?.name}">
+                </div>
+                <div class="form-field">
+                    <label for="email">Tu correo</label>
+                    <input id="email" type="email" name="email" required maxlength="254" autocomplete="email" th:value="${form?.email}">
+                </div>
+                <div class="form-field">
+                    <label for="phone">Teléfono <span class="muted">(opcional)</span></label>
+                    <input id="phone" type="tel" name="phone" maxlength="30" autocomplete="tel" th:value="${form?.phone}">
+                </div>
+                <div class="form-field" th:unless="${#lists.isEmpty(admission.openLevels())}">
+                    <label for="gradeLevelId">Nivel al que postularía <span class="muted">(opcional)</span></label>
+                    <select id="gradeLevelId" name="gradeLevelId">
+                        <option value="">Aún no lo sé</option>
+                        <option th:each="l : ${admission.openLevels()}" th:value="${l.level.id}" th:text="${l.level.name}"
+                                th:selected="${form != null and form.gradeLevelId == l.level.id}">Pre-kínder</option>
+                    </select>
+                </div>
+                <input type="hidden" name="utmSource" th:value="${form?.utmSource}">
+                <input type="hidden" name="utmCampaign" th:value="${form?.utmCampaign}">
+                <div th:replace="~{public/forms :: guard}"></div>
+                <details th:replace="~{public/privacy/fragments :: notice(${privacyNotice})}"></details>
+                <label class="choice form-field">
+                    <input type="checkbox" name="consent" value="true" required>
+                    <span>Autorizo al colegio a registrar mis datos para enviarme la información de admisión, según el aviso de privacidad</span>
+                </label>
+                <label class="choice form-field">
+                    <input type="checkbox" name="followUp" value="true">
+                    <span>Además, quiero recibir correos con fechas y novedades del proceso (opcional)</span>
+                </label>
+                <button type="submit" class="button">Enviar</button>
+            </form>
+        </section>
+    </div>
+</main>
+<footer th:replace="~{public/layout :: footer}"></footer>
+</body>
+</html>

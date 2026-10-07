@@ -1,8 +1,8 @@
 package cl.colegiosaas.privacy;
 
-import java.time.Instant;
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import java.time.Instant;
 import java.util.List;
 
 public interface ConsentRecordRepository extends JpaRepository<ConsentRecord, Long> {

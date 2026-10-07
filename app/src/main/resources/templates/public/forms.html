@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html lang="es-CL" xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<!-- Antispam de los formularios públicos (COM-08): campo trampa invisible y sello con la hora en que se mostró. -->
+<div th:fragment="guard" th:remove="tag">
+    <div class="hp" aria-hidden="true">
+        <label for="sitio_web">No llenar</label>
+        <input id="sitio_web" type="text" name="sitio_web" tabindex="-1" autocomplete="off">
+    </div>
+    <input type="hidden" name="sello" th:value="${@formGuard.stamp()}">
+</div>
+
+</body>
+</html>

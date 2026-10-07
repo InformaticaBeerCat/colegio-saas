@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head(title=${type == null ? 'Nuevo tipo de cita' : type.name})}"></head>
+<body>
+<header th:replace="~{fragments/layout :: admin-header}"></header>
+<main id="contenido" class="container">
+    <p><a th:href="@{/admin/scheduling/types}">← Tipos de cita</a></p>
+    <h1 th:text="${type == null ? 'Nuevo tipo de cita' : type.name}">Tipo de cita</h1>
+    <div th:replace="~{fragments/layout :: flash}"></div>
+    <form class="card section" th:action="${type == null} ? @{/admin/scheduling/types} : @{/admin/scheduling/types/{id}(id=${type.id})}" method="post">
+        <div class="color-grid">
+            <div class="field"><label for="name">Nombre</label><input id="name" type="text" name="name" required maxlength="120" th:value="${type?.name}" placeholder="Visita guiada"></div>
+            <div class="field"><label for="durationMinutes">Duración (minutos)</label><input id="durationMinutes" type="number" name="durationMinutes" min="5" max="480" required th:value="${type != null ? type.durationMinutes : 30}"></div>
+            <div class="field"><label for="bufferMinutes">Pausa entre citas (minutos)</label><input id="bufferMinutes" type="number" name="bufferMinutes" min="0" max="120" th:value="${type != null ? type.bufferMinutes : 0}"></div>
+            <div class="field"><label for="audience">Quién puede reservar</label>
+                <select id="audience" name="audience"><option th:each="a : ${audiences}" th:value="${a}" th:selected="${type != null and type.audience == a}" th:text="${#messages.msg('audience.' + a)}">Apoderados</option></select></div>
+        </div>
+        <div class="field"><label for="description">Descripción <span class="muted">(se ve en el sitio)</span></label><textarea id="description" name="description" rows="3" maxlength="1000" th:text="${type?.description}"></textarea></div>
+        <div class="checks">
+            <label><input type="checkbox" name="inPerson" value="true" th:checked="${type == null or type.inPersonAllowed}"> Presencial</label>
+            <label><input type="checkbox" name="online" value="true" th:checked="${type != null and type.onlineAllowed}"> En línea</label>
+            <label><input type="checkbox" name="active" value="true" th:checked="${type == null or type.active}"> Activo (se puede reservar en el sitio)</label>
+        </div>
+        <fieldset>
+            <legend>Quiénes atienden</legend>
+            <p class="hint" th:if="${#lists.isEmpty(hosts)}">No hay funcionarios con agenda. Asigna el rol "Gestor de agenda" en Usuarios.</p>
+            <div class="checks checks-grid">
+                <label th:each="h : ${hosts}"><input type="checkbox" name="hostIds" th:value="${h.id}" th:checked="${type != null and type.isHostedBy(h)}"> <span th:text="${h.name}">Ana</span></label>
+            </div>
+        </fieldset>
+        <button type="submit" class="btn">Guardar</button>
+    </form>
+    <form th:if="${type}" th:action="@{/admin/scheduling/types/{id}/delete(id=${type.id})}" method="post">
+        <button type="submit" class="btn btn-danger">Eliminar tipo</button>
+    </form>
+</main>
+</body>
+</html>

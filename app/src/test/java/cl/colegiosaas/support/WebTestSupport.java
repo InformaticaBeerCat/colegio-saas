@@ -9,6 +9,7 @@ import cl.colegiosaas.security.SchoolUser;
 import cl.colegiosaas.security.Totp;
 import cl.colegiosaas.setup.Installation;
 import cl.colegiosaas.setup.InstallationService;
+import cl.colegiosaas.shared.forms.FormGuard;
 import cl.colegiosaas.shared.mail.OutgoingMail;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -20,6 +21,7 @@ import org.springframework.test.context.event.ApplicationEvents;
 import org.springframework.test.context.event.RecordApplicationEvents;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import org.springframework.test.web.servlet.request.RequestPostProcessor;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -37,12 +39,15 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
  * Base de los tests web: la app completa con MockMvc, cada test en una transacción que se revierte
  * (MockMvc corre en el mismo hilo, así que las peticiones participan de ella).
  * El límite por IP se sube porque todos los tests "vienen" de 127.0.0.1; las tareas programadas se
- * apagan (los tests las llaman directamente) y los archivos van a una carpeta de target.
+ * apagan (los tests las llaman directamente) y los archivos van a una carpeta de target. El antispam de los
+ * formularios públicos no exige esperar ni limita envíos (se prueba aparte en {@code FormGuardTest}).
  */
 @SpringBootTest(properties = {
         "app.security.max-failed-logins-per-ip=1000",
         "app.scheduling.enabled=false",
-        "app.storage.local-dir=target/test-files"})
+        "app.storage.local-dir=target/test-files",
+        "app.forms.min-fill-time=0s",
+        "app.forms.max-per-ip=1000"})
 @AutoConfigureMockMvc
 @Transactional
 @RecordApplicationEvents
@@ -64,6 +69,9 @@ public abstract class WebTestSupport {
 
     @Autowired
     protected ApplicationEvents events;
+
+    @Autowired
+    protected FormGuard formGuard;
 
     protected UserAccount install() {
         return installation.install(new Installation("Colegio San José", "8485-1", SchoolDependency.PRIVATE_SUBSIDIZED,
@@ -115,6 +123,11 @@ public abstract class WebTestSupport {
     /** PDF mínimo válido (la firma %PDF- es lo que revisa la subida). */
     protected static byte[] pdf(String content) {
         return ("%PDF-1.4\n% " + content + "\n%%EOF\n").getBytes(java.nio.charset.StandardCharsets.US_ASCII);
+    }
+
+    /** Envío de un formulario público con el sello antispam que pondría la página. */
+    protected MockHttpServletRequestBuilder publicForm(String url) {
+        return post(url).param(FormGuard.STAMP, formGuard.stamp()).with(csrf());
     }
 
     protected List<OutgoingMail> mails() {

@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head(title='Disponibilidad')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: admin-header}"></header>
+<main id="contenido" class="container">
+    <p><a th:href="@{/admin/scheduling}">← Agenda</a></p>
+    <h1>Disponibilidad</h1>
+    <div th:replace="~{fragments/layout :: flash}"></div>
+
+    <form th:if="${manageAll}" th:action="@{/admin/scheduling/availability}" method="get" class="filters-admin card">
+        <div class="field"><label for="host">Funcionario</label>
+            <select id="host" name="host"><option th:each="h : ${hosts}" th:value="${h.id}" th:selected="${h.id == hostId}" th:text="${h.name}">Ana</option></select></div>
+        <button type="submit" class="btn btn-secondary">Ver</button>
+    </form>
+
+    <p class="hint" th:if="${#lists.isEmpty(types)}">Todavía no atiende ningún tipo de cita: pídele a quien administra la agenda que lo asigne.</p>
+
+    <section class="section" aria-labelledby="semana">
+        <h2 id="semana">Horario semanal</h2>
+        <div class="table-wrap">
+            <table class="data">
+                <caption class="visually-hidden">Ventanas de atención</caption>
+                <thead><tr><th scope="col">Día</th><th scope="col">Horario</th><th scope="col">Tipo de cita</th><th scope="col">Vigencia</th><th scope="col"><span class="visually-hidden">Eliminar</span></th></tr></thead>
+                <tbody>
+                <tr th:each="r : ${rules}">
+                    <td th:text="${#messages.msg('day.' + r.dayOfWeek)}">Martes</td>
+                    <td th:text="|${r.startTime}–${r.endTime}|">09:00–12:30</td>
+                    <td th:text="${r.appointmentType != null} ? ${r.appointmentType.name} : 'Cualquiera de sus tipos'">Visita guiada</td>
+                    <td th:text="${r.validFrom == null and r.validUntil == null} ? 'Siempre' : |${r.validFrom != null ? @formats.date(r.validFrom) : '…'} – ${r.validUntil != null ? @formats.date(r.validUntil) : '…'}|">Siempre</td>
+                    <td><form th:action="@{/admin/scheduling/availability/rules/{id}/delete(id=${r.id}, host=${hostId})}" method="post" class="inline">
+                        <button type="submit" class="btn btn-small btn-danger">Quitar</button></form></td>
+                </tr>
+                <tr th:if="${#lists.isEmpty(rules)}"><td colspan="5" class="muted">Sin horario: nadie puede reservar contigo todavía.</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <form class="card section" th:action="@{/admin/scheduling/availability/rules(host=${hostId})}" method="post">
+        <h2>Agregar horario</h2>
+        <fieldset>
+            <legend>Días</legend>
+            <div class="checks checks-grid">
+                <label th:each="d : ${days}"><input type="checkbox" name="day" th:value="${d}"> <span th:text="${#messages.msg('day.' + d)}">Lunes</span></label>
+            </div>
+        </fieldset>
+        <div class="color-grid">
+            <div class="field"><label for="start">Desde</label><input id="start" type="time" name="start" required value="09:00"></div>
+            <div class="field"><label for="end">Hasta</label><input id="end" type="time" name="end" required value="13:00"></div>
+            <div class="field"><label for="typeId">Tipo de cita</label>
+                <select id="typeId" name="typeId"><option value="">Cualquiera de sus tipos</option>
+                    <option th:each="t : ${types}" th:value="${t.id}" th:text="${t.name}">Visita guiada</option></select></div>
+            <div class="field"><label for="validFrom">Vigente desde <span class="muted">(opcional)</span></label><input id="validFrom" type="date" name="validFrom"></div>
+            <div class="field"><label for="validUntil">Hasta <span class="muted">(opcional)</span></label><input id="validUntil" type="date" name="validUntil"></div>
+        </div>
+        <button type="submit" class="btn">Agregar</button>
+    </form>
+
+    <section class="section" aria-labelledby="bloqueos">
+        <h2 id="bloqueos">Bloqueos</h2>
+        <p class="hint">Licencias, vacaciones o jornadas sin atención. No cancelan las citas ya tomadas: revísalas en la agenda.</p>
+        <ul class="block-list">
+            <li th:each="b : ${blocks}" class="block-row">
+                <span><strong th:text="${b.host == null} ? 'Todo el colegio' : 'Personal'">Personal</strong>:
+                    <span th:text="|${#temporals.format(b.startsAt, 'dd-MM-yyyy HH:mm')} a ${#temporals.format(b.endsAt, 'dd-MM-yyyy HH:mm')}|">fechas</span>
+                    <span class="muted" th:if="${b.reason}" th:text="|(${b.reason})|"></span></span>
+                <form th:if="${manageAll or b.host != null}" th:action="@{/admin/scheduling/availability/blocks/{id}/delete(id=${b.id}, host=${hostId})}" method="post" class="inline">
+                    <button type="submit" class="btn btn-small btn-danger">Quitar</button></form>
+            </li>
+            <li th:if="${#lists.isEmpty(blocks)}" class="muted">Sin bloqueos próximos.</li>
+        </ul>
+        <form class="card" th:action="@{/admin/scheduling/availability/blocks(host=${hostId})}" method="post">
+            <div class="color-grid">
+                <div class="field"><label for="bstart">Desde</label><input id="bstart" type="datetime-local" name="start" required></div>
+                <div class="field"><label for="bend">Hasta</label><input id="bend" type="datetime-local" name="end" required></div>
+                <div class="field"><label for="breason">Motivo <span class="muted">(opcional)</span></label><input id="breason" type="text" name="reason" maxlength="200"></div>
+            </div>
+            <div class="checks" th:if="${manageAll}"><label><input type="checkbox" name="wholeSchool" value="true"> Bloquear a todo el colegio</label></div>
+            <button type="submit" class="btn btn-secondary">Agregar bloqueo</button>
+        </form>
+    </section>
+</main>
+</body>
+</html>

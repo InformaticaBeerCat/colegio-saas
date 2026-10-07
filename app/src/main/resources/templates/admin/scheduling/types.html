@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head(title='Tipos de cita')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: admin-header}"></header>
+<main id="contenido" class="container">
+    <p><a th:href="@{/admin/scheduling}">← Agenda</a></p>
+    <div class="page-head">
+        <h1>Tipos de cita</h1>
+        <a class="btn" th:href="@{/admin/scheduling/types/new}">Nuevo tipo</a>
+    </div>
+    <div th:replace="~{fragments/layout :: flash}"></div>
+    <div class="table-wrap section">
+        <table class="data">
+            <caption class="visually-hidden">Tipos de cita</caption>
+            <thead><tr><th scope="col">Tipo</th><th scope="col">Duración</th><th scope="col">Quién reserva</th><th scope="col">Atienden</th><th scope="col">Estado</th></tr></thead>
+            <tbody>
+            <tr th:each="t : ${types}">
+                <td><a th:href="@{/admin/scheduling/types/{id}(id=${t.id})}" th:text="${t.name}">Visita guiada</a></td>
+                <td th:text="|${t.durationMinutes} min${t.bufferMinutes > 0 ? ' + ' + t.bufferMinutes + ' de pausa' : ''}|">45 min</td>
+                <td th:text="${#messages.msg('audience.' + t.audience)}">Familias postulantes</td>
+                <td><span th:each="h, it : ${t.hosts}" th:text="${h.name} + (${it.last} ? '' : ', ')">Ana</span></td>
+                <td><span class="badge" th:classappend="${t.active} ? 'badge-ok'" th:text="${t.active} ? 'Activo' : 'Inactivo'">Activo</span></td>
+            </tr>
+            <tr th:if="${#lists.isEmpty(types)}"><td colspan="5" class="muted">Todavía no hay tipos de cita. Crea, por ejemplo, "Visita guiada" o "Entrevista con profesor jefe".</td></tr>
+            </tbody>
+        </table>
+    </div>
+</main>
+</body>
+</html>

@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/layout :: head(title='Agenda')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: admin-header}"></header>
+<main id="contenido" class="container">
+    <div class="page-head">
+        <h1>Agenda</h1>
+        <div class="actions">
+            <a class="btn btn-secondary" th:href="@{/admin/scheduling/availability(host=${host})}">Mi disponibilidad</a>
+            <a class="btn btn-secondary" sec:authorize="hasAuthority('SCHEDULING_ALL')" th:href="@{/admin/scheduling/types}">Tipos de cita</a>
+            <a class="btn btn-secondary" sec:authorize="hasAuthority('SCHEDULING_ALL')" th:href="@{/admin/scheduling/holidays}">Feriados</a>
+            <a class="btn btn-secondary" th:href="@{/agenda}">Ver en el sitio</a>
+        </div>
+    </div>
+    <div th:replace="~{fragments/layout :: flash}"></div>
+
+    <form th:if="${manageAll}" th:action="@{/admin/scheduling}" method="get" class="filters-admin card">
+        <div class="field"><label for="host">Funcionario</label>
+            <select id="host" name="host">
+                <option value="">Todos</option>
+                <option th:each="h : ${hosts}" th:value="${h.id}" th:selected="${h.id == host}" th:text="${h.name}">Ana</option>
+            </select></div>
+        <input type="hidden" name="desde" th:value="${from}">
+        <button type="submit" class="btn btn-secondary">Ver</button>
+    </form>
+
+    <nav class="pagination" aria-label="Semanas">
+        <a th:href="@{/admin/scheduling(host=${host}, desde=${previous})}">← Anteriores</a>
+        <span th:text="|Desde el ${@formats.date(from)}|">Desde hoy</span>
+        <a th:href="@{/admin/scheduling(host=${host}, desde=${next})}">Siguientes →</a>
+    </nav>
+
+    <p th:if="${days.isEmpty()}" class="muted">No hay citas en estas dos semanas.</p>
+    <section th:each="day : ${days}" class="section" th:with="dayId=|dia-${day.key}|" th:attr="aria-labelledby=${dayId}">
+        <h2 th:id="${dayId}" th:text="${@formats.weekday(day.key)}">martes 13 de octubre</h2>
+        <div class="table-wrap">
+            <table class="data">
+                <caption class="visually-hidden" th:text="${@formats.weekday(day.key)}">Citas del día</caption>
+                <thead><tr><th scope="col">Hora</th><th scope="col">Cita</th><th scope="col">Persona</th><th scope="col" th:if="${manageAll}">Con</th><th scope="col">Estado</th></tr></thead>
+                <tbody>
+                <tr th:each="a : ${day.value}">
+                    <td><a th:href="@{/admin/scheduling/appointments/{id}(id=${a.id})}" th:text="|${#temporals.format(a.startsAt, 'HH:mm')}–${#temporals.format(a.endsAt, 'HH:mm')}|">10:00–10:45</a></td>
+                    <td th:text="${a.appointmentType.name} + (${a.mode.name() == 'ONLINE'} ? ' (en línea)' : '')">Visita guiada</td>
+                    <td th:text="${a.contactName ?: '—'}">Rosa</td>
+                    <td th:if="${manageAll}" th:text="${a.host.name}">Ana</td>
+                    <td><span class="badge" th:classappend="${a.status.name() == 'CANCELLED'} ? 'badge-problem' : (${a.status.name() == 'CONFIRMED'} ? 'badge-ok' : '')"
+                              th:text="${#messages.msg('appointmentStatus.' + a.status)}">Confirmada</span></td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+</main>
+</body>
+</html>

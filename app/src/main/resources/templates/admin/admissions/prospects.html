@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head(title='Registros de interés')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: admin-header}"></header>
+<main id="contenido" class="container">
+    <p><a th:href="@{/admin/admissions}">← Admisión</a></p>
+    <h1>Registros de interés</h1>
+    <div th:replace="~{fragments/layout :: flash}"></div>
+    <p class="hint">Se borran automáticamente al vencer su plazo de conservación. Solo se escribe a quien aceptó recibir correos de seguimiento.</p>
+    <div class="table-wrap section">
+        <table class="data">
+            <caption class="visually-hidden">Registros de interés</caption>
+            <thead><tr><th scope="col">Fecha</th><th scope="col">Nivel</th><th scope="col">Año</th><th scope="col">Etapa</th><th scope="col">Origen</th></tr></thead>
+            <tbody>
+            <tr th:each="p : ${prospects}">
+                <td><a th:href="@{/admin/admissions/prospects/{id}(id=${p.id})}" th:text="${@formats.dateTime(p.createdAt)}">1 de marzo</a></td>
+                <td th:text="${p.gradeLevel != null} ? ${p.gradeLevel.name} : 'Sin nivel'">Pre-kínder</td>
+                <td th:text="${p.entryYear}">2027</td>
+                <td th:text="${#messages.msg('stage.' + p.stage)}">Interesado</td>
+                <td th:text="${p.utmSource ?: #messages.msg('source.' + p.source)}">Sitio web</td>
+            </tr>
+            <tr th:if="${#lists.isEmpty(prospects)}"><td colspan="5" class="muted">Todavía no hay registros.</td></tr>
+            </tbody>
+        </table>
+    </div>
+</main>
+</body>
+</html>

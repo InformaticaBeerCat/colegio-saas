@@ -69,3 +69,6 @@ quedan en `http://localhost:8025`.
 | `APP_PRIVACY_RESPONSE_DAYS` | Días corridos para responder una solicitud de derechos (por defecto `30`) |
 | `APP_PRIVACY_INCIDENT_HOURS` | Meta en horas para notificar una brecha a la Agencia (por defecto `72`) |
 | `APP_RETENTION_ENABLED` | `false` para apagar el borrado automático por plazos de conservación |
+| `APP_HOLIDAYS_URL` | Fuente de feriados de Chile para la agenda (por defecto la API de gob.cl; `{year}` = año) |
+| `APP_AGENDA_MIN_NOTICE`, `APP_AGENDA_HORIZON_DAYS` | Anticipación mínima para reservar (`2h`) y días que se ofrecen (`30`) |
+| `APP_FORMS_MAX_PER_IP` | Envíos de un mismo formulario público por IP cada 10 minutos (por defecto `5`) |

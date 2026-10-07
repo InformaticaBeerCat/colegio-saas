@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="es-CL" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{public/layout :: head(${pageTitle}, ${metaDescription}, ${noindex})}"></head>
+<body th:class="|theme-${site.themeId}|">
+<div th:replace="~{public/layout :: top}"></div>
+<main id="contenido" tabindex="-1">
+    <header class="page-header"><div class="wrap">
+        <h1>Agenda tu cita</h1>
+        <p class="lead">Elige qué necesitas y luego el día y la hora que te acomoden. La confirmación llega a tu correo.</p>
+    </div></header>
+    <div class="wrap block">
+        <p th:if="${#lists.isEmpty(types)}" class="muted">Por ahora no hay citas para agendar en línea.</p>
+        <ul class="card-list" th:unless="${#lists.isEmpty(types)}">
+            <li th:each="t : ${types}" class="choice-card">
+                <h2><a th:href="@{/agenda/{id}(id=${t.id})}" th:text="${t.name}">Visita guiada</a></h2>
+                <p th:if="${t.description}" th:text="${t.description}">Recorre el colegio con el equipo de admisión.</p>
+                <p class="muted">
+                    <span th:text="|${t.durationMinutes} minutos|">45 minutos</span> ·
+                    <span th:text="${#messages.msg('audience.' + t.audience)}">Familias postulantes</span> ·
+                    <span th:text="${t.inPersonAllowed and t.onlineAllowed} ? 'Presencial o en línea' : (${t.inPersonAllowed} ? 'Presencial' : 'En línea')">Presencial</span>
+                </p>
+            </li>
+        </ul>
+    </div>
+</main>
+<footer th:replace="~{public/layout :: footer}"></footer>
+</body>
+</html>

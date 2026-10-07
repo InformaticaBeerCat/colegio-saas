@@ -22,7 +22,7 @@
         <a th:href="@{/admin}">Volver al panel</a>
     </div>
 
-    <section th:replace="~{public/privacy/fragments :: cookie-banner}"></section>
+    <th:block th:replace="~{public/privacy/fragments :: cookie-banner}"></th:block>
 
     <section class="site-alerts" th:unless="${#lists.isEmpty(site.alerts)}" aria-label="Avisos importantes">
         <p th:each="alert : ${site.alerts}" class="site-alert" th:classappend="|site-alert--${#strings.toLowerCase(alert.severity)}|">
@@ -108,7 +108,8 @@
         <p th:if="${site.footer.footerText}" th:text="${site.footer.footerText}">Texto del pie</p>
         <p>© <span th:text="${#dates.year(#dates.createNow())}">2026</span> <span th:text="${site.schoolName}">Colegio</span></p>
         <!-- PRV-01, PRV-03, PRV-05: la privacidad siempre a un clic, en todas las páginas. -->
-        <ul class="legal-links">
+        <ul class="legal-links" th:with="cookies=${@cookiePreferences.current()}">
+            <li th:if="${@features.on('CONTACT')}"><a th:href="@{/contacto}">Contacto</a></li>
             <li><a th:href="@{/privacidad}">Privacidad</a></li>
             <li><a th:href="@{/privacidad/derechos}">Ejercer mis derechos</a></li>
             <li th:if="${cookies != null and cookies.policyVersion != null}"><a th:href="@{/privacidad/cookies#preferencias}">Preferencias de cookies</a></li>
