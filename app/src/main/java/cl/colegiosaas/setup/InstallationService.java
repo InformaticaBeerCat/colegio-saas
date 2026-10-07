@@ -11,6 +11,7 @@ import cl.colegiosaas.identity.Role;
 import cl.colegiosaas.identity.UserAccount;
 import cl.colegiosaas.identity.UserAccountRepository;
 import cl.colegiosaas.platform.School;
+import cl.colegiosaas.platform.license.LicenseService;
 import cl.colegiosaas.platform.SchoolRepository;
 import cl.colegiosaas.shared.persistence.SingletonEntity;
 import cl.colegiosaas.site.SiteDesign;
@@ -36,6 +37,7 @@ public class InstallationService {
     private final SiteSettingsRepository siteSettings;
     private final AdmissionSettingsRepository admissionSettings;
     private final ContactAreaRepository contactAreas;
+    private final LicenseService licenses;
     private final UserAccountRepository users;
     private final PasswordEncoder passwordEncoder;
     private final AuditTrail audit;
@@ -45,12 +47,14 @@ public class InstallationService {
     private final AtomicBoolean installed = new AtomicBoolean();
 
     InstallationService(SchoolRepository schools, SiteSettingsRepository siteSettings,
-                        AdmissionSettingsRepository admissionSettings, ContactAreaRepository contactAreas, UserAccountRepository users,
+                        AdmissionSettingsRepository admissionSettings, ContactAreaRepository contactAreas, LicenseService licenses,
+                        UserAccountRepository users,
                         PasswordEncoder passwordEncoder, AuditTrail audit, Clock clock) {
         this.schools = schools;
         this.siteSettings = siteSettings;
         this.admissionSettings = admissionSettings;
         this.contactAreas = contactAreas;
+        this.licenses = licenses;
         this.users = users;
         this.passwordEncoder = passwordEncoder;
         this.audit = audit;
@@ -78,7 +82,8 @@ public class InstallationService {
             throw new IllegalArgumentException(String.join(" ", passwordProblems));
         }
 
-        School school = new School(data.schoolName().strip(), data.plan());
+        // Con licencia, el plan es el contratado (OPS-05); sin ella (desarrollo), el que se elige en el asistente.
+        School school = new School(data.schoolName().strip(), licenses.licensedPlan().orElse(data.plan()));
         school.setRbd(blankToNull(data.rbd()));
         school.setDependency(data.dependency());
         school.setContactEmail(blankToNull(data.contactEmail()));

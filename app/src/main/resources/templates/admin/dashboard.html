@@ -93,7 +93,7 @@
             <p><a th:href="@{/admin/profile}">Mi cuenta y contraseña</a></p>
         </section>
 
-        <section class="card" aria-labelledby="admin" sec:authorize="hasAnyAuthority('USERS', 'AUDIT_LOG', 'SCHOOL_SETTINGS', 'PRIVACY')">
+        <section class="card" aria-labelledby="admin" sec:authorize="hasAnyAuthority('USERS', 'AUDIT_LOG', 'SCHOOL_SETTINGS', 'PRIVACY', 'PLATFORM')">
             <h2 id="admin">Administración</h2>
             <ul>
                 <li sec:authorize="hasAuthority('PRIVACY')"><a th:href="@{/admin/privacy}">Privacidad y datos personales</a></li>
@@ -101,6 +101,8 @@
                 <li sec:authorize="hasAuthority('USERS')"><a th:href="@{/admin/users}">Usuarios y permisos</a></li>
                 <li sec:authorize="hasAuthority('SCHOOL_SETTINGS')"><a th:href="@{/admin/structure}">Niveles y cursos</a></li>
                 <li sec:authorize="hasAuthority('AUDIT_LOG')"><a th:href="@{/admin/audit}">Registro de auditoría</a></li>
+                <li sec:authorize="hasAuthority('PLATFORM')"><a th:href="@{/admin/platform}">Plataforma: licencia, estado y versión</a></li>
+                <li sec:authorize="hasAuthority('SCHOOL_SETTINGS')"><a th:href="@{/admin/platform/export}">Descargar todos los datos del colegio</a></li>
             </ul>
         </section>
 

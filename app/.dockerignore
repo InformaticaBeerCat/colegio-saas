@@ -1,0 +1,6 @@
+target/
+perf/node_modules/
+data/
+*.log
+.idea/
+.vscode/

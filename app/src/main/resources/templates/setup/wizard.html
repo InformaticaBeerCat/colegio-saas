@@ -46,7 +46,11 @@
                     <span class="hint">Define si la admisión es por el SAE o propia.</span>
                     <p class="field-error" th:if="${#fields.hasErrors('dependency')}" th:errors="*{dependency}"></p>
                 </div>
-                <div class="field">
+                <div class="field" th:if="${licensedPlan}">
+                    <p class="label">Plan contratado</p>
+                    <p><strong th:text="${#messages.msg('plan.' + licensedPlan)}">Comunidad</strong> <span class="muted">(según la licencia)</span></p>
+                </div>
+                <div class="field" th:unless="${licensedPlan}">
                     <label for="plan">Plan contratado</label>
                     <select th:field="*{plan}">
                         <option th:each="p : ${plans}" th:value="${p}" th:text="${#messages.msg('plan.' + p)}">Base</option>

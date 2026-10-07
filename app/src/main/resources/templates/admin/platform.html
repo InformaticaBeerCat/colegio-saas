@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head(title='Plataforma')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: admin-header}"></header>
+<main id="contenido" class="container">
+    <div class="page-head">
+        <h1>Plataforma</h1>
+        <a class="btn btn-secondary" th:href="@{/admin/platform/export}">Descargar exportación completa</a>
+    </div>
+    <div th:replace="~{fragments/layout :: flash}"></div>
+
+    <div class="alert alert-problem" role="alert" th:unless="${#lists.isEmpty(problems)}">
+        <strong th:text="${production} ? 'Configuración no apta para producción:' : 'Antes de pasar a producción falta:'">Falta:</strong>
+        <ul><li th:each="p : ${problems}" th:text="${p}">APP_BASE_URL debe ser https://</li></ul>
+    </div>
+    <div class="alert alert-warn" role="status" th:if="${update}">
+        Hay una versión nueva: <strong th:text="${update.version}">1.2.0</strong>.
+        <a th:if="${update.url}" th:href="${update.url}" rel="noopener">Ver novedades</a>.
+        Para instalarla: <code>./actualizar.sh</code> en el servidor (respalda, descarga la imagen y migra la base).
+    </div>
+
+    <div class="cards section">
+        <section class="card" aria-labelledby="instalacion">
+            <h2 id="instalacion">Instalación</h2>
+            <dl class="facts">
+                <dt>Versión</dt><dd th:text="${version}">1.0.0</dd>
+                <dt>Ambiente</dt><dd th:text="${production} ? 'Producción' : 'Desarrollo'">Producción</dd>
+                <dt>Plan</dt><dd th:text="${#messages.msg('plan.' + plan)}">Comunidad</dd>
+            </dl>
+        </section>
+        <section class="card" aria-labelledby="licencia">
+            <h2 id="licencia">Licencia</h2>
+            <p th:if="${license.problem}" class="hint" th:text="${license.problem}">Sin licencia</p>
+            <dl class="facts" th:if="${license.license}">
+                <dt>Colegio</dt><dd th:text="${license.license.school}">Colegio San José</dd>
+                <dt>Dominio</dt><dd th:text="${license.license.domain}">colegiosanjose.cl</dd>
+                <dt>Plan</dt><dd th:text="${#messages.msg('plan.' + license.license.plan)}">Comunidad</dd>
+                <dt>Add-ons</dt><dd th:text="${#sets.isEmpty(license.license.addons)} ? '—' : ${#strings.listJoin(license.license.addons, ', ')}">—</dd>
+                <dt>Vence</dt><dd th:text="${@formats.date(license.license.expiresOn)}">31 de diciembre de 2027</dd>
+            </dl>
+        </section>
+    </div>
+
+    <section class="card section" aria-labelledby="estado">
+        <h2 id="estado">Estado</h2>
+        <ul class="block-list">
+            <li th:each="c : ${checks}" class="block-row">
+                <strong th:text="${c.name}">Respaldos</strong>
+                <span>
+                    <span class="badge" th:classappend="${c.level.name() == 'OK'} ? 'badge-ok' : (${c.level.name() == 'WARNING'} ? 'badge-warn' : 'badge-problem')"
+                          th:text="${c.level.name() == 'OK'} ? 'Bien' : (${c.level.name() == 'WARNING'} ? 'Atención' : 'Problema')">Bien</span>
+                    <span class="muted" th:text="${c.detail}">Último respaldo hace 3 h</span>
+                </span>
+            </li>
+        </ul>
+        <ul class="hint" th:unless="${#lists.isEmpty(warnings)}"><li th:each="w : ${warnings}" th:text="${w}">Sin SMTP</li></ul>
+    </section>
+
+    <section id="modulos" class="section" aria-labelledby="modulos-titulo">
+        <h2 id="modulos-titulo">Módulos</h2>
+        <p class="hint">Solo se pueden activar los que incluye la licencia.</p>
+        <div class="table-wrap">
+            <table class="data">
+                <caption class="visually-hidden">Módulos</caption>
+                <thead><tr><th scope="col">Módulo</th><th scope="col">Estado</th><th scope="col"><span class="visually-hidden">Cambiar</span></th></tr></thead>
+                <tbody>
+                <tr th:each="m : ${modules}">
+                    <td th:text="${#messages.msgOrNull('feature.' + m.feature) ?: m.feature}">Agenda</td>
+                    <td>
+                        <span th:if="${m.active}" class="badge badge-ok">Activo</span>
+                        <span th:if="${!m.active and m.allowed}" class="badge">Inactivo</span>
+                        <span th:if="${!m.allowed}" class="badge muted">No incluido</span>
+                    </td>
+                    <td>
+                        <form th:if="${m.allowed or m.active}" th:action="@{/admin/platform/modules}" method="post" class="inline">
+                            <input type="hidden" name="feature" th:value="${m.feature}">
+                            <input type="hidden" name="on" th:value="${!m.active}">
+                            <button type="submit" class="btn btn-small btn-secondary" th:text="${m.active} ? 'Desactivar' : 'Activar'">Activar</button>
+                        </form>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+</main>
+</body>
+</html>

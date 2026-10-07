@@ -1,0 +1,44 @@
+# Canal de actualización (OPS-03): cada versión etiquetada (v1.2.0) publica la imagen que instalan los colegios.
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+  packages: write
+
+jobs:
+  image:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Versión desde la etiqueta
+        id: version
+        run: echo "version=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+      - name: Fijar la versión del pom y probar
+        working-directory: app
+        run: |
+          ./mvnw -B -q versions:set -DnewVersion=${{ steps.version.outputs.version }} -DgenerateBackupPoms=false
+          ./mvnw -B verify
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Imagen con la versión y "latest"
+        run: |
+          IMAGE=ghcr.io/$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
+          docker build -t "$IMAGE:${{ steps.version.outputs.version }}" -t "$IMAGE:latest" app
+          docker push "$IMAGE:${{ steps.version.outputs.version }}"
+          docker push "$IMAGE:latest"
+      - name: Publicar la versión (es el canal que consulta el panel)
+        uses: softprops/action-gh-release@v2
+        with:
+          generate_release_notes: true

@@ -25,6 +25,27 @@ jobs:
           path: app/target/colegio-saas-*.jar
           retention-days: 3
 
+  security:
+    name: Seguridad de dependencias e imagen (SEG-02)
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Dependencias nuevas con vulnerabilidades conocidas (solo en pull requests)
+        if: github.event_name == 'pull_request'
+        uses: actions/dependency-review-action@v4
+        with:
+          fail-on-severity: high
+      - name: Construir la imagen
+        run: docker build -t colegio-saas:ci app
+      - name: Escanear la imagen (librerías Java y sistema)
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          image-ref: colegio-saas:ci
+          severity: CRITICAL,HIGH
+          ignore-unfixed: true
+          exit-code: '1'
+
   web-vitals:
     name: Core Web Vitals (UX-02)
     needs: test

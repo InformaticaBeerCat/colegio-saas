@@ -45,6 +45,11 @@ cd perf && npm install && npx playwright install chromium
 APP_SETUP_TOKEN=ci node web-vitals.mjs http://localhost:8080
 ```
 
+## Producción
+
+Ver [`deploy/README.md`](deploy/README.md): instalación con un comando, licencia, actualizaciones, respaldos,
+monitoreo y exportación.
+
 ## Primer arranque
 
 1. Arranca la app. Mientras no esté instalada, el log muestra un aviso con un **token de instalación**:
@@ -82,4 +87,9 @@ quedan en `http://localhost:8025`.
 | `APP_AGENDA_MIN_NOTICE`, `APP_AGENDA_HORIZON_DAYS` | Anticipación mínima para reservar (`2h`) y días que se ofrecen (`30`) |
 | `APP_ANALYTICS_ENABLED` | `false` para apagar el conteo anónimo de visitas |
 | `APP_ANALYTICS_SCRIPT_URL` | Script de analítica externa (Plausible, Matomo…); solo se carga con consentimiento |
+| `APP_ENVIRONMENT` | `production` exige configuración segura y licencia (por defecto `development`) |
+| `APP_LICENSE` | Licencia firmada por el proveedor (plan, add-ons, dominio, vencimiento) |
+| `APP_UPDATES_FEED_URL` | Canal de actualizaciones que consulta el panel de plataforma |
+| `APP_ALERTS_EMAIL` | Correo del proveedor para alertas de operación |
+| `APP_BACKUP_STATUS_FILE` | `last-backup.json` del respaldo diario, para alertar si falla |
 | `APP_FORMS_MAX_PER_IP` | Envíos de un mismo formulario público por IP cada 10 minutos (por defecto `5`) |

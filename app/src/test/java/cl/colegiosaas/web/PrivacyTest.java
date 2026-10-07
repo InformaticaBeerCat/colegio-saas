@@ -346,7 +346,7 @@ class PrivacyTest extends WebTestSupport {
                 .andExpect(header().string("Cache-Control", "no-store"))
                 .andReturn().getResponse().getContentAsString(java.nio.charset.StandardCharsets.UTF_8);
         assertThat(json).contains("\"consultas\"", "¿Quedan vacantes?", "\"estudiantes\"", "Tomás Soto", "NEWSLETTER");
-        assertThat(auditLog.findByActionOrderByIdAsc(AuditAction.EXPORT)).hasSize(1);
+        assertThat(auditLog.findByActionOrderByIdAsc(AuditAction.EXPORT)).filteredOn(e -> "DataSubject".equals(e.getEntityType())).hasSize(1);
 
         mvc.perform(post("/admin/privacy/people/erase").param("email", email).param("confirmEmail", "otro@correo.cl")
                         .with(as(admin)).with(csrf()))

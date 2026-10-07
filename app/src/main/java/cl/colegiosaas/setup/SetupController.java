@@ -2,6 +2,7 @@ package cl.colegiosaas.setup;
 
 import cl.colegiosaas.identity.PasswordPolicy;
 import cl.colegiosaas.platform.Plan;
+import cl.colegiosaas.platform.license.LicenseService;
 import cl.colegiosaas.platform.SchoolDependency;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -24,15 +25,19 @@ class SetupController {
     private final InstallationService installation;
     private final SetupToken setupToken;
 
-    SetupController(InstallationService installation, SetupToken setupToken) {
+    private final LicenseService licenses;
+
+    SetupController(InstallationService installation, SetupToken setupToken, LicenseService licenses) {
         this.installation = installation;
         this.setupToken = setupToken;
+        this.licenses = licenses;
     }
 
     @ModelAttribute
     void options(Model model) {
         model.addAttribute("dependencies", SchoolDependency.values());
         model.addAttribute("plans", Plan.values());
+        model.addAttribute("licensedPlan", licenses.licensedPlan().orElse(null));
     }
 
     @GetMapping

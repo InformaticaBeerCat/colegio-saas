@@ -281,13 +281,30 @@ entidades, repositorios, su migración Flyway y tests de persistencia.
 > Pendiente: caché del HTML público tras un proxy/CDN (fase 9); búsqueda con índice si un colegio supera los miles
 > de publicaciones.
 
-### Fase 9 — Operación
-- Imagen Docker y `compose` de producción: un colegio se instala con un comando y variables de entorno
-  (dominio, base de datos, almacenamiento, llave de cifrado, licencia) [OPS-01, OPS-09].
-- Licencia firmada por instalación: define plan y add-ons; los módulos activables quedan limitados por ella [OPS-05].
-- Canal de actualización con migraciones automáticas [OPS-03, OPS-04].
-- Respaldos diarios con restauración probada [SEG-05]; monitoreo y alertas [OPS-06].
-- Exportación completa del colegio [OPS-10]; escaneo de dependencias en CI [SEG-02].
+### Fase 9 — Operación ✅
+- Imagen Docker (`app/Dockerfile`, usuario sin privilegios, chequeo de salud) y `deploy/compose.yml` de producción con
+  MySQL, ClamAV, Caddy (HTTPS automático) y respaldos. `deploy/instalar.sh <dominio> <licencia>` genera llaves y
+  contraseñas, escribe `.env` y levanta todo [OPS-01, OPS-09]. En producción (`APP_ENVIRONMENT=production`) la app no
+  arranca con llaves de desarrollo, sin HTTPS, sin cookies seguras o sin licencia válida para su dominio.
+- Licencia firmada Ed25519 por instalación (`APP_LICENSE`): plan, add-ons, dominio y vencimiento, con 30 días de
+  gracia y luego solo el plan Base. Fija el plan al instalar y limita los módulos activables; el proveedor los
+  administra en `/admin/platform`. Herramienta de emisión `LicenseTool` en el mismo jar [OPS-05].
+- Canal de actualización: imagen por versión publicada al etiquetar (`.github/workflows/release.yml`), aviso en el
+  panel desde `APP_UPDATES_FEED_URL` (formato de GitHub o propio) y `deploy/actualizar.sh` que respalda, descarga y
+  reinicia; Flyway migra solo al arrancar [OPS-03, OPS-04].
+- Respaldo diario de base y archivos con **prueba de restauración** en una base aparte, rotación y estado en
+  `last-backup.json`; guía de restauración [SEG-05].
+- Monitoreo: `/actuator/health` (base, almacenamiento, antivirus, respaldos, licencia, disco), `liveness` para el
+  monitoreo externo y el contenedor, panel `/admin/platform` y alertas por correo cada hora, una vez al día por
+  problema [OPS-06].
+- Exportación completa del colegio en ZIP: tablas en JSON legible (descifradas) y archivos, sin secretos de acceso
+  [OPS-10].
+- Seguridad de dependencias: Dependabot, revisión de dependencias en pull requests y escaneo Trivy de la imagen en
+  CI [SEG-02].
+
+> Antes de la primera versión: generar las llaves del proveedor con `LicenseTool keys` y reemplazar
+> `app/src/main/resources/license/proveedor.pub` (la del repositorio es solo un ejemplo). Pendiente: borrar del
+> almacenamiento los archivos de evidencia de estudiantes eliminados (anotado en la fase 6).
 
 ### Después del MVP
 v2: zona comunidad con login, newsletter y push, agenda con sincronización de calendarios, QR en eventos, multilingüe, PWA, reportes.

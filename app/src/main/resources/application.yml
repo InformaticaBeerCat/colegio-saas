@@ -44,7 +44,27 @@ spring:
             enabled: true
             paths: /css/**,/js/**
 
+# OPS-06: salud para el monitoreo externo. El contenedor se reinicia solo por /actuator/health/liveness;
+# el detalle (respaldos, antivirus, licencia) lo ve quien tiene el permiso de plataforma.
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: when-authorized
+      roles: PLATFORM
+      probes:
+        enabled: true
+  info:
+    build:
+      enabled: true
+
 server:
+  # Detrás del proxy HTTPS (Caddy en deploy/compose.yml): esquema e IP real del visitante desde X-Forwarded-*.
+  # Solo se confía en proxies de redes internas.
+  forward-headers-strategy: native
   # UX-02: HTML, CSS y JS comprimidos.
   compression:
     enabled: true
@@ -91,6 +111,13 @@ app:
     min-notice: ${APP_AGENDA_MIN_NOTICE:2h}
     horizon-days: ${APP_AGENDA_HORIZON_DAYS:30}
     reminder-lead: 24h
+  platform:
+    # development | production. En producción la app no arranca con llaves de desarrollo, sin HTTPS o sin licencia.
+    environment: ${APP_ENVIRONMENT:development}
+    license: ${APP_LICENSE:}
+    updates-feed-url: ${APP_UPDATES_FEED_URL:}
+    alerts-email: ${APP_ALERTS_EMAIL:}
+    backup-status-file: ${APP_BACKUP_STATUS_FILE:}
   analytics:
     # REP-01: conteo propio y anónimo de visitas. Opcional: una herramienta externa (https://…/script.js) que solo
     # se carga a quien acepta la analítica en el banner de cookies.

@@ -1,0 +1,105 @@
+# Producción de un colegio (OPS-01, OPS-09): sitio, base de datos, antivirus, HTTPS automático y respaldos.
+# Instalación: ./instalar.sh   ·   Actualización: ./actualizar.sh   ·   Detalle: README.md
+name: colegio
+
+services:
+  app:
+    image: ${APP_IMAGE:-ghcr.io/informaticabeercat/colegio-saas}:${APP_VERSION:-latest}
+    restart: unless-stopped
+    depends_on:
+      mysql:
+        condition: service_healthy
+      clamav:
+        condition: service_started
+    environment:
+      APP_BASE_URL: https://${DOMAIN}
+      APP_LICENSE: ${APP_LICENSE}
+      APP_FIELD_KEY: ${APP_FIELD_KEY}
+      APP_INDEX_KEY: ${APP_INDEX_KEY}
+      APP_SETUP_TOKEN: ${APP_SETUP_TOKEN:-}
+      APP_MAIL_FROM: ${APP_MAIL_FROM}
+      APP_ALERTS_EMAIL: ${APP_ALERTS_EMAIL:-}
+      APP_UPDATES_FEED_URL: ${APP_UPDATES_FEED_URL:-}
+      APP_ANALYTICS_SCRIPT_URL: ${APP_ANALYTICS_SCRIPT_URL:-}
+      APP_CLAMD_HOST: clamav
+      APP_STORAGE_TYPE: ${APP_STORAGE_TYPE:-local}
+      APP_S3_ENDPOINT: ${APP_S3_ENDPOINT:-}
+      APP_S3_BUCKET: ${APP_S3_BUCKET:-}
+      APP_S3_ACCESS_KEY: ${APP_S3_ACCESS_KEY:-}
+      APP_S3_SECRET_KEY: ${APP_S3_SECRET_KEY:-}
+      DB_URL: jdbc:mysql://mysql:3306/colegio_saas
+      DB_USER: colegio
+      DB_PASSWORD: ${DB_PASSWORD}
+      SPRING_MAIL_HOST: ${SMTP_HOST:-}
+      SPRING_MAIL_PORT: ${SMTP_PORT:-587}
+      SPRING_MAIL_USERNAME: ${SMTP_USER:-}
+      SPRING_MAIL_PASSWORD: ${SMTP_PASSWORD:-}
+      SPRING_MAIL_PROPERTIES_MAIL_SMTP_STARTTLS_ENABLE: "true"
+      SPRING_MAIL_PROPERTIES_MAIL_SMTP_AUTH: "true"
+      TZ: America/Santiago
+    volumes:
+      - files:/data/files
+      - backups:/backups:ro
+
+  mysql:
+    image: mysql:8.4
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: colegio_saas
+      MYSQL_USER: colegio
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+      TZ: America/Santiago
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_0900_ai_ci
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -uroot -p\"$$MYSQL_ROOT_PASSWORD\" --silent"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+    volumes:
+      - mysql:/var/lib/mysql
+
+  clamav:
+    image: clamav/clamav:stable
+    restart: unless-stopped
+
+  # HTTPS automático con Let's Encrypt; el sitio solo se publica por aquí.
+  caddy:
+    image: caddy:2
+    restart: unless-stopped
+    depends_on:
+      - app
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      DOMAIN: ${DOMAIN}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+
+  # Respaldo diario de la base y los archivos, con prueba de restauración (SEG-05).
+  backup:
+    build: ./backup
+    restart: unless-stopped
+    depends_on:
+      mysql:
+        condition: service_healthy
+    environment:
+      DB_HOST: mysql
+      DB_NAME: colegio_saas
+      DB_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+      BACKUP_HOUR: ${BACKUP_HOUR:-3}
+      BACKUP_KEEP_DAYS: ${BACKUP_KEEP_DAYS:-14}
+      TZ: America/Santiago
+    volumes:
+      - backups:/backups
+      - files:/data/files:ro
+
+volumes:
+  mysql:
+  files:
+  backups:
+  caddy-data:
+  caddy-config:
