@@ -19,6 +19,9 @@
 		<jsoup.version>1.23.2</jsoup.version>
 		<webp-imageio.version>0.11.0</webp-imageio.version>
 		<awssdk.version>2.55.11</awssdk.version>
+		<!-- Parches de seguridad antes de que los traiga Spring Boot (SEG-02, Trivy). -->
+		<tomcat.version>11.0.25</tomcat.version>
+		<jackson-bom.version>3.1.7</jackson-bom.version>
 	</properties>
 	<dependencies>
 		<dependency>
