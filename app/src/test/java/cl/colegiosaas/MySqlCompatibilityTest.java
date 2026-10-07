@@ -4,7 +4,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
-import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.testcontainers.junit.jupiter.EnabledIfDockerAvailable;
 
@@ -33,19 +33,21 @@ class MySqlCompatibilityTest {
 
     @Test
     void checkConstraintsAreEnforced() {
+        // MySQL informa la violación de un CHECK con el error 3819, que Spring no traduce a
+        // DataIntegrityViolationException: basta con que el insert falle por la restricción.
         assertThatThrownBy(() -> jdbc.update("""
                 insert into school (id, version, created_at, updated_at, name, plan, time_zone)
                 values (2, 0, now(6), now(6), 'Otro', 'BASE', 'America/Santiago')
-                """)).isInstanceOf(DataIntegrityViolationException.class);
+                """)).isInstanceOf(DataAccessException.class).hasMessageContaining("Check constraint");
 
         assertThatThrownBy(() -> jdbc.update("""
                 insert into menu_item (version, created_at, updated_at, menu, label, page_id, url, sort_order)
                 values (0, now(6), now(6), 'HEADER', 'Sin destino', null, null, 0)
-                """)).isInstanceOf(DataIntegrityViolationException.class);
+                """)).isInstanceOf(DataAccessException.class).hasMessageContaining("Check constraint");
 
         assertThatThrownBy(() -> jdbc.update("""
                 insert into album (version, created_at, updated_at, slug, title, visibility, course_id, status, download_allowed)
                 values (0, now(6), now(6), 'curso-sin-curso', 'X', 'COURSE', null, 'DRAFT', false)
-                """)).isInstanceOf(DataIntegrityViolationException.class);
+                """)).isInstanceOf(DataAccessException.class).hasMessageContaining("Check constraint");
     }
 }
