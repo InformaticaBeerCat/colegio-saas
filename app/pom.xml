@@ -16,7 +16,7 @@
 	<properties>
 		<java.version>21</java.version>
 		<zxing.version>3.5.4</zxing.version>
-		<jsoup.version>1.23.2</jsoup.version>
+		<jsoup.version>1.24.1</jsoup.version>
 		<webp-imageio.version>0.11.0</webp-imageio.version>
 		<awssdk.version>2.55.11</awssdk.version>
 		<!-- Parches de seguridad antes de que los traiga Spring Boot (SEG-02, Trivy). -->
